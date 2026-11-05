@@ -79,7 +79,9 @@ npm test
 ```
 
 Roda todos os `test/*.test.js` pela `node:test`: 500 partidas só com robôs
-(`PARTIDAS=2000 npm test` para mais), as regras de desempate e as páginas.
+(`PARTIDAS=2000 npm test` para mais), as regras do truco (`test/regras.test.js`)
+e as páginas. Atalhos que montam situações por dentro do `Game` (placar 11 a 4,
+11 a 11, cartas escolhidas, Partida só de Robôs) ficam todos em `test/montagem.js`.
 
 ```bash
 npm run cobertura
