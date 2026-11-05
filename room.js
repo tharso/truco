@@ -117,7 +117,18 @@ class Room {
       const evs = c.kind === 'seat' ? seatEvents : events;
       this.write(c, `data: ${JSON.stringify({ type: 'state', state: this.viewFor(c), events: evs })}\n\n`);
     }
+    this.scheduleSignals();
     this.pump();
+  }
+
+  // Os Sinais dos Robôs acontecem na hora sorteada pelo Game, não junto com as cartas.
+  scheduleSignals() {
+    for (const s of this.game.takeSignalPlan()) {
+      setTimeout(() => {
+        this.game.showSignal(s);
+        this.broadcast();
+      }, s.delay);
+    }
   }
 
   // Relógio do jogo: robôs e pausas entre rodadas.

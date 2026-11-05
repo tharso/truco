@@ -126,6 +126,7 @@ class Game {
     this.lastRound = null;
     // Sinais da Mão: { seat, sig, card, seenBy } (seenBy = Robôs que viram). Some quando a carta é jogada.
     this.signals = [];
+    this.signalPlan = [];
   }
 
   // ---------- quem age agora ----------
@@ -178,6 +179,7 @@ class Game {
   startHand() {
     this.clearHand();
     this.handNo++;
+    this.dealNo = (this.dealNo || 0) + 1; // nunca volta a zero: separa os Sinais de cada Mão
     this.starter = this.starter < 0 ? Math.floor(this.rng() * 4) : (this.starter + 1) % 4;
     const deck = shuffle(newDeck(), this.rng);
     this.vira = deck.pop();
@@ -204,14 +206,27 @@ class Game {
       this.seats.forEach((s, seat) => {
         if (!s.bot) return;
         const sig = this.brain.signalFor(this, seat);
-        if (!sig) return;
-        const card = sig === 'lixo' ? null : this.hands[seat].find((c) => signalOfCard(c, this.manilha) === sig);
-        this.makeSignal(seat, sig, card, this.brain.signalDelay(this));
+        if (sig) this.signalPlan.push({ seat, sig, delay: this.brain.signalDelay(this), deal: this.dealNo });
       });
     }
   }
 
   // ---------- sinais ----------
+  // Os Sinais dos Robôs ficam marcados para uma hora sorteada. Quem tem relógio (a Sala) pega a lista
+  // aqui e chama showSignal na hora. Só então o Sinal acontece: a Mesa mostra e os Robôs tiram a sorte de ver.
+  takeSignalPlan() {
+    const plan = this.signalPlan;
+    this.signalPlan = [];
+    return plan;
+  }
+
+  showSignal({ seat, sig, deal }) {
+    if (deal !== this.dealNo || this.mode === 'ferro') return;
+    const card = sig === 'lixo' ? null : this.hands[seat].find((c) => signalOfCard(c, this.manilha) === sig);
+    if (sig !== 'lixo' && !card) return; // a carta do Sinal já foi jogada
+    this.makeSignal(seat, sig, card);
+  }
+
   canSignal(seat, idx) {
     const card = this.hands[seat][idx];
     return !!card && this.mode !== 'ferro' && SIGNAL_PHASES.has(this.phase)
@@ -225,17 +240,17 @@ class Game {
     const card = this.hands[seat] && this.hands[seat][idx];
     if (!card) return 'Carta inválida.';
     if (!this.canSignal(seat, idx)) return 'Essa carta já fez Sinal.';
-    this.makeSignal(seat, signalOfCard(card, this.manilha), card, 0);
+    this.makeSignal(seat, signalOfCard(card, this.manilha), card);
     return null;
   }
 
   // Cada Robô tira a sorte para ver ou não o Sinal (bots.js decide a chance).
-  makeSignal(seat, sig, card, delay) {
+  makeSignal(seat, sig, card) {
     const seenBy = this.brain
       ? this.seats.map((s, i) => i).filter((i) => i !== seat && this.seats[i].bot && this.brain.seesSignal(this, i, seat))
       : [];
     this.signals.push({ seat, sig, card: card || null, seenBy });
-    this.emit({ t: 'signal', seat, sig, delay });
+    this.emit({ t: 'signal', seat, sig, delay: 0 });
   }
 
   canPlayClosed(seat) {
@@ -332,15 +347,20 @@ class Game {
 
   // O parceiro de quem responde dá a Opinião. Se ele é Robô e quem responde é Jogador, dá na hora.
   // Se ele é Jogador e quem responde é Robô, o Jogador dá pelo Celular (opine). Dupla de dois Robôs: nada.
-  adviserOf(p) { return (p.responder + 2) % 4; }
+  opinionSeatOf(p) { return (p.responder + 2) % 4; }
+
+  // Quem responde é Robô e o parceiro dele é Jogador: o Jogador dá a Opinião pelo Celular.
+  playerOpines(p) {
+    return !this.seats[this.opinionSeatOf(p)].bot && this.seats[p.responder].bot;
+  }
 
   wantsOpinion(p) {
-    return !p.opinion && !this.seats[this.adviserOf(p)].bot && this.seats[p.responder].bot;
+    return !p.opinion && this.playerOpines(p);
   }
 
   robotOpinion() {
     const p = this.pending;
-    const adv = this.adviserOf(p);
+    const adv = this.opinionSeatOf(p);
     if (!this.brain || this.seats[p.responder].bot || !this.seats[adv].bot) return;
     this.giveOpinion(adv, this.brain.opinionFor(this, adv));
   }
@@ -353,7 +373,7 @@ class Game {
   opine(seat, ans) {
     if (this.phase !== 'truco') return 'Ninguém pediu nada.';
     const p = this.pending;
-    if (seat !== this.adviserOf(p) || this.seats[seat].bot || !this.seats[p.responder].bot) return 'Não é você que dá opinião.';
+    if (seat !== this.opinionSeatOf(p) || !this.playerOpines(p)) return 'Não é você que dá opinião.';
     if (p.opinion) return 'Você já deu sua opinião.';
     if (ans !== 'aceita' && ans !== 'corre') return 'Opinião inválida.';
     this.giveOpinion(seat, ans);
@@ -434,7 +454,7 @@ class Game {
     v.canPlayClosed = this.canPlayClosed(seat);
     v.canSignal = this.hands[seat].map((_, i) => this.canSignal(seat, i));
     v.mustRespond = this.phase === 'truco' && this.pending.responder === seat;
-    v.mustOpine = this.phase === 'truco' && this.wantsOpinion(this.pending) && this.adviserOf(this.pending) === seat;
+    v.mustOpine = this.phase === 'truco' && this.wantsOpinion(this.pending) && this.opinionSeatOf(this.pending) === seat;
     v.mustOnze = this.phase === 'onze' && this.voiceOf(this.onzeTeam) === seat;
     // Só o dono vê as barras do parceiro Robô.
     const partner = this.seats[(seat + 2) % 4];

@@ -3,7 +3,7 @@
 'use strict';
 const { describe, test } = require('node:test');
 const assert = require('node:assert');
-const { Game, power, manilhaOf, decide, nextLevel } = require('../game.js');
+const { Game, power, manilhaOf, decide, nextLevel, signalOfCard } = require('../game.js');
 const brain = require('../bots.js');
 const { rngFixo, partidaComPlacar, darCartas, sinaisQueORoboViu, barras, semSinais, roboViuTudo } = require('./montagem.js');
 
@@ -560,7 +560,7 @@ describe('Opinião', () => {
     assert.ok(['aceita', 'corre'].includes(opiniao.ans), `Opinião estranha: ${opiniao.ans}`);
     const evento = g.drain().find((e) => e.t === 'opiniao');
     assert.deepStrictEqual([evento.seat, evento.ans], [opiniao.seat, opiniao.ans]);
-    assert.strictEqual(g.seatView(responde).advice, undefined, 'o cochicho no Celular devia ter saído');
+    assert.strictEqual(g.seatView(responde).advice, undefined, 'o Celular ainda recebe a Opinião escondida');
   });
 
   test('quando um Robô responde, o parceiro Jogador dá a Opinião, uma vez só', () => {
@@ -609,6 +609,58 @@ describe('Sinais', () => {
     }
     assert.ok(Math.abs(viu.parceiro / VEZES - 0.8) < 0.03, `parceiro viu ${viu.parceiro} de ${VEZES}`);
     assert.ok(Math.abs(viu.adversario / VEZES - 0.2) < 0.03, `adversário viu ${viu.adversario} de ${VEZES}`);
+  });
+
+  // Uma Mão com Robôs que vão fazer Sinal de uma carta (não "lixo"). Devolve o Game na vez da 1ª Rodada
+  // e os Sinais marcados, que ainda não aconteceram.
+  function robosComSinalMarcado() {
+    for (let semente = 1; ; semente++) {
+      const g = new Game({ rng: rngFixo(semente), brain });
+      g.start();
+      g.onTimer();
+      const marcados = g.takeSignalPlan();
+      if (marcados.some((m) => m.sig !== 'lixo')) return { g, marcados };
+    }
+  }
+  const eventosDeSinal = (g) => g.drain().filter((e) => e.t === 'signal');
+
+  test('o Sinal do Robô só acontece na hora marcada, entre 1 e 6 segundos: antes disso, ninguém viu', () => {
+    const { g, marcados } = robosComSinalMarcado();
+    for (const m of marcados) {
+      assert.ok(m.delay >= 1000 && m.delay <= 6000, `Sinal marcado para ${m.delay} ms`);
+      assert.ok(g.publicView().seats[m.seat].bot, 'um Jogador ganhou Sinal marcado');
+    }
+    g.drain();
+    for (const robo of [2, 3]) assert.deepStrictEqual(sinaisQueORoboViu(g, robo), [], `Robô ${robo} viu antes da hora`);
+    const [primeiro] = marcados;
+    g.showSignal(primeiro);
+    assert.deepStrictEqual(eventosDeSinal(g).map((e) => [e.seat, e.sig, e.delay]), [[primeiro.seat, primeiro.sig, 0]]);
+  });
+
+  test('se a carta do Sinal já foi jogada na hora marcada, o Sinal não acontece', () => {
+    const { g, marcados } = robosComSinalMarcado();
+    const m = marcados.find((x) => x.sig !== 'lixo');
+    // Joga até o Robô do Sinal jogar a carta do Sinal.
+    for (let passo = 0; ; passo++) {
+      assert.ok(passo < 4, 'o Robô não jogou na 1ª Rodada');
+      const vez = g.publicView().turn;
+      const mao = g.seatView(vez).hand;
+      const idx = vez === m.seat ? mao.findIndex((c) => signalOfCard(c, g.publicView().manilha) === m.sig) : 0;
+      assert.strictEqual(g.play(vez, idx), null);
+      if (vez === m.seat) break;
+    }
+    g.drain();
+    g.showSignal(m);
+    assert.deepStrictEqual(eventosDeSinal(g), []);
+  });
+
+  test('o Sinal marcado numa Mão que já acabou não acontece', () => {
+    const { g, marcados } = robosComSinalMarcado();
+    fecharMaoCorrendo(g);
+    g.onTimer(); // Mão nova
+    g.drain();
+    g.showSignal(marcados[0]);
+    assert.deepStrictEqual(eventosDeSinal(g), []);
   });
 
   test('o Robô esquece o Sinal quando a carta do Sinal é jogada', () => {

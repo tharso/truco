@@ -7,7 +7,7 @@ const { RANKS, SUITS } = require('./public/shared.js');
 // NERVE_MAX pequeno deixa os Robôs equilibrados: ninguém foge sempre.
 const BLUFF_MAX = 0.3;
 const NERVE_MAX = 0.14;
-function persona(g, seat) {
+function temperOf(g, seat) {
   const s = g.seats[seat];
   const bluff = Number.isFinite(s.bluff) ? s.bluff : 5;
   const nerve = Number.isFinite(s.nerve) ? s.nerve : 5;
@@ -106,7 +106,7 @@ function wantsClosed(g, seat, idx) {
 
 function wantsTruco(g, seat) {
   if (!g.canTruco(seat)) return false;
-  const per = persona(g, seat);
+  const per = temperOf(g, seat);
   const p = winProb(g, seat);
   const lvl = g.value === 1 ? 3 : g.value + 3;
   const need = 0.7 - per.nerve * 0.5 + (lvl > 3 ? 0.08 : 0);
@@ -118,7 +118,7 @@ function wantsTruco(g, seat) {
 const OPINION_WEIGHT = 0.15;
 
 function respondChoice(g, seat) {
-  const per = persona(g, seat);
+  const per = temperOf(g, seat);
   const op = g.pending.opinion;
   const p = winProb(g, seat) + (op ? (op.ans === 'aceita' ? OPINION_WEIGHT : -OPINION_WEIGHT) : 0);
   if (p > 0.84 - per.nerve * 0.3 && g.pending.level < 12 && g.rng() < 0.6) return 'aumento';
@@ -128,12 +128,12 @@ function respondChoice(g, seat) {
 
 // Opinião do Robô para o parceiro Jogador que responde ao Truco. Diz a verdade (sem blefe).
 function opinionFor(g, seat) {
-  const per = persona(g, seat);
+  const per = temperOf(g, seat);
   return winProb(g, seat) > 0.38 - per.nerve * 0.6 ? 'aceita' : 'corre';
 }
 
 function onzeChoice(g, seat) {
-  const per = persona(g, seat);
+  const per = temperOf(g, seat);
   const both = g.hands[seat].concat(g.hands[(seat + 2) % 4]);
   return winProb(g, seat, both) > 0.62 - per.nerve ? 'joga' : 'corre';
 }

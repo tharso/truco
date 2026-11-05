@@ -68,6 +68,8 @@ O nome fica **Truco do Bar do Zé**. Você pensou em trocar, mas decidiu manter.
    - Cada carta faz o sinal uma vez por Mão. Na Mão de ferro não tem 😉.
    - O robô parceiro vê o sinal 8 em 10 vezes. O robô adversário vê 2 em 10 (`SIGNAL_SEEN` em `bots.js`). Vale para os sinais dos Robôs também.
    - Quem vê lembra até a carta do sinal ser jogada. Sinal bom do parceiro deixa o Robô mais corajoso; do adversário, com mais medo, mas menos (`SIGNAL_WEIGHT` e `OPPONENT_SIGNAL` em `bots.js`).
+   - O sinal "mão ruim" não é de uma carta só, então quem vê lembra dele até a Mão acabar (revisão de 05/11/2026).
+   - O Sinal do Robô só acontece na hora sorteada: a TV mostra a cara e, nessa hora, os Robôs tiram a sorte de ver. Se o Robô já jogou a carta do Sinal antes da hora, o Sinal não acontece (revisão de 05/11/2026).
 4. **Não chega sinal no celular.** Só a Mesa recebe o sinal. A graça é ver ou não ver.
 
 ## Bloco 5 — Escolher seu parceiro e seu rosto · ✅ feito em 05/11/2026
@@ -82,6 +84,7 @@ O nome fica **Truco do Bar do Zé**. Você pensou em trocar, mas decidiu manter.
 4. **Saem o "Blefador" e o "Medroso"** fixos. O jeito de jogar vem do Personagem e das barras, não do Lugar.
    - Os robôs ficam mais equilibrados: com coragem 0, o Robô ainda encara Truco com mão boa (`BLUFF_MAX` e `NERVE_MAX` em `bots.js`).
 5. **Blefe na cara fica fora.** Decidido em 05/11/2026: a Opinião continua dizendo a verdade. Mentir na cara engana mais o próprio parceiro do que o adversário.
+   - "A verdade" é o que o Robô sabe: a mão dele e os Sinais que ele viu. Um Sinal de zap do adversário pode virar a Opinião para "corre" (revisão de 05/11/2026).
 
 ---
 

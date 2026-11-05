@@ -28,6 +28,8 @@ test(`${PARTIDAS} Partidas de Robôs terminam sem quebrar as regras`, (t) => {
         const depois = g.seatView(nx.seat).hand;
         saiu = antes.find((c) => !depois.some((d) => d.r === c.r && d.s === c.s));
       } else throw new Error('travou na fase ' + fase());
+      // Sem relógio aqui: os Sinais marcados dos Robôs acontecem logo.
+      for (const s of g.takeSignalPlan()) g.showSignal(s);
       for (const ev of g.drain()) {
         if (ev.t === 'deal') {
           stats.hands++;
