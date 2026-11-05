@@ -56,8 +56,16 @@
       <span class="c-idx"><b>${c.r}</b>${sym}</span>${mid}<span class="c-idx c-idx2"><b>${c.r}</b>${sym}</span>${label}</div>`;
   }
 
+  // Personagens com foto (public/avatars/<id>/). name = nome padrão quando joga como parceiro.
+  const AVATARS = [
+    { id: 'tonhao', name: 'Tonhão' }, { id: 'cida', name: 'Cida' },
+    { id: 'neide', name: 'Dona Neide' }, { id: 'juninho', name: 'Juninho' },
+    { id: 'blurp', name: 'Blurp' }, { id: 'beto', name: 'Beto' },
+    { id: 'roque', name: 'Roque' }, { id: 'nina', name: 'Nina' },
+  ];
+
   const SHARED = {
-    RANKS, SUITS, SUIT_SYMBOL, RANK_NAME, MANILHA_NAME, LEVEL_NAME, TEAM_NAME,
+    AVATARS, RANKS, SUITS, SUIT_SYMBOL, RANK_NAME, MANILHA_NAME, LEVEL_NAME, TEAM_NAME,
     SIGNALS, cardName, cardHTML,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = SHARED;

@@ -110,13 +110,13 @@
 
   function buildSeat(i) {
     const s = state.seats[i];
-    const sig = (s.bot ? avatarOf(i) : 'h') + i;
+    const sig = (s.avatar || (s.bot ? 'robo' : 'h')) + (s.bot ? 'b' : 'p') + i;
     if (built[i] === sig) return;
     built[i] = sig;
     const el = seatEl(i);
-    const av = s.bot
-      ? `<div class="avatar">${FACES.avatar(avatarOf(i))}</div>`
-      : `<div class="avatar"><div class="human-av">${HUMAN_EMOJI[i]}</div><div class="phone-badge">📱</div></div>`;
+    // Pessoa de verdade: o personagem que ela escolheu (ou um emoji, se ainda não escolheu) + selo de celular.
+    const face = s.avatar || s.bot ? FACES.avatar(avatarOf(i)) : `<div class="human-av">${HUMAN_EMOJI[i]}</div>`;
+    const av = `<div class="avatar">${face}${s.bot ? '' : '<div class="phone-badge">📱</div>'}</div>`;
     el.innerHTML = `<div class="bubble"></div>${av}<div class="seat-info"><div class="nameplate"></div><div class="backs"></div><div class="dealer-chip">🃏 dá as cartas</div></div>`;
   }
 
@@ -220,11 +220,12 @@
       const partner = state.seats[i + 2];
       const status = s.bot ? `🤖 ${s.name} joga neste lugar`
         : s.connected ? `✅ <b>${s.name}</b> conectado` : '⏳ Esperando um celular…';
+      const mini = (x) => (x.avatar ? `<img class="lmini" src="/avatars/${x.avatar}/neutro.jpg" alt="">` : '<span class="lmini q">?</span>');
       $('lseat' + i).innerHTML = `
         <div class="who ${i ? 't1c' : 't0c'}">Jogador ${i + 1}</div>
-        <div>Dupla na tela: <b>${partner.name}</b></div>
+        <div class="lpair">${mini(s)}<span>+</span>${mini(partner)}<div><b>${s.name}</b> com <b>${partner.name}</b>${s.bot || s.picked ? '' : '<br><small>escolhendo no celular…</small>'}</div></div>
         <div>${status}</div>
-        <label><input type="checkbox" data-seat="${i}" ${s.bot ? 'checked' : ''}> Ninguém aqui? Joga ${['a Dona Neide', 'o Juninho'][i]}</label>`;
+        <label><input type="checkbox" data-seat="${i}" ${s.bot ? 'checked' : ''}> Ninguém neste lugar? Um personagem joga sozinho</label>`;
     });
   }
 
@@ -305,7 +306,7 @@
         FX.sfx.fanfare();
         FX.confetti(ev.points >= 3 ? 120 : 30);
         if (ev.points >= 3) showOverlay(`<div class="big-word small" style="color:${TEAM_COLOR[w]}">+${ev.points}</div><div class="ov-sub">${teamName(w)}</div>`, 1700);
-        for (let i = 0; i < 4; i++) if (s[i].bot) FACES.mood(seatEl(i), i % 2 === w ? 'happy' : 'sad', 3000);
+        for (let i = 0; i < 4; i++) if (s[i].avatar) FACES.mood(seatEl(i), i % 2 === w ? 'happy' : 'sad', 3000);
         break;
       }
 

@@ -3,10 +3,15 @@
 'use strict';
 const { Game } = require('./game.js');
 const brain = require('./bots.js');
+const { AVATARS } = require('./public/shared.js');
 
-// Quem joga no lugar de uma pessoa que não veio.
-const ROBOT_NAMES = ['Dona Neide', 'Juninho'];
-const ROBOT_AVATARS = ['neide', 'juninho'];
+const AVATAR_IDS = AVATARS.map((a) => a.id);
+const avatarName = (id) => (AVATARS.find((a) => a.id === id) || {}).name || id;
+const clean = (t) => String(t || '').replace(/[<>&"]/g, '').trim().slice(0, 16);
+// Quem joga no lugar de uma pessoa que não veio (se o rosto estiver livre).
+const FILL_AVATARS = ['neide', 'juninho'];
+// Os lugares de cada jogador: o dele e o do parceiro.
+const OWNED = [[0, 2], [1, 3]];
 
 class Room {
   constructor() {
@@ -15,6 +20,40 @@ class Room {
     this.humanNames = ['Jogador 1', 'Jogador 2'];
     this.timer = null;
     this.timerKey = '';
+  }
+
+  // ---------- avatares ----------
+  // Um jogador "travou" a escolha quando ele mesmo escolheu os rostos no celular.
+  locked(owner) { return !!this.game.seats[owner].picked; }
+
+  // Rostos que o jogador `owner` não pode usar: os do outro jogador, se ele já escolheu.
+  takenFor(owner) {
+    const other = 1 - owner;
+    if (!this.locked(other)) return new Set();
+    return new Set(OWNED[other].map((i) => this.game.seats[i].avatar).filter(Boolean));
+  }
+
+  freeAvatar(exclude, prefer) {
+    if (prefer && !exclude.has(prefer)) return prefer;
+    return AVATAR_IDS.find((id) => !exclude.has(id)) || null;
+  }
+
+  // Quem não travou a escolha cede o rosto se houver repetição.
+  fixConflicts() {
+    const seats = this.game.seats;
+    for (const owner of [0, 1]) {
+      if (this.locked(owner)) continue;
+      const other = 1 - owner;
+      const used = new Set(OWNED[other].map((i) => seats[i].avatar).filter(Boolean));
+      for (const i of OWNED[owner]) {
+        const s = seats[i];
+        if (!s.avatar || !used.has(s.avatar)) { if (s.avatar) used.add(s.avatar); continue; }
+        const old = s.avatar;
+        s.avatar = this.freeAvatar(used, i >= 2 ? null : FILL_AVATARS[i]);
+        if (s.bot && s.name === avatarName(old)) s.name = avatarName(s.avatar);
+        used.add(s.avatar);
+      }
+    }
   }
 
   // c = { kind: 'table'|'seat', seat, write(texto) }
@@ -110,14 +149,43 @@ class Room {
         const s = game.seats[seat];
         s.bot = !!a.bot;
         s.persona = s.bot ? 'robo' : null;
-        s.name = s.bot ? ROBOT_NAMES[seat] : this.humanNames[seat];
-        s.avatar = s.bot ? ROBOT_AVATARS[seat] : null;
         s.connected = s.bot;
+        s.picked = false;
+        if (s.bot) {
+          const used = new Set(game.seats.filter((x, i) => i !== seat).map((x) => x.avatar).filter(Boolean));
+          s.avatar = this.freeAvatar(used, FILL_AVATARS[seat]);
+          s.name = avatarName(s.avatar);
+        } else {
+          s.avatar = null;
+          s.name = this.humanNames[seat];
+        }
+        return null;
+      }
+      case 'pick': {
+        // O jogador escolhe o próprio rosto e o do parceiro (e o nome do parceiro).
+        if (seat !== 0 && seat !== 1) return 'Lugar inválido.';
+        if (game.phase !== 'lobby' && game.phase !== 'over') return 'Só dá pra escolher antes de começar.';
+        const me = String(a.avatar || '');
+        const partner = String(a.partner || '');
+        if (!AVATAR_IDS.includes(me) || !AVATAR_IDS.includes(partner)) return 'Personagem inválido.';
+        if (me === partner) return 'Escolha um parceiro diferente de você.';
+        const taken = this.takenFor(seat);
+        if (taken.has(me) || taken.has(partner)) return 'Esse personagem já foi escolhido. Escolha outro.';
+        const s = game.seats[seat];
+        const p = game.seats[seat + 2];
+        s.avatar = me;
+        s.picked = true;
+        p.avatar = partner;
+        p.name = clean(a.partnerName) || avatarName(partner);
+        this.fixConflicts();
         return null;
       }
       case 'start': {
         const missing = [0, 1].filter((i) => !game.seats[i].bot && !game.seats[i].connected);
         if (missing.length && !a.force) return `Falta conectar: ${missing.map((i) => game.seats[i].name).join(' e ')}.`;
+        // Quem não escolheu rosto ganha um livre.
+        const used = new Set(game.seats.map((x) => x.avatar).filter(Boolean));
+        game.seats.forEach((x) => { if (!x.avatar) { x.avatar = this.freeAvatar(used); used.add(x.avatar); } });
         return game.start();
       }
       case 'lobby': game.toLobby(); return null;

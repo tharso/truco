@@ -1,4 +1,4 @@
-// Tela do CELULAR: só as suas cartas, o botão de TRUCO e as provocações.
+// Tela do CELULAR: escolher personagens, as suas cartas e o botão de TRUCO.
 (function () {
   const S = window.SHARED;
   const $ = (id) => document.getElementById(id);
@@ -13,6 +13,12 @@
   let whisperKey = '';
   let whisperText = '';
   let busy = false;
+  // escolha de personagens
+  let choosing = false;   // a tela de escolha está aberta
+  let chStep = 'me';      // 'me' ou 'partner'
+  let chMe = null;
+  let chPartner = null;
+  let chSkipped = false;  // a pessoa fechou a escolha sem escolher
 
   function toast(msg) {
     const t = $('toast');
@@ -36,6 +42,9 @@
 
   // ---------- escolher lugar ----------
   function showPick() {
+    choosing = false;
+    chSkipped = false;
+    $('choose').classList.add('hidden');
     $('pick').classList.remove('hidden');
     $('main').classList.add('hidden');
     $('name').value = localStorage.getItem('truco-name') || '';
@@ -60,9 +69,88 @@
     showPick();
   };
 
+  // ---------- escolher personagens ----------
+  const OWNED = [[0, 2], [1, 3]];
+  function takenNow() {
+    // Rostos do outro jogador, se ele já escolheu.
+    if (!state) return new Set();
+    const other = 1 - seat;
+    if (!state.seats[other].picked) return new Set();
+    return new Set(OWNED[other].map((i) => state.seats[i].avatar).filter(Boolean));
+  }
+
+  function openChoose() {
+    choosing = true;
+    chStep = 'me';
+    const s = state && state.seats;
+    chMe = s && s[seat].picked ? s[seat].avatar : null;
+    chPartner = s && s[seat].picked ? s[seat + 2].avatar : null;
+    $('partner-name').value = s && s[seat].picked ? s[seat + 2].name : '';
+    showScreen();
+    renderChoose();
+  }
+
+  function closeChoose() {
+    choosing = false;
+    showScreen();
+    render();
+  }
+
+  function showScreen() {
+    $('pick').classList.add('hidden');
+    $('choose').classList.toggle('hidden', !choosing);
+    $('main').classList.toggle('hidden', choosing);
+  }
+
+  function renderChoose() {
+    const taken = takenNow();
+    const partnerStep = chStep === 'partner';
+    $('ch-title').textContent = partnerStep ? 'QUEM JOGA COM VOCÊ?' : 'QUEM É VOCÊ?';
+    $('ch-hint').textContent = partnerStep ? 'Escolha o seu parceiro. Ele joga na tela.' : 'Escolha o seu personagem.';
+    $('ch-name').classList.toggle('hidden', !partnerStep || !chPartner);
+    $('ch-back').textContent = partnerStep ? 'Voltar' : 'Depois';
+    $('ch-ok').textContent = partnerStep ? 'PRONTO!' : 'PRÓXIMO';
+    $('ch-ok').disabled = partnerStep ? !chPartner : !chMe;
+    $('ch-grid').innerHTML = S.AVATARS.map((a) => {
+      const off = taken.has(a.id) || (partnerStep && a.id === chMe);
+      const sel = partnerStep ? a.id === chPartner : a.id === chMe;
+      const meMark = partnerStep && a.id === chMe ? ' me' : '';
+      return `<button class="av${sel ? ' sel' : ''}${meMark}" data-id="${a.id}" ${off ? 'disabled' : ''}>
+        <img src="/avatars/${a.id}/neutro.jpg" alt=""><span>${partnerStep && a.id === chMe ? 'Você' : a.name}</span></button>`;
+    }).join('');
+  }
+
+  $('ch-grid').onclick = (e) => {
+    const b = e.target.closest('.av');
+    if (!b || b.disabled) return;
+    const id = b.dataset.id;
+    if (chStep === 'me') {
+      chMe = id;
+      if (chPartner === id) chPartner = null;
+    } else {
+      const old = chPartner;
+      chPartner = id;
+      const nameEl = $('partner-name');
+      const oldName = (S.AVATARS.find((a) => a.id === old) || {}).name;
+      if (!nameEl.value || nameEl.value === oldName) nameEl.value = S.AVATARS.find((a) => a.id === id).name;
+    }
+    renderChoose();
+  };
+  $('ch-back').onclick = () => {
+    if (chStep === 'partner') { chStep = 'me'; renderChoose(); return; }
+    chSkipped = true;
+    closeChoose();
+  };
+  $('ch-ok').onclick = async () => {
+    if (chStep === 'me') { if (chMe) { chStep = 'partner'; renderChoose(); } return; }
+    const r = await post({ type: 'pick', avatar: chMe, partner: chPartner, partnerName: $('partner-name').value.trim() });
+    if (r && r.ok) closeChoose();
+    else renderChoose();
+  };
+
   function connect() {
     $('pick').classList.add('hidden');
-    $('main').classList.remove('hidden');
+    showScreen();
     if (es) es.close();
     es = new EventSource(`/events?role=seat&seat=${seat}`);
     es.onopen = () => post({ type: 'join', name: localStorage.getItem('truco-name') || '' });
@@ -70,7 +158,12 @@
       const m = JSON.parse(e.data);
       if (m.type !== 'state') return;
       state = m.state;
-      render();
+      const s = state.seats[state.me];
+      const canChoose = (state.phase === 'lobby' || state.phase === 'over') && !s.bot;
+      if (!choosing && canChoose && !s.picked && !chSkipped) openChoose();
+      else if (choosing && !canChoose) closeChoose();
+      if (choosing) renderChoose();
+      else render();
     };
     es.onerror = () => { $('status').textContent = 'Reconectando…'; };
   }
@@ -141,8 +234,9 @@
 
     // começar / de novo
     const gb = $('game-btns');
-    if (st.phase === 'lobby') gb.innerHTML = '<button class="shout" data-act="start">COMEÇAR!</button>';
-    else if (st.phase === 'over') gb.innerHTML = '<button class="shout" data-act="start">JOGAR DE NOVO!</button>';
+    const swap = st.seats[me].bot ? '' : '<button class="alt" data-act="choose">🎭 Trocar personagens</button>';
+    if (st.phase === 'lobby') gb.innerHTML = '<button class="shout" data-act="start">COMEÇAR!</button>' + swap;
+    else if (st.phase === 'over') gb.innerHTML = '<button class="shout" data-act="start">JOGAR DE NOVO!</button>' + swap;
     else gb.innerHTML = '';
   }
 
@@ -152,7 +246,7 @@
     if (s[me].bot) return `${s[me].name} está jogando no seu lugar. Desmarque na TV.`;
     switch (st.phase) {
       case 'lobby': return 'Esperando começar…';
-      case 'deal': return 'Seu Zé está dando as cartas…';
+      case 'deal': return st.dealer >= 0 ? `${s[st.dealer].name} está dando as cartas…` : 'Dando as cartas…';
       case 'onze': return st.mustOnze ? 'Decida a mão de onze!' : 'Mão de onze: esperando os outros…';
       case 'truco': return st.mustRespond ? 'E aí? Vai encarar?' : `Esperando resposta…`;
       case 'play':
@@ -194,6 +288,7 @@
   document.querySelectorAll('[data-onze]').forEach((b) => { b.onclick = () => post({ type: 'onze', ans: b.dataset.onze }); });
   $('game-btns').onclick = (e) => {
     if (e.target.dataset.act === 'start') post({ type: 'start' });
+    if (e.target.dataset.act === 'choose') openChoose();
   };
 
   // cola de sinais

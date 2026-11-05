@@ -29,8 +29,21 @@
       <input id="name" maxlength="16" placeholder="Ex.: Tharso" autocomplete="off">
     </label>
     <p>Quem é você?</p>
-    <button class="seat-btn t0" data-seat="0"><b class="shout">JOGADOR 1</b><span>Dupla Azul · parceiro: Tonhão</span></button>
-    <button class="seat-btn t1" data-seat="1"><b class="shout">JOGADOR 2</b><span>Dupla Vermelha · parceira: Cida</span></button>
+    <button class="seat-btn t0" data-seat="0"><b class="shout">JOGADOR 1</b><span>Dupla Azul</span></button>
+    <button class="seat-btn t1" data-seat="1"><b class="shout">JOGADOR 2</b><span>Dupla Vermelha</span></button>
+  </div>
+
+  <div id="choose" class="hidden">
+    <h2 id="ch-title" class="shout">QUEM É VOCÊ?</h2>
+    <p id="ch-hint">Escolha o seu personagem.</p>
+    <div id="ch-grid" class="av-grid"></div>
+    <label id="ch-name" class="name-label hidden">Nome do parceiro
+      <input id="partner-name" maxlength="16" autocomplete="off">
+    </label>
+    <div class="ch-btns">
+      <button id="ch-back" class="b-gray">Voltar</button>
+      <button id="ch-ok" class="b-green shout" disabled>PRONTO!</button>
+    </div>
   </div>
 
   <div id="main" class="hidden">

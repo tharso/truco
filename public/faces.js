@@ -65,7 +65,7 @@ window.FACES = (function () {
 
   // ---------- rostos com foto (gerados por IA, em public/avatars/<nome>/) ----------
   // Cada personagem tem 12 caras. Sem foto, cai no desenho em SVG do robô.
-  const PHOTOS = ['tonhao', 'cida', 'neide', 'juninho'];
+  const PHOTOS = ['tonhao', 'cida', 'neide', 'juninho', 'blurp', 'beto', 'roque', 'nina'];
   const EXPRESSIONS = ['neutro', 'zap', 'copas', 'espadas', 'ouros', 'tres', 'lixo', 'feliz', 'triste', 'susto', 'piscando', 'falando'];
   const MOOD_PHOTO = { happy: 'feliz', sad: 'triste', shock: 'susto' };
 

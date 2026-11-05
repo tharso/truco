@@ -18,6 +18,22 @@ body {
 .seat-btn.t0 { background: #2f7bff; }
 .seat-btn.t1 { background: #e3261f; }
 
+/* escolher personagens */
+#choose { padding: 18px 14px 28px; display: flex; flex-direction: column; gap: 12px; }
+#choose h2 { margin: 0; font-size: 30px; color: #ffd400; text-align: center; text-shadow: 2px 2px 0 #000; }
+#choose p { margin: 0; text-align: center; font-weight: 700; }
+.av-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 8px; }
+.av { border: 0; background: none; color: #fff; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 700 12px sans-serif; }
+.av img { width: 100%; aspect-ratio: 1; border-radius: 50%; border: 4px solid #fff3; object-fit: cover; transition: transform .15s; }
+.av.sel img { border-color: #ffd400; transform: scale(1.08); box-shadow: 0 0 0 3px #000, 0 0 18px #ffd400; }
+.av.me img { border-color: #2ecc71; }
+.av:disabled { opacity: .28; }
+.ch-btns { display: flex; gap: 10px; }
+.ch-btns button { flex: 1; border: 0; border-radius: 14px; padding: 14px; font-size: 20px; color: #fff; box-shadow: 0 5px 0 #0008; }
+.ch-btns button:disabled { filter: grayscale(1) brightness(.6); }
+#game-btns { display: flex; flex-direction: column; gap: 8px; }
+#game-btns button.alt { background: #0007; font-size: 16px; padding: 10px; box-shadow: none; border: 1px solid #fff4; }
+
 /* principal */
 #main { padding: 10px 12px 20px; display: flex; flex-direction: column; gap: 10px; }
 #top { background: #0007; border-radius: 14px; padding: 8px 12px; text-align: center; }

@@ -52,8 +52,8 @@ function decide(r) {
 
 const DEFAULT_SEATS = () => [
   // avatar = pasta das fotos em public/avatars/. persona = jeito de jogar (bots.js).
-  { name: 'Jogador 1', bot: false, persona: null, avatar: null, connected: false },
-  { name: 'Jogador 2', bot: false, persona: null, avatar: null, connected: false },
+  { name: 'Jogador 1', bot: false, persona: null, avatar: null, picked: false, connected: false },
+  { name: 'Jogador 2', bot: false, persona: null, avatar: null, picked: false, connected: false },
   { name: 'Tonhão', bot: true, persona: 'blefador', avatar: 'tonhao', connected: true },
   { name: 'Cida', bot: true, persona: 'medroso', avatar: 'cida', connected: true },
 ];
