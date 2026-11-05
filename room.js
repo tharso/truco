@@ -7,7 +7,9 @@ const { AVATARS } = require('./public/shared.js');
 
 const AVATAR_IDS = AVATARS.map((a) => a.id);
 const avatarName = (id) => (AVATARS.find((a) => a.id === id) || {}).name || id;
-const clean = (t) => String(t || '').replace(/[<>&"]/g, '').trim().slice(0, 16);
+// Tira os símbolos < > & " e corta em 16 letras. Conta por letra (code point), para não partir
+// um emoji ao meio, e tira os espaços de novo depois do corte.
+const clean = (t) => Array.from(String(t || '').replace(/[<>&"]/g, '').trim()).slice(0, 16).join('').trim();
 // Quem joga no lugar de uma pessoa que não veio (se o rosto estiver livre).
 const FILL_AVATARS = ['neide', 'juninho'];
 // Os lugares de cada jogador: o dele e o do parceiro.
@@ -140,7 +142,7 @@ class Room {
     switch (a.type) {
       case 'join': {
         if (seat !== 0 && seat !== 1) return 'Lugar inválido.';
-        const name = String(a.name || '').replace(/[<>&"]/g, '').trim().slice(0, 16);
+        const name = clean(a.name);
         if (name) { this.humanNames[seat] = name; if (!game.seats[seat].bot) game.seats[seat].name = name; }
         return null;
       }

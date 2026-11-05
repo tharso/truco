@@ -257,13 +257,18 @@ describe('Sala: lobby', () => {
     assert.strictEqual(mesa.estado.seats[0].name, 'Joaquim Albuquer');
   });
 
-  test('o corte em 16 letras não deixa espaço no fim nem meia letra', { todo: 'hoje o corte conta unidades UTF-16 e é feito depois do trim' }, () => {
+  test('o corte em 16 letras não deixa espaço no fim nem meia letra', () => {
     const sala = new Room();
     const mesa = conectarMesa(sala);
     sala.action({ type: 'join', seat: 0, name: 'Maria Aparecida Souza' });
     assert.strictEqual(mesa.estado.seats[0].name, 'Maria Aparecida');
     sala.action({ type: 'join', seat: 0, name: 'Maria Aparecida😀' });
     assert.strictEqual(mesa.estado.seats[0].name, 'Maria Aparecida😀');
+    // O nome que o Jogador dá ao parceiro segue a mesma regra.
+    sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', partnerName: 'Maria Aparecida Souza' });
+    assert.strictEqual(mesa.estado.seats[2].name, 'Maria Aparecida');
+    sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', partnerName: 'Maria Aparecida😀' });
+    assert.strictEqual(mesa.estado.seats[2].name, 'Maria Aparecida😀');
   });
 
   test('uma ação de um Lugar que não é de Jogador devolve "Lugar inválido."', () => {
