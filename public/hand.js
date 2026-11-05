@@ -83,6 +83,7 @@
     chMe = s && s[seat].picked ? s[seat].avatar : null;
     chPartner = s && s[seat].picked ? s[seat + 2].avatar : null;
     $('partner-name').value = s && s[seat].picked ? s[seat + 2].name : '';
+    setBars(state && state.partner && s[seat].picked ? state.partner : S.barsOf(chPartner));
     showScreen();
     renderChoose();
   }
@@ -105,6 +106,7 @@
     $('ch-title').textContent = partnerStep ? 'QUEM JOGA COM VOCÊ?' : 'QUEM É VOCÊ?';
     $('ch-hint').textContent = partnerStep ? 'Escolha o seu parceiro. Ele joga na tela.' : 'Escolha o seu personagem.';
     $('ch-name').classList.toggle('hidden', !partnerStep || !chPartner);
+    $('ch-bars').classList.toggle('hidden', !partnerStep || !chPartner);
     $('ch-back').textContent = partnerStep ? 'Voltar' : 'Depois';
     $('ch-ok').textContent = partnerStep ? 'PRONTO!' : 'PRÓXIMO';
     $('ch-ok').disabled = partnerStep ? !chPartner : !chMe;
@@ -116,6 +118,19 @@
         <img src="/avatars/${a.id}/neutro.jpg" alt=""><span>${partnerStep && a.id === chMe ? 'Você' : a.name}</span></button>`;
     }).join('');
   }
+
+  // Barras de blefe e de coragem do parceiro (0 a 10).
+  function setBars(b) {
+    $('bluff').value = b.bluff;
+    $('nerve').value = b.nerve;
+    showBars();
+  }
+  function showBars() {
+    $('bluff-val').textContent = $('bluff').value;
+    $('nerve-val').textContent = $('nerve').value;
+  }
+  $('bluff').oninput = showBars;
+  $('nerve').oninput = showBars;
 
   $('ch-grid').onclick = (e) => {
     const b = e.target.closest('.av');
@@ -130,6 +145,8 @@
       const nameEl = $('partner-name');
       const oldName = (S.AVATARS.find((a) => a.id === old) || {}).name;
       if (!nameEl.value || nameEl.value === oldName) nameEl.value = S.AVATARS.find((a) => a.id === id).name;
+      // Barras do parceiro novo: as do Personagem, até você mudar.
+      if (old !== id) setBars(S.barsOf(id));
     }
     renderChoose();
   };
@@ -140,7 +157,10 @@
   };
   $('ch-ok').onclick = async () => {
     if (chStep === 'me') { if (chMe) { chStep = 'partner'; renderChoose(); } return; }
-    const r = await post({ type: 'pick', avatar: chMe, partner: chPartner, partnerName: $('partner-name').value.trim() });
+    const r = await post({
+      type: 'pick', avatar: chMe, partner: chPartner, partnerName: $('partner-name').value.trim(),
+      bluff: Number($('bluff').value), nerve: Number($('nerve').value),
+    });
     if (r && r.ok) closeChoose();
     else renderChoose();
   };
@@ -196,8 +216,14 @@
     if (!st.canPlay) selected = -1;
     const hand = $('hand');
     hand.classList.toggle('wait', !st.canPlay);
-    hand.innerHTML = (st.hand || []).map((c, i) => S.cardHTML(c, st.manilha, i === selected ? 'sel' : '')).join('');
-    [...hand.children].forEach((el, i) => { el.onclick = () => tapCard(i); });
+    // Cada carta tem o botão 😉: o seu Personagem faz o Sinal dela na TV (uma vez por carta).
+    const canSig = st.canSignal || [];
+    hand.innerHTML = (st.hand || []).map((c, i) => `<div class="slot">${S.cardHTML(c, st.manilha, i === selected ? 'sel' : '')}`
+      + `<button class="sig-btn${canSig[i] ? '' : ' off'}" data-sig="${i}" aria-label="Fazer sinal desta carta">😉</button></div>`).join('');
+    [...hand.children].forEach((el, i) => {
+      el.querySelector('.card').onclick = () => tapCard(i);
+      el.querySelector('.sig-btn').onclick = () => signalCard(i);
+    });
 
     // jogar fechada (a partir da 2ª Rodada, com uma carta escolhida)
     $('closed-btn').classList.toggle('hidden', !(st.canPlayClosed && selected >= 0));
@@ -282,6 +308,12 @@
     selected = -1;
     await post({ type: 'play', idx: i });
     busy = false;
+  }
+
+  async function signalCard(i) {
+    if (!state || !(state.canSignal || [])[i]) return;
+    const r = await post({ type: 'sinal', idx: i });
+    if (r && r.ok) toast('😉 Seu Personagem fez o sinal na TV!');
   }
 
   $('closed-btn').onclick = async () => {

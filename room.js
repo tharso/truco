@@ -3,7 +3,7 @@
 'use strict';
 const { Game } = require('./game.js');
 const brain = require('./bots.js');
-const { AVATARS } = require('./public/shared.js');
+const { AVATARS, barsOf } = require('./public/shared.js');
 
 const AVATAR_IDS = AVATARS.map((a) => a.id);
 const avatarName = (id) => (AVATARS.find((a) => a.id === id) || {}).name || id;
@@ -20,7 +20,7 @@ const seatOf = (v) => (typeof v === 'number' || (typeof v === 'string' && /^\d+$
 // Quem joga no lugar de uma pessoa que não veio (se o rosto estiver livre).
 const FILL_AVATARS = ['neide', 'juninho'];
 // As ações que são jogadas na Mão.
-const PLAYS = new Set(['play', 'truco', 'respond', 'opiniao', 'onze']);
+const PLAYS = new Set(['play', 'truco', 'respond', 'opiniao', 'onze', 'sinal']);
 // Os lugares de cada jogador: o dele e o do parceiro.
 const OWNED = [[0, 2], [1, 3]];
 
@@ -63,6 +63,7 @@ class Room {
         const old = s.avatar;
         s.avatar = this.freeAvatar(used, i >= 2 ? null : FILL_AVATARS[i]);
         if (s.bot && s.name === avatarName(old)) s.name = avatarName(s.avatar);
+        if (s.bot) Object.assign(s, barsOf(s.avatar));
         used.add(s.avatar);
       }
     }
@@ -110,8 +111,11 @@ class Room {
   broadcast() {
     this.refreshConnected();
     const events = this.game.drain();
+    // O Sinal só chega à Mesa: a graça é ver ou não ver na TV.
+    const seatEvents = events.filter((ev) => ev.t !== 'signal');
     for (const c of this.clients) {
-      this.write(c, `data: ${JSON.stringify({ type: 'state', state: this.viewFor(c), events })}\n\n`);
+      const evs = c.kind === 'seat' ? seatEvents : events;
+      this.write(c, `data: ${JSON.stringify({ type: 'state', state: this.viewFor(c), events: evs })}\n\n`);
     }
     this.pump();
   }
@@ -162,14 +166,16 @@ class Room {
         if (game.phase !== 'lobby') return 'Só dá pra trocar antes de começar.';
         const s = game.seats[seat];
         s.bot = !!a.bot;
-        s.persona = s.bot ? 'robo' : null;
         s.connected = s.bot;
         s.picked = false;
         if (s.bot) {
           const used = new Set(game.seats.filter((x, i) => i !== seat).map((x) => x.avatar).filter(Boolean));
           s.avatar = this.freeAvatar(used, FILL_AVATARS[seat]);
           s.name = avatarName(s.avatar);
+          Object.assign(s, barsOf(s.avatar));
         } else {
+          delete s.bluff;
+          delete s.nerve;
           s.avatar = null;
           s.name = this.humanNames[seat];
         }
@@ -186,12 +192,20 @@ class Room {
         if (me === partner) return 'Escolha um parceiro diferente de você.';
         const taken = this.takenFor(seat);
         if (taken.has(me) || taken.has(partner)) return 'Esse personagem já foi escolhido. Escolha outro.';
+        // Barras do parceiro: as que o Jogador mandou, ou as do Personagem.
+        const bars = barsOf(partner);
+        for (const k of ['bluff', 'nerve']) {
+          if (a[k] === undefined) continue;
+          if (!Number.isInteger(a[k]) || a[k] < 0 || a[k] > 10) return 'As barras vão de 0 a 10.';
+          bars[k] = a[k];
+        }
         const s = game.seats[seat];
         const p = game.seats[seat + 2];
         s.avatar = me;
         s.picked = true;
         p.avatar = partner;
         p.name = clean(a.partnerName) || avatarName(partner);
+        Object.assign(p, bars);
         this.fixConflicts();
         return null;
       }
@@ -209,6 +223,7 @@ class Room {
       case 'respond': return game.respond(seat, a.ans);
       case 'opiniao': return game.opine(seat, a.ans);
       case 'onze': return game.onzeDecide(seat, a.ans);
+      case 'sinal': return game.signal(seat, Number(a.idx));
       default: return 'Ação desconhecida.';
     }
   }

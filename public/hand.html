@@ -40,6 +40,15 @@
     <label id="ch-name" class="name-label hidden">Nome do parceiro
       <input id="partner-name" maxlength="16" autocomplete="off">
     </label>
+    <div id="ch-bars" class="hidden">
+      <label class="bar">Quanto blefa <b id="bluff-val"></b>
+        <input id="bluff" type="range" min="0" max="10" step="1">
+      </label>
+      <label class="bar">Quanta coragem <b id="nerve-val"></b>
+        <input id="nerve" type="range" min="0" max="10" step="1">
+      </label>
+      <p class="tip">Só você vê as barras. Na TV aparece só o nome.</p>
+    </div>
     <div class="ch-btns">
       <button id="ch-back" class="b-gray">Voltar</button>
       <button id="ch-ok" class="b-green shout" disabled>PRONTO!</button>
@@ -99,7 +108,8 @@
     <details id="signals">
       <summary>🤫 Cola dos sinais do parceiro</summary>
       <div id="sig-list"></div>
-      <p class="tip">Olhe a TV no começo de cada mão. O parceiro faz o sinal rapidinho. O adversário também pode ver!</p>
+      <p class="tip">Olhe a TV no começo de cada mão: o parceiro faz o sinal. O adversário também pode ver!</p>
+      <p class="tip">Toque 😉 embaixo de uma carta: o seu Personagem faz o sinal dela na TV. O parceiro quase sempre vê. O adversário às vezes vê.</p>
     </details>
 
     <footer><span id="me-line"></span> · <a href="#" id="change-seat">trocar de lugar</a></footer>

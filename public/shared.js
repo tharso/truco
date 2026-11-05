@@ -57,16 +57,22 @@
   }
 
   // Personagens com foto (public/avatars/<id>/). name = nome padrão quando joga como parceiro.
+  // bluff e nerve = barras de blefe e de coragem (0 a 10) quando ele joga como Robô. O Jogador pode mudar.
   const AVATARS = [
-    { id: 'tonhao', name: 'Tonhão' }, { id: 'cida', name: 'Cida' },
-    { id: 'neide', name: 'Dona Neide' }, { id: 'juninho', name: 'Juninho' },
-    { id: 'blurp', name: 'Blurp' }, { id: 'beto', name: 'Beto' },
-    { id: 'roque', name: 'Roque' }, { id: 'nina', name: 'Nina' },
+    { id: 'tonhao', name: 'Tonhão', bluff: 7, nerve: 7 }, { id: 'cida', name: 'Cida', bluff: 2, nerve: 3 },
+    { id: 'neide', name: 'Dona Neide', bluff: 4, nerve: 6 }, { id: 'juninho', name: 'Juninho', bluff: 6, nerve: 4 },
+    { id: 'blurp', name: 'Blurp', bluff: 5, nerve: 5 }, { id: 'beto', name: 'Beto', bluff: 3, nerve: 7 },
+    { id: 'roque', name: 'Roque', bluff: 8, nerve: 5 }, { id: 'nina', name: 'Nina', bluff: 5, nerve: 8 },
   ];
+  // Barras padrão do Personagem.
+  function barsOf(id) {
+    const a = AVATARS.find((x) => x.id === id) || { bluff: 5, nerve: 5 };
+    return { bluff: a.bluff, nerve: a.nerve };
+  }
 
   const SHARED = {
     AVATARS, RANKS, SUITS, SUIT_SYMBOL, RANK_NAME, MANILHA_NAME, LEVEL_NAME, TEAM_NAME,
-    SIGNALS, cardName, cardHTML,
+    SIGNALS, cardName, cardHTML, barsOf,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = SHARED;
   else root.SHARED = SHARED;

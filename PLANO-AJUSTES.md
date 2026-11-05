@@ -57,30 +57,31 @@ O nome fica **Truco do Bar do Zé**. Você pensou em trocar, mas decidiu manter.
    - No Celular: toque na carta para escolher. Aparece o botão "Jogar fechada". Tocar de novo na carta joga aberta, como hoje.
    - Robô fecha só carta que não serve na Rodada (o parceiro já ganha, ou a carta não ganha), 4 em 10 vezes, e nunca fecha Manilha. O número fica fácil de mudar.
 
-## Bloco 4 — Sinais que dá para pegar · 🟡 em parte (05/11/2026: rostos com foto, maiores, sinais no meio-termo)
+## Bloco 4 — Sinais que dá para pegar · ✅ feito em 05/11/2026
 
 1. **Rostos maiores e sinais mais claros.** Os sinais ficam mais lentos e mais exagerados.
-   - Uma piscadinha dura mais tempo e mexe o rosto todo.
-2. **Cada dupla tem sinais diferentes.** Por exemplo, a piscadinha é zap para a Azul e três para a Vermelha.
-   - A cola no celular mostra só os sinais da sua dupla.
-3. **Você também faz sinal.** No celular, cada carta tem um botão de sinal (😉).
-   - Você toca, e o **seu** avatar na TV faz o sinal.
-   - O robô parceiro vê o sinal 8 em 10 vezes.
-   - O robô adversário vê o sinal 2 em 10 vezes.
-   - Quem vê usa o sinal para jogar melhor.
-   - Os números 80% e 20% ficam fáceis de mudar depois.
-4. **Não chega sinal no celular.** Vocês decidiram assim: a graça é ver ou não ver.
+   - A cara do Sinal fica 2,5 segundos na Mesa, e o rosto todo inclina e balança (`SIGNAL_MS` em `table.js`).
+   - Cada Robô faz o Sinal num momento sorteado só para ele, entre 1 e 6 segundos depois das cartas (`SIGNAL_WINDOW` em `bots.js`). Às vezes dois Sinais vêm juntos, e você escolhe para quem olhar.
+2. **Sinais iguais para as duas Duplas.** Decidido em 05/11/2026: ficam os sinais tradicionais. Sinal diferente por Dupla daria trabalho para aprender.
+3. **Você também faz sinal.** No celular, cada carta tem um botão 😉.
+   - Você toca, e o **seu** Personagem faz o sinal na TV. Manilha faz o naipe dela, 3 faz "tem um três", as outras cartas fazem "mão ruim".
+   - Cada carta faz o sinal uma vez por Mão. Na Mão de ferro não tem 😉.
+   - O robô parceiro vê o sinal 8 em 10 vezes. O robô adversário vê 2 em 10 (`SIGNAL_SEEN` em `bots.js`). Vale para os sinais dos Robôs também.
+   - Quem vê lembra até a carta do sinal ser jogada. Sinal bom do parceiro deixa o Robô mais corajoso; do adversário, com mais medo, mas menos (`SIGNAL_WEIGHT` e `OPPONENT_SIGNAL` em `bots.js`).
+4. **Não chega sinal no celular.** Só a Mesa recebe o sinal. A graça é ver ou não ver.
 
-## Bloco 5 — Escolher seu parceiro e seu rosto · 🟡 em parte (05/11/2026: escolha de personagem e nome do parceiro no celular)
+## Bloco 5 — Escolher seu parceiro e seu rosto · ✅ feito em 05/11/2026
 
-1. **Escolher o seu rosto.** Ao entrar, cada pessoa escolhe um emoji ou personagem.
+1. **Escolher o seu rosto.** Ao entrar, cada pessoa escolhe um Personagem.
 2. **Montar o seu parceiro robô.** Ao entrar, você escolhe:
    - o nome dele (por exemplo, "Cleitinho");
    - o quanto ele blefa, numa barra de 0 a 10;
    - o quanto ele tem coragem, numa barra de 0 a 10.
-3. **O adversário não vê** as barras. Na TV aparece só o nome.
-4. **Saem o "Blefador" e o "Medroso"** fixos. Os robôs ficam mais equilibrados: ninguém foge sempre.
-   - Hoje o jeito de jogar do robô ainda vem do lugar na mesa, não do personagem. Há um teste "a fazer" para isso, e ele espera este bloco (decidido em 05/11/2026).
+   - As barras começam nas do Personagem (Tonhão blefa 7, Cida tem coragem 3…), em `AVATARS` de `public/shared.js`.
+3. **O adversário não vê** as barras. Na TV aparece só o nome. Só o seu Celular mostra as barras do seu parceiro.
+4. **Saem o "Blefador" e o "Medroso"** fixos. O jeito de jogar vem do Personagem e das barras, não do Lugar.
+   - Os robôs ficam mais equilibrados: com coragem 0, o Robô ainda encara Truco com mão boa (`BLUFF_MAX` e `NERVE_MAX` em `bots.js`).
+5. **Blefe na cara fica fora.** Decidido em 05/11/2026: a Opinião continua dizendo a verdade. Mentir na cara engana mais o próprio parceiro do que o adversário.
 
 ---
 

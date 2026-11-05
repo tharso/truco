@@ -47,8 +47,11 @@ npx wrangler dev
 ## O que tem de divertido
 
 - **Gritômetro:** pediu truco no celular? Grite "TRUCO!". O microfone mede o berro.
-- **Sinais:** os robôs fazem sinais com o rosto no começo da mão. A cola está no celular.
-  O adversário também pode ver!
+- **Sinais:** os robôs fazem sinais com o rosto no começo da mão, cada um num momento sorteado. A cola está no celular.
+  O adversário também pode ver! Você também faz sinal: toque 😉 embaixo de uma carta.
+  O robô parceiro vê o sinal 8 em 10 vezes, e o robô adversário 2 em 10 (`SIGNAL_SEEN` em `bots.js`).
+- **Montar o parceiro:** ao escolher o parceiro no celular, você dá o nome e as barras de blefe e de coragem (0 a 10).
+  Só você vê as barras. Cada Personagem já vem com as barras dele (`AVATARS` em `public/shared.js`).
 - **Opinião:** quando pedem truco, o parceiro de quem responde faz uma cara na TV: aceita ou corre.
   Todo mundo vê. Se quem responde é o seu robô, você dá a opinião pelo celular.
 - Mão de onze, mão de ferro, galinha quando alguém corre, confete, tremor.

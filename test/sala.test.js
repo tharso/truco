@@ -630,20 +630,52 @@ describe('Sala: escolha de Personagem', () => {
     assert.deepStrictEqual(personagensENomes(mesa), antes);
   });
 
-  test('o jeito de jogar do Robô vem do Personagem, não do Lugar', { todo: 'hoje `persona` fica presa ao Lugar; espera o Bloco 5 (barras de blefe e coragem), decidido em 05/11/2026' }, () => {
+  test('o jeito de jogar do Robô vem do Personagem, não do Lugar', () => {
     const sala = new Room();
     const mesa = conectarMesa(sala);
-    // Na Sala nova, Tonhão (Lugar 2) e Cida (Lugar 3) têm jeitos de jogar diferentes.
-    const [tonhao, cida] = [mesa.estado.seats[2], mesa.estado.seats[3]];
-    assert.deepStrictEqual([tonhao.avatar, cida.avatar], ['tonhao', 'cida']);
-    assert.notStrictEqual(tonhao.persona, cida.persona);
+    const [celular0, celular1] = [conectarCelular(sala, 0), conectarCelular(sala, 1)];
+    // Na Sala nova, Tonhão (parceiro do Lugar 0) e Cida (parceira do Lugar 1) têm jeitos de jogar diferentes.
+    const tonhao = celular0.estado.partner;
+    const cida = celular1.estado.partner;
+    assert.deepStrictEqual(tonhao, { bluff: 7, nerve: 7 });
+    assert.deepStrictEqual(cida, { bluff: 2, nerve: 3 });
     // Cada Jogador leva o parceiro do outro para o Lugar da frente: Cida no 2, Tonhão no 3.
     assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'cida' }), { ok: true });
     assert.deepStrictEqual(sala.action({ type: 'pick', seat: 1, avatar: 'beto', partner: 'tonhao' }), { ok: true });
-    const [lugar2, lugar3] = [mesa.estado.seats[2], mesa.estado.seats[3]];
-    assert.deepStrictEqual([lugar2.avatar, lugar3.avatar], ['cida', 'tonhao']);
-    assert.strictEqual(lugar2.persona, cida.persona, 'a Cida mudou de jeito de jogar ao mudar de Lugar');
-    assert.strictEqual(lugar3.persona, tonhao.persona, 'o Tonhão mudou de jeito de jogar ao mudar de Lugar');
+    assert.deepStrictEqual([mesa.estado.seats[2].avatar, mesa.estado.seats[3].avatar], ['cida', 'tonhao']);
+    assert.deepStrictEqual(celular0.estado.partner, cida, 'a Cida mudou de jeito de jogar ao mudar de Lugar');
+    assert.deepStrictEqual(celular1.estado.partner, tonhao, 'o Tonhão mudou de jeito de jogar ao mudar de Lugar');
+  });
+
+  test('o Jogador monta o parceiro com as barras de blefe e de coragem, de 0 a 10', () => {
+    const sala = new Room();
+    const celular0 = conectarCelular(sala, 0);
+    const pedido = { type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', partnerName: 'Cleitinho', bluff: 10, nerve: 0 };
+    assert.deepStrictEqual(sala.action(pedido), { ok: true });
+    assert.deepStrictEqual(celular0.estado.partner, { bluff: 10, nerve: 0 });
+  });
+
+  test('uma barra fora de 0 a 10 dá erro, e nada muda', () => {
+    const sala = new Room();
+    const celular0 = conectarCelular(sala, 0);
+    const antes = celular0.estado.partner;
+    for (const barras of [{ bluff: 11 }, { nerve: -1 }, { bluff: 2.5 }, { nerve: 'muito' }]) {
+      const pedido = { type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', ...barras };
+      assert.deepStrictEqual(sala.action(pedido), { error: 'As barras vão de 0 a 10.' }, JSON.stringify(barras));
+    }
+    assert.deepStrictEqual(celular0.estado.partner, antes);
+  });
+
+  test('só o dono vê as barras do parceiro: nem a Mesa nem o outro Celular', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    const celular1 = conectarCelular(sala, 1);
+    sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', bluff: 9, nerve: 1 });
+    const procura = (estado) => JSON.stringify(estado.seats);
+    for (const estado of [mesa.estado, celular1.estado]) {
+      assert.ok(!/bluff|nerve|persona/.test(procura(estado)), 'as barras apareceram para quem não é dono');
+    }
+    assert.deepStrictEqual(celular1.estado.partner, { bluff: 2, nerve: 3 }, 'o Celular 1 só vê a parceira dele, a Cida');
   });
 });
 
@@ -653,7 +685,7 @@ const PAUSAS = { cartas: 3200, robo: 1400, rodada: 1900, mao: 4500, truco: 3200 
 
 // Uma Sala com os dois Celulares conectados e a Partida começada, com o sorteio dado.
 // Pare o relógio antes. Sementes usadas: 8 (a 1ª Mão começa pelo Lugar 0), 4 (chega à 2ª Rodada na vez de um Jogador), 3 (começa pelo Tonhão,
-// no Lugar 2, que joga uma carta) 28 (com robos [0, 1], tem Truco e depois Mão de onze) e 12 (Mão de onze da Vermelha). `robos` = Lugares de Jogador marcados como "falta uma pessoa".
+// no Lugar 2, que joga uma carta) 28 (com robos [0, 1], tem Truco e depois Mão de onze) e 35 (Mão de onze da Vermelha; era 12 até os Sinais do Bloco 4 mudarem o sorteio). `robos` = Lugares de Jogador marcados como "falta uma pessoa".
 function partidaComDoisCelulares(semente, { robos = [] } = {}) {
   const sala = new Room({ rng: sorteioFixo(semente) });
   const mesa = conectarMesa(sala);
@@ -972,9 +1004,9 @@ describe('Sala: jogo, relógio e eventos', () => {
   });
 
   // Joga com os dois Celulares (primeira carta, aceita todo Truco) até a Mão de onze.
-  // Com o sorteio 12, a Dupla Vermelha chega a 11 (placar 7 a 11), e quem decide é o Jogador do Lugar 1.
+  // Com o sorteio 35, a Dupla Vermelha chega a 11 (placar 7 a 11), e quem decide é o Jogador do Lugar 1.
   function chegarNaMaoDeOnze(t) {
-    const partida = partidaComDoisCelulares(12);
+    const partida = partidaComDoisCelulares(35);
     const { sala, mesa, celulares } = partida;
     for (let passo = 0; !celulares.some((c) => c.estado.mustOnze); passo++) {
       assert.ok(passo < 5000 && mesa.estado.phase !== 'over', 'a Partida não chegou na Mão de onze');
@@ -1063,5 +1095,61 @@ describe('Sala: jogo, relógio e eventos', () => {
       assert.strictEqual(tela.mensagens.length, mensagens[i]);
     });
     assert.strictEqual(saiu.linhas.length, linhasDeQuemSaiu);
+  });
+});
+
+// Os Sinais da Mão vistos pela Mesa (sem os outros eventos).
+const sinaisNaMesa = (mesa) => mesa.eventos.filter((ev) => ev.t === 'signal').map((ev) => [ev.seat, ev.sig]);
+
+describe('Sala: Sinais', () => {
+  // Sorteio 8: o Lugar 0 recebe 6 de paus, A de ouros e 7 de paus, e a Manilha é o A.
+  // Sorteio 6: o Lugar 0 recebe K de espadas, 3 de paus e A de ouros, e a Manilha é o 5.
+  test('o Jogador faz o Sinal de uma carta pelo Celular: Manilha faz o naipe dela, 3 faz "tres", outra carta faz "lixo"', (t) => {
+    pararRelogio(t);
+    const { sala, mesa } = partidaComDoisCelulares(8);
+    assert.deepStrictEqual(sala.action({ type: 'sinal', seat: 0, idx: 1 }), { ok: true });
+    assert.deepStrictEqual(sala.action({ type: 'sinal', seat: 0, idx: 0 }), { ok: true });
+    assert.deepStrictEqual(sinaisNaMesa(mesa).filter(([seat]) => seat === 0), [[0, 'ouros'], [0, 'lixo']]);
+    const outra = partidaComDoisCelulares(6);
+    assert.deepStrictEqual(outra.sala.action({ type: 'sinal', seat: 0, idx: 1 }), { ok: true });
+    assert.deepStrictEqual(sinaisNaMesa(outra.mesa).filter(([seat]) => seat === 0), [[0, 'tres']]);
+  });
+
+  test('cada carta faz o Sinal uma vez só por Mão', (t) => {
+    pararRelogio(t);
+    const { sala, mesa, celulares: [celular0] } = partidaComDoisCelulares(8);
+    assert.deepStrictEqual(celular0.estado.canSignal, [true, true, true]);
+    assert.deepStrictEqual(sala.action({ type: 'sinal', seat: 0, idx: 1 }), { ok: true });
+    assert.deepStrictEqual(celular0.estado.canSignal, [true, false, true]);
+    assert.deepStrictEqual(sala.action({ type: 'sinal', seat: 0, idx: 1 }), { error: 'Essa carta já fez Sinal.' });
+    assert.deepStrictEqual(sinaisNaMesa(mesa).filter(([seat]) => seat === 0), [[0, 'ouros']]);
+  });
+
+  test('nenhum Celular recebe Sinal, nem do Jogador nem dos Robôs: só a Mesa', (t) => {
+    pararRelogio(t);
+    const { sala, mesa, celulares } = partidaComDoisCelulares(8);
+    sala.action({ type: 'sinal', seat: 0, idx: 1 });
+    t.mock.timers.tick(PAUSAS.cartas);
+    assert.ok(sinaisNaMesa(mesa).some(([seat]) => seat >= 2), 'nenhum Robô fez Sinal');
+    for (const celular of celulares) assert.ok(!celular.eventos.some((ev) => ev.t === 'signal'), 'um Celular recebeu Sinal');
+  });
+
+  test('o Sinal de cada Robô vem num momento sorteado só para ele, entre 1 e 6 segundos depois das cartas', (t) => {
+    pararRelogio(t);
+    const momentos = [];
+    for (let semente = 1; semente <= 40; semente++) {
+      const { mesa } = partidaComDoisCelulares(semente);
+      t.mock.timers.tick(PAUSAS.cartas);
+      momentos.push(...mesa.eventos.filter((ev) => ev.t === 'signal').map((ev) => ev.delay));
+    }
+    assert.ok(momentos.length > 20);
+    for (const ms of momentos) assert.ok(ms >= 1000 && ms <= 6000, `Sinal em ${ms} ms`);
+    assert.ok(momentos.some((ms) => ms > 4500), 'nenhum Sinal depois de 4,5 segundos');
+  });
+
+  test('um Celular não faz Sinal pelo Lugar de um Robô', (t) => {
+    pararRelogio(t);
+    const { sala } = partidaComDoisCelulares(8, { robos: [1] });
+    assert.deepStrictEqual(sala.action({ type: 'sinal', seat: 1, idx: 0 }), { error: 'Esse Lugar é de um Robô.' });
   });
 });

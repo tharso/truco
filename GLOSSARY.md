@@ -88,8 +88,15 @@ A Mão em que uma Dupla tem 11 pontos. Essa Dupla vê as cartas do parceiro e de
 A Mão em que as duas Duplas têm 11 pontos. Todos jogam sem ver as próprias cartas.
 
 **Sinal**:
-Uma careta que o Personagem faz para contar ao parceiro que carta tem.
+Uma careta que o Personagem faz na Mesa para contar ao parceiro que carta tem. Os Robôs fazem no começo da Mão; o Jogador faz pelo 😉 de uma carta, uma vez por carta. Os Sinais são os mesmos para as duas Duplas, e só a Mesa recebe o Sinal.
 _Evitar_: dica, gesto
+
+**Ver o Sinal**:
+Um Robô pegar o Sinal de outro Lugar. O parceiro vê 8 em 10 vezes, o adversário 2 em 10. O Robô lembra até a carta do Sinal ser jogada ou a Mão acabar.
+
+**Barras**:
+O jeito de jogar de um Robô: quanto ele blefa e quanta coragem tem, de 0 a 10. Cada Personagem tem as dele, e o Jogador muda as do parceiro ao montá-lo. Só o dono vê.
+_Evitar_: persona, perfil, Blefador, Medroso
 
 **Cola**:
 A lista, no Celular, que explica o que cada Sinal quer dizer.

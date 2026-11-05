@@ -2,12 +2,17 @@
 'use strict';
 const { RANKS, SUITS } = require('./public/shared.js');
 
-const PERSONAS = {
-  blefador: { bluff: 0.32, nerve: 0.14 },
-  medroso: { bluff: 0.03, nerve: -0.16 },
-  robo: { bluff: 0.12, nerve: 0 },
-};
-const persona = (g, seat) => PERSONAS[g.seats[seat].persona] || PERSONAS.robo;
+// Jeito de jogar: as barras de blefe e de coragem (0 a 10) do Robô viram números da cabeça dele.
+// Blefe 0 a 10 vai de 0 a BLUFF_MAX. Coragem 5 é o meio (0); 0 e 10 vão até -NERVE_MAX e +NERVE_MAX.
+// NERVE_MAX pequeno deixa os Robôs equilibrados: ninguém foge sempre.
+const BLUFF_MAX = 0.3;
+const NERVE_MAX = 0.14;
+function persona(g, seat) {
+  const s = g.seats[seat];
+  const bluff = Number.isFinite(s.bluff) ? s.bluff : 5;
+  const nerve = Number.isFinite(s.nerve) ? s.nerve : 5;
+  return { bluff: (bluff / 10) * BLUFF_MAX, nerve: ((nerve - 5) / 5) * NERVE_MAX };
+}
 
 // Força de uma carta de 0 a 1.
 function score(card, manilha) {
@@ -15,7 +20,22 @@ function score(card, manilha) {
   return (RANKS.indexOf(card.r) / 9) * 0.75;
 }
 
-// Chance (bem chutada) de a dupla levar a mão.
+// Quanto um Sinal visto muda a chance que o Robô vê de a Dupla dele levar a Mão.
+// Sinal do parceiro: soma o número. Sinal do adversário: tira o número vezes OPPONENT_SIGNAL.
+const SIGNAL_WEIGHT = { zap: 0.25, copas: 0.22, espadas: 0.18, ouros: 0.15, tres: 0.1, lixo: -0.06 };
+const OPPONENT_SIGNAL = 0.5;
+
+function signalBonus(g, seat) {
+  let b = 0;
+  for (const x of g.signals || []) {
+    if (!x.seenBy.includes(seat)) continue;
+    const w = SIGNAL_WEIGHT[x.sig] || 0;
+    b += x.seat % 2 === seat % 2 ? w : -w * OPPONENT_SIGNAL;
+  }
+  return b;
+}
+
+// Chance (bem chutada) de a dupla levar a mão. `cards` = cartas dadas (Mão de onze: as da Dupla toda).
 function winProb(g, seat, cards) {
   const team = seat % 2;
   const s = (cards || g.hands[seat]).map((c) => score(c, g.manilha)).sort((a, b) => b - a);
@@ -35,6 +55,7 @@ function winProb(g, seat, cards) {
     else if (!(cards || g.hands[seat]).some((c) => g.power(c) > best.power)) p -= 0.15;
   }
   p += 0.06; // o parceiro também joga
+  if (!cards) p += signalBonus(g, seat); // o que ele viu dos Sinais
   return Math.max(0, Math.min(1, p));
 }
 
@@ -117,6 +138,19 @@ function onzeChoice(g, seat) {
   return winProb(g, seat, both) > 0.62 - per.nerve ? 'joga' : 'corre';
 }
 
+// Quanto o Robô vê dos Sinais: o do parceiro 8 em 10 vezes, o do adversário 2 em 10.
+const SIGNAL_SEEN = { partner: 0.8, opponent: 0.2 };
+// Quando o Robô faz o Sinal: num momento sorteado só para ele, entre 1 e 6 segundos depois das cartas.
+const SIGNAL_WINDOW = [1000, 6000];
+
+function seesSignal(g, viewer, from) {
+  return g.rng() < (viewer % 2 === from % 2 ? SIGNAL_SEEN.partner : SIGNAL_SEEN.opponent);
+}
+
+function signalDelay(g) {
+  return Math.round(SIGNAL_WINDOW[0] + g.rng() * (SIGNAL_WINDOW[1] - SIGNAL_WINDOW[0]));
+}
+
 function signalFor(g, seat) {
   const hand = g.hands[seat];
   const mans = hand.filter((c) => c.r === g.manilha).map((c) => SUITS.indexOf(c.s));
@@ -137,4 +171,4 @@ function act(g, seat) {
   return 'nada a fazer';
 }
 
-module.exports = { act, signalFor, opinionFor, winProb, chooseCard, wantsClosed, PERSONAS, CLOSE_CHANCE, OPINION_WEIGHT };
+module.exports = { act, signalFor, seesSignal, signalDelay, SIGNAL_SEEN, SIGNAL_WINDOW, SIGNAL_WEIGHT, OPPONENT_SIGNAL, opinionFor, winProb, chooseCard, wantsClosed, BLUFF_MAX, NERVE_MAX, CLOSE_CHANCE, OPINION_WEIGHT };

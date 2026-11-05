@@ -1,6 +1,6 @@
 // Motor do truco paulista. Não sabe nada de rede: só regras e estado.
 'use strict';
-const { RANKS, SUITS } = require('./public/shared.js');
+const { RANKS, SUITS, barsOf } = require('./public/shared.js');
 
 const LADDER = [1, 3, 6, 9, 12];
 const teamOf = (seat) => seat % 2; // assentos 0 e 2 = Dupla Azul; 1 e 3 = Dupla Vermelha
@@ -50,13 +50,24 @@ function decide(r) {
   return { done: false };
 }
 
+// O Sinal que uma carta faz: a Manilha faz o naipe dela, o 3 faz "tres", as outras cartas fazem "lixo".
+const MANILHA_SIGNAL = { ouros: 'ouros', espadas: 'espadas', copas: 'copas', paus: 'zap' };
+function signalOfCard(card, manilha) {
+  if (card.r === manilha) return MANILHA_SIGNAL[card.s];
+  return card.r === '3' ? 'tres' : 'lixo';
+}
+// Fases em que a Mão está viva e dá para fazer Sinal.
+const SIGNAL_PHASES = new Set(['deal', 'play', 'truco', 'roundEnd', 'onze']);
+
 const DEFAULT_SEATS = () => [
-  // avatar = pasta das fotos em public/avatars/. persona = jeito de jogar (bots.js).
-  { name: 'Jogador 1', bot: false, persona: null, avatar: null, picked: false, connected: false },
-  { name: 'Jogador 2', bot: false, persona: null, avatar: null, picked: false, connected: false },
-  { name: 'Tonhão', bot: true, persona: 'blefador', avatar: 'tonhao', connected: true },
-  { name: 'Cida', bot: true, persona: 'medroso', avatar: 'cida', connected: true },
+  // avatar = pasta das fotos em public/avatars/. bluff e nerve = barras do Robô (0 a 10), do Personagem dele.
+  { name: 'Jogador 1', bot: false, avatar: null, picked: false, connected: false },
+  { name: 'Jogador 2', bot: false, avatar: null, picked: false, connected: false },
+  { name: 'Tonhão', bot: true, avatar: 'tonhao', connected: true, ...barsOf('tonhao') },
+  { name: 'Cida', bot: true, avatar: 'cida', connected: true, ...barsOf('cida') },
 ];
+// O que todo mundo vê de um Lugar: tudo, menos as barras do Robô.
+const publicSeat = ({ bluff, nerve, ...rest }) => rest;
 
 class Game {
   constructor(opts = {}) {
@@ -113,6 +124,8 @@ class Game {
     this.onzeTeam = null;
     this.lastHand = null;
     this.lastRound = null;
+    // Sinais da Mão: { seat, sig, card, seenBy } (seenBy = Robôs que viram). Some quando a carta é jogada.
+    this.signals = [];
   }
 
   // ---------- quem age agora ----------
@@ -191,9 +204,38 @@ class Game {
       this.seats.forEach((s, seat) => {
         if (!s.bot) return;
         const sig = this.brain.signalFor(this, seat);
-        if (sig) this.emit({ t: 'signal', seat, sig, delay: Math.round(600 + this.rng() * 3500) });
+        if (!sig) return;
+        const card = sig === 'lixo' ? null : this.hands[seat].find((c) => signalOfCard(c, this.manilha) === sig);
+        this.makeSignal(seat, sig, card, this.brain.signalDelay(this));
       });
     }
+  }
+
+  // ---------- sinais ----------
+  canSignal(seat, idx) {
+    const card = this.hands[seat][idx];
+    return !!card && this.mode !== 'ferro' && SIGNAL_PHASES.has(this.phase)
+      && !this.signals.some((x) => x.seat === seat && x.card === card);
+  }
+
+  // O Jogador faz o Sinal de uma carta: o Personagem dele faz a cara na Mesa, na hora.
+  signal(seat, idx) {
+    if (this.mode === 'ferro') return 'Na Mão de ferro não tem Sinal.';
+    if (!SIGNAL_PHASES.has(this.phase)) return 'Agora não dá pra fazer Sinal.';
+    const card = this.hands[seat] && this.hands[seat][idx];
+    if (!card) return 'Carta inválida.';
+    if (!this.canSignal(seat, idx)) return 'Essa carta já fez Sinal.';
+    this.makeSignal(seat, signalOfCard(card, this.manilha), card, 0);
+    return null;
+  }
+
+  // Cada Robô tira a sorte para ver ou não o Sinal (bots.js decide a chance).
+  makeSignal(seat, sig, card, delay) {
+    const seenBy = this.brain
+      ? this.seats.map((s, i) => i).filter((i) => i !== seat && this.seats[i].bot && this.brain.seesSignal(this, i, seat))
+      : [];
+    this.signals.push({ seat, sig, card: card || null, seenBy });
+    this.emit({ t: 'signal', seat, sig, delay });
   }
 
   canPlayClosed(seat) {
@@ -209,6 +251,8 @@ class Game {
     if (closed && this.mode === 'ferro') return 'Na Mão de ferro não dá pra jogar fechada.';
     if (closed && !this.rounds.length) return 'Na 1ª Rodada não dá pra jogar fechada.';
     const [card] = hand.splice(idx, 1);
+    // Quem viu o Sinal desta carta esquece: ela já foi jogada.
+    this.signals = this.signals.filter((x) => x.card !== card);
     if (closed) {
       this.table.push({ seat, card, closed: true });
       this.emit({ t: 'play', seat, closed: true });
@@ -359,7 +403,7 @@ class Game {
   publicView() {
     return {
       phase: this.phase,
-      seats: this.seats.map((s, i) => ({ ...s, cards: this.hands[i].length })),
+      seats: this.seats.map((s, i) => ({ ...publicSeat(s), cards: this.hands[i].length })),
       score: this.score,
       handNo: this.handNo,
       starter: this.starter,
@@ -388,12 +432,16 @@ class Game {
     v.canPlay = this.phase === 'play' && this.turn === seat;
     v.canTruco = this.canTruco(seat);
     v.canPlayClosed = this.canPlayClosed(seat);
+    v.canSignal = this.hands[seat].map((_, i) => this.canSignal(seat, i));
     v.mustRespond = this.phase === 'truco' && this.pending.responder === seat;
     v.mustOpine = this.phase === 'truco' && this.wantsOpinion(this.pending) && this.adviserOf(this.pending) === seat;
     v.mustOnze = this.phase === 'onze' && this.voiceOf(this.onzeTeam) === seat;
+    // Só o dono vê as barras do parceiro Robô.
+    const partner = this.seats[(seat + 2) % 4];
+    if (partner.bot) v.partner = { bluff: partner.bluff, nerve: partner.nerve };
     if (v.mustOnze) v.partnerHand = this.hands[(seat + 2) % 4];
     return v;
   }
 }
 
-module.exports = { Game, teamOf, power, decide, nextLevel, manilhaOf, LADDER };
+module.exports = { Game, signalOfCard, teamOf, power, decide, nextLevel, manilhaOf, LADDER };

@@ -19,6 +19,8 @@
   let record = 0;
 
   const seatEl = (i) => $('seat' + i);
+  // Quanto tempo a cara do Sinal fica na tela (ms).
+  const SIGNAL_MS = 2500;
   const OPINION_FACE_MS = 9000;
   const teamName = (t) => S.TEAM_NAME[t];
   const avatarOf = (i) => state.seats[i].avatar || 'robo';
@@ -365,10 +367,21 @@
         break;
 
       case 'signal': {
+        // Sinal lento e exagerado: a cara fica SIGNAL_MS na tela e o rosto todo mexe.
         const hand = state.handNo;
         setTimeout(() => {
-          if (state.handNo === hand) FACES.signal(seatEl(ev.seat), ev.sig, 1300);
-        }, ev.delay);
+          if (state.handNo !== hand) return;
+          const el = seatEl(ev.seat);
+          FACES.signal(el, ev.sig, SIGNAL_MS);
+          // A marca fica no .avatar: o Lugar é redesenhado a cada estado, o .avatar não.
+          const av = el.querySelector('.avatar');
+          if (!av) return;
+          av.classList.remove('signing');
+          void av.offsetWidth; // recomeça a animação
+          av.classList.add('signing');
+          clearTimeout(av._signing);
+          av._signing = setTimeout(() => av.classList.remove('signing'), SIGNAL_MS);
+        }, ev.delay || 0);
         break;
       }
     }

@@ -27,12 +27,18 @@ function partidaComPlacar(azul, vermelha) {
 }
 
 // Partida com Robôs nos quatro Lugares, cada um com um jeito de jogar.
+// Os Lugares 0 e 1 viram Robôs dos extremos: blefa e encara tudo (0), não blefa e tem medo (1).
 function partidaSoDeRobos({ brain } = {}) {
   const g = new Game({ brain });
   g.seats.forEach((s, i) => {
-    if (!s.bot) { s.bot = true; s.persona = i === 0 ? 'blefador' : 'medroso'; }
+    if (!s.bot) Object.assign(s, { bot: true }, i === 0 ? { bluff: 10, nerve: 10 } : { bluff: 0, nerve: 0 });
   });
   return g;
+}
+
+// Muda as barras de blefe e de coragem (0 a 10) do Robô do Lugar `lugar`.
+function barras(g, lugar, bluff, nerve) {
+  Object.assign(g.seats[lugar], { bluff, nerve });
 }
 
 // Troca as cartas da Mão que está sendo dada pelas cartas escolhidas.
@@ -44,4 +50,19 @@ function darCartas(g, { vira, maos }) {
   g.hands = maos.map((m) => m.slice());
 }
 
-module.exports = { rngFixo, partidaComPlacar, partidaSoDeRobos, darCartas };
+// Os Sinais da Mão que o Robô `robo` viu, como [Lugar de quem fez, Sinal].
+function sinaisQueORoboViu(g, robo) {
+  return g.signals.filter((x) => x.seenBy.includes(robo)).map((x) => [x.seat, x.sig]);
+}
+
+// Apaga os Sinais da Mão (os que os Robôs fizeram ao receber as cartas).
+function semSinais(g) {
+  g.signals = [];
+}
+
+// Faz o Robô `robo` ver todos os Sinais da Mão, sem tirar a sorte.
+function roboViuTudo(g, robo) {
+  g.signals.forEach((x) => { if (x.seat !== robo && !x.seenBy.includes(robo)) x.seenBy.push(robo); });
+}
+
+module.exports = { semSinais, roboViuTudo, rngFixo, partidaComPlacar, partidaSoDeRobos, darCartas, sinaisQueORoboViu, barras };

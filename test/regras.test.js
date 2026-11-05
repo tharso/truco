@@ -5,7 +5,7 @@ const { describe, test } = require('node:test');
 const assert = require('node:assert');
 const { Game, power, manilhaOf, decide, nextLevel } = require('../game.js');
 const brain = require('../bots.js');
-const { rngFixo, partidaComPlacar, darCartas } = require('./montagem.js');
+const { rngFixo, partidaComPlacar, darCartas, sinaisQueORoboViu, barras, semSinais, roboViuTudo } = require('./montagem.js');
 
 const ORDEM_DE_FORCA = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3'];
 const NAIPES = ['ouros', 'espadas', 'copas', 'paus'];
@@ -585,5 +585,108 @@ describe('Opinião', () => {
   test('sem Truco pedido, ninguém dá Opinião', () => {
     const g = partidaNaVez(1, { brain });
     for (const lugar of [0, 1, 2, 3]) assert.strictEqual(g.opine(lugar, 'aceita'), 'Ninguém pediu nada.');
+  });
+});
+
+describe('Sinais', () => {
+  test('na Mão de ferro ninguém faz Sinal', () => {
+    const g = partidaComPlacar(11, 11);
+    g.onTimer();
+    assert.deepStrictEqual(g.seatView(0).canSignal, [false, false, false]);
+    assert.strictEqual(g.signal(0, 0), 'Na Mão de ferro não tem Sinal.');
+  });
+
+  test('o Robô parceiro vê o Sinal 8 em 10 vezes, e o Robô adversário 2 em 10', () => {
+    // Lugar 0 (Jogador) faz Sinal; o Lugar 2 é o parceiro Robô, o Lugar 3 é Robô adversário.
+    const VEZES = 2000;
+    const viu = { parceiro: 0, adversario: 0 };
+    for (let semente = 1; semente <= VEZES; semente++) {
+      const g = new Game({ rng: rngFixo(semente), brain });
+      g.start();
+      assert.strictEqual(g.signal(0, 0), null);
+      if (sinaisQueORoboViu(g, 2).length) viu.parceiro++;
+      if (sinaisQueORoboViu(g, 3).length) viu.adversario++;
+    }
+    assert.ok(Math.abs(viu.parceiro / VEZES - 0.8) < 0.03, `parceiro viu ${viu.parceiro} de ${VEZES}`);
+    assert.ok(Math.abs(viu.adversario / VEZES - 0.2) < 0.03, `adversário viu ${viu.adversario} de ${VEZES}`);
+  });
+
+  test('o Robô esquece o Sinal quando a carta do Sinal é jogada', () => {
+    // Procura um sorteio em que o parceiro (Lugar 2) vê os dois Sinais do Lugar 0.
+    let g;
+    for (let semente = 1; ; semente++) {
+      g = new Game({ rng: rngFixo(semente), brain });
+      g.start();
+      g.signal(0, 0);
+      g.signal(0, 1);
+      if (sinaisQueORoboViu(g, 2).length === 2) break;
+    }
+    g.onTimer();
+    while (g.publicView().turn !== 0) assert.strictEqual(g.play(g.publicView().turn, 0), null);
+    assert.strictEqual(g.play(0, 0), null);
+    assert.strictEqual(sinaisQueORoboViu(g, 2).filter(([lugar]) => lugar === 0).length, 1);
+  });
+});
+
+describe('Jeito de jogar do Robô', () => {
+  const c = (r, s) => ({ r, s });
+  // O Lugar 1 (Jogador) pede Truco antes de jogar, e quem responde é o Robô do Lugar 2, com as barras dadas.
+  // A Vira é o K de ouros: a Manilha é o A, e o A de paus é o zap.
+  function trucoParaORobo2(maos, { bluff = 5, nerve = 5 } = {}) {
+    let g;
+    for (let semente = 1; ; semente++) {
+      g = new Game({ rng: rngFixo(semente), brain });
+      g.start();
+      if (g.publicView().starter === 1) break;
+    }
+    darCartas(g, { vira: c('K', 'ouros'), maos });
+    barras(g, 2, bluff, nerve);
+    g.onTimer();
+    semSinais(g);
+    assert.strictEqual(g.truco(1), null);
+    return g;
+  }
+  const respostaDoRobo2 = (g) => {
+    g.drain();
+    assert.strictEqual(brain.act(g, 2), null);
+    return g.drain().find((e) => e.seat === 2).t;
+  };
+
+  test('com mão fraca, o Robô corre; se viu o Sinal de zap do parceiro, aceita', () => {
+    const maos = [
+      [c('A', 'paus'), c('5', 'copas'), c('4', 'espadas')],
+      [c('2', 'ouros'), c('2', 'espadas'), c('J', 'ouros')],
+      [c('Q', 'copas'), c('7', 'espadas'), c('6', 'ouros')],
+      [c('J', 'copas'), c('J', 'espadas'), c('Q', 'ouros')],
+    ];
+    assert.strictEqual(respostaDoRobo2(trucoParaORobo2(maos)), 'corro');
+    const g = trucoParaORobo2(maos);
+    assert.strictEqual(g.signal(0, 0), null);
+    roboViuTudo(g, 2);
+    assert.strictEqual(respostaDoRobo2(g), 'aceito');
+  });
+
+  test('com mão média, o Robô aceita; se viu o Sinal de zap do adversário, corre', () => {
+    const maos = [
+      [c('2', 'ouros'), c('2', 'espadas'), c('J', 'ouros')],
+      [c('A', 'paus'), c('5', 'copas'), c('4', 'espadas')],
+      [c('K', 'copas'), c('J', 'espadas'), c('7', 'ouros')],
+      [c('J', 'copas'), c('Q', 'espadas'), c('Q', 'ouros')],
+    ];
+    assert.strictEqual(respostaDoRobo2(trucoParaORobo2(maos)), 'aceito');
+    const g = trucoParaORobo2(maos);
+    assert.strictEqual(g.signal(1, 0), null);
+    roboViuTudo(g, 2);
+    assert.strictEqual(respostaDoRobo2(g), 'corro');
+  });
+
+  test('com coragem 0 e blefe 0, o Robô ainda encara o Truco com mão boa', () => {
+    const maos = [
+      [c('2', 'ouros'), c('2', 'espadas'), c('J', 'ouros')],
+      [c('4', 'paus'), c('5', 'copas'), c('4', 'espadas')],
+      [c('A', 'copas'), c('3', 'espadas'), c('7', 'ouros')],
+      [c('J', 'copas'), c('Q', 'espadas'), c('Q', 'ouros')],
+    ];
+    assert.notStrictEqual(respostaDoRobo2(trucoParaORobo2(maos, { bluff: 0, nerve: 0 })), 'corro');
   });
 });

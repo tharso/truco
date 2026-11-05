@@ -50,6 +50,13 @@ body {
 @keyframes pulse { to { transform: scale(1.06); } }
 
 #hand { display: flex; justify-content: center; gap: 8px; min-height: 175px; align-items: flex-end; padding-top: 18px; }
+#hand .slot { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.sig-btn { border: 0; border-radius: 50%; width: 44px; height: 44px; font-size: 24px; background: #0008; box-shadow: 0 3px 0 #0008; }
+.sig-btn.off { visibility: hidden; }
+#ch-bars { display: flex; flex-direction: column; gap: 10px; }
+.bar { display: flex; flex-direction: column; gap: 4px; font-weight: 700; }
+.bar b { color: #ffd400; }
+.bar input { width: 100%; accent-color: #ffd400; }
 #hand .card { --cw: min(28vw, 120px); transition: transform .15s, filter .15s; }
 #hand.wait .card { filter: brightness(.75); }
 #hand .card.sel { transform: translateY(-18px) scale(1.06); box-shadow: 0 0 0 4px #ffd400, 0 10px 20px #000a; }
