@@ -196,17 +196,6 @@
     if (e.target.dataset.act === 'start') post({ type: 'start' });
   };
 
-  // provocações
-  $('taunts').innerHTML = S.TAUNTS.map((t, i) => `<button data-t="${i}">${t}</button>`).join('');
-  $('taunts').onclick = (e) => {
-    const b = e.target.closest('button');
-    if (!b) return;
-    post({ type: 'taunt', i: Number(b.dataset.t) });
-    const all = $('taunts').querySelectorAll('button');
-    all.forEach((x) => { x.disabled = true; });
-    setTimeout(() => all.forEach((x) => { x.disabled = false; }), 4000);
-  };
-
   // cola de sinais
   $('sig-list').innerHTML = Object.values(S.SIGNALS).map((s) => `<div class="sig"><span>${s.label}</span><b>${s.how}</b></div>`).join('');
 

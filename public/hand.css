@@ -64,9 +64,6 @@ body {
 
 #game-btns button { width: 100%; border: 0; border-radius: 16px; padding: 16px; font-size: 24px; color: #fff; background: #e3261f; box-shadow: 0 5px 0 #6d0b07; }
 
-#taunts { display: flex; flex-wrap: wrap; gap: 6px; }
-#taunts button { flex: 1 1 45%; background: #fff2; color: #fff; border: 1px solid #fff4; border-radius: 12px; padding: 9px 6px; font-size: 14px; font-weight: 700; }
-#taunts button:disabled { opacity: .4; }
 
 #signals { background: #0006; border-radius: 12px; padding: 10px 12px; font-size: 14px; }
 #signals summary { font-weight: 800; cursor: pointer; }

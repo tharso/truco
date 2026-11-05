@@ -78,6 +78,8 @@ class Game {
   drain() { const e = this.events; this.events = []; return e; }
   power(card) { return power(card, this.manilha); }
 
+  dealer() { return this.starter < 0 ? -1 : (this.starter + 3) % 4; }
+
   voiceOf(team) {
     // Quem fala pela dupla: o humano, se houver.
     if (!this.seats[team].bot) return team;
@@ -169,7 +171,8 @@ class Game {
     if (at11[0] && at11[1]) this.mode = 'ferro';
     else if (at11[0] || at11[1]) { this.mode = 'onze'; this.onzeTeam = at11[0] ? 0 : 1; }
     this.phase = 'deal';
-    this.emit({ t: 'deal', handNo: this.handNo, starter: this.starter, vira: this.vira, manilha: this.manilha, mode: this.mode });
+    // Quem dá as cartas é quem joga por último (o da direita de quem começa). Roda a cada mão.
+    this.emit({ t: 'deal', handNo: this.handNo, starter: this.starter, dealer: this.dealer(), vira: this.vira, manilha: this.manilha, mode: this.mode });
   }
 
   afterDeal() {
@@ -321,6 +324,7 @@ class Game {
       score: this.score,
       handNo: this.handNo,
       starter: this.starter,
+      dealer: this.dealer(),
       vira: this.vira,
       manilha: this.manilha,
       table: this.table,

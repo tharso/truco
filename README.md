@@ -1,7 +1,7 @@
 # Truco do Bar do Zé
 
 Truco paulista para 2 pessoas na mesa + 2 parceiros robôs na tela.
-O Seu Zé é a banca: ele dá as cartas e narra tudo em voz alta.
+Quem dá as cartas muda a cada mão. A voz fala só o básico: a manilha, o truco e a mão de onze ou de ferro.
 
 ## Como jogar
 
@@ -14,8 +14,8 @@ O Seu Zé é a banca: ele dá as cartas e narra tudo em voz alta.
 2. No notebook, abra `http://localhost:3000` (use `localhost`: o microfone só funciona assim).
    Ligue o notebook na TV, se quiser.
 3. Clique em **Ligar som e microfone**.
-4. Cada pessoa abre no celular o endereço que aparece na tela (mesmo Wi-Fi).
-   Ex.: `http://192.168.68.60:3000/mao`. Escolhe nome e lugar.
+4. Cada pessoa aponta a câmera do celular para o QR Code da TV (mesmo Wi-Fi).
+   Ou abre o endereço que aparece embaixo dele. Escolhe nome e lugar.
 5. Clique em **COMEÇAR!**
 
 Se o macOS perguntar se o `node` pode receber conexões, clique em **Permitir**.
@@ -49,9 +49,19 @@ npx wrangler dev
 - **Sinais:** os robôs fazem sinais com o rosto no começo da mão. A cola está no celular.
   O adversário também pode ver!
 - **Cochicho:** quando pedem truco pra você, seu parceiro robô cochicha no seu celular.
-  Na TV ele fala outra coisa, pra enganar.
-- **Provocações:** botões no celular. A TV fala em voz alta.
 - Mão de onze, mão de ferro, galinha quando alguém corre, confete, tremor.
+- Botão 🔊 no topo da TV liga e desliga o som. Botão ↺ começa uma partida nova.
+
+## Falas gravadas
+
+As falas ficam em `public/audio/`. Elas são gravadas com uma voz do Mac:
+
+```bash
+scripts/gravar-vozes.sh Luciana
+```
+
+Para trocar a voz, baixe outra em Ajustes do Sistema → Acessibilidade → Conteúdo Falado
+e rode o script com o nome dela. Para mudar uma frase, edite a lista no próprio script.
 
 ## Regras (truco paulista)
 

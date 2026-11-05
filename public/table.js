@@ -1,15 +1,13 @@
-// Tela da MESA (TV/notebook): mostra tudo, o Seu Zé narra, os robôs fazem sinais.
+// Tela da MESA (TV/notebook): mostra tudo. A voz fala só o básico: manilha, truco, mão de onze/ferro.
 (function () {
   const S = window.SHARED;
-  const L = window.LINES;
-  const BL = window.BOT_LINES;
   const $ = (id) => document.getElementById(id);
-  const pick = (a) => a[Math.floor(Math.random() * a.length)];
-  const fill = (t, o) => t.replace(/\{(\w)\}/g, (_, k) => (o[k] !== undefined ? o[k] : ''));
   const POS = ['bottom', 'left', 'top', 'right'];
   const HUMAN_EMOJI = ['🤠', '😎'];
   const PERSONA_LABEL = { blefador: 'o Blefador', medroso: 'o Medroso', robo: 'robô' };
   const TEAM_COLOR = ['#2f7bff', '#ff3b3b'];
+  const LEVEL_CLIP = { 3: 'truco', 6: 'seis', 9: 'nove', 12: 'doze' };
+  const NUDGE_MS = 20000;
 
   let state = null;
   let dealingUntil = 0;
@@ -17,8 +15,8 @@
   let viraShownFor = '';
   const built = [null, null, null, null];
   let lastScore = [0, 0];
-  let nagTimer = null;
-  let nagKey = '';
+  let nudgeTimer = null;
+  let nudgeKey = '';
   let record = 0;
 
   const seatEl = (i) => $('seat' + i);
@@ -35,51 +33,22 @@
   }
 
   // ---------- falas ----------
-  function log(text) {
-    const box = $('log');
-    const d = document.createElement('div');
-    d.textContent = text;
-    box.prepend(d);
-    while (box.children.length > 30) box.lastChild.remove();
-  }
-
   function bubble(el, text, ms) {
     if (!el) return;
     el.textContent = text;
     el.classList.add('show');
     clearTimeout(el._t);
-    el._t = setTimeout(() => el.classList.remove('show'), ms || Math.max(2600, text.length * 75));
+    el._t = setTimeout(() => el.classList.remove('show'), ms || 2200);
   }
 
-  function talkFace(svg, text) {
-    return {
+  // Toca uma fala gravada. Se for um robô falando, a boca dele mexe.
+  function speak(key, opts = {}) {
+    const svg = opts.seat !== undefined ? seatEl(opts.seat).querySelector('svg') : null;
+    FX.speak(key, {
+      urgent: opts.urgent,
       onstart: () => svg && svg.classList.add('talking'),
       onend: () => svg && svg.classList.remove('talking'),
-      fallback: () => {
-        if (!svg) return;
-        svg.classList.add('talking');
-        setTimeout(() => svg.classList.remove('talking'), Math.min(4000, 400 + text.length * 55));
-      },
-    };
-  }
-
-  function zeSay(text, opts = {}) {
-    bubble($('ze-bubble'), text);
-    log('🧔 ' + text);
-    const t = talkFace($('ze').querySelector('svg'), text);
-    if (FX.voiceOn && window.speechSynthesis) FX.say(text, 'ze', { urgent: opts.urgent, onstart: t.onstart, onend: t.onend });
-    else t.fallback();
-  }
-
-  function seatSay(i, text, urgent) {
-    const el = seatEl(i);
-    bubble(el.querySelector('.bubble'), text);
-    log(`${state.seats[i].bot ? '🤖' : '🗣️'} ${state.seats[i].name}: ${text}`);
-    const svg = el.querySelector('svg');
-    const t = talkFace(svg, text);
-    const voice = state.seats[i].bot ? personaOf(i) : 'human';
-    if (FX.voiceOn && window.speechSynthesis) FX.say(text, voice, { urgent, onstart: t.onstart, onend: t.onend });
-    else t.fallback();
+    });
   }
 
   // ---------- overlay ----------
@@ -107,7 +76,7 @@
     for (let i = 0; i < 4; i++) renderSeat(i);
     renderCenter();
     renderStatus();
-    nag();
+    nudge();
   }
 
   function renderScore() {
@@ -120,9 +89,24 @@
         if (state.score[t] > lastScore[t]) el.classList.add('bump');
       }
       $('m' + t).textContent = `${state.seats[t].name} + ${state.seats[t + 2].name}`;
-      $('b' + t).innerHTML = Array.from({ length: 12 }, (_, k) => `<div class="bean ${k < state.score[t] ? 'on' : ''}"></div>`).join('');
+      $('b' + t).style.width = `${(Math.min(12, state.score[t]) / 12) * 100}%`;
     });
     lastScore = [...state.score];
+    // valor da mão e rodadas
+    const vb = $('value-badge');
+    let txt = `Vale ${state.value}`;
+    let hot = false;
+    if (state.pending) { txt = `${S.LEVEL_NAME[state.pending.level]}? Vale ${state.pending.level}!`; hot = true; }
+    else if (state.mode === 'ferro') { txt = 'MÃO DE FERRO · no escuro'; hot = true; }
+    else if (state.mode === 'onze') { txt = state.phase === 'onze' ? 'MÃO DE ONZE' : `MÃO DE ONZE · Vale ${state.value}`; hot = true; }
+    else if (state.value > 1) { txt = `${S.LEVEL_NAME[state.value]} · Vale ${state.value}`; hot = true; }
+    vb.textContent = state.phase === 'lobby' || state.phase === 'over' ? '' : txt;
+    vb.classList.toggle('hot', hot);
+    vb.style.display = vb.textContent ? '' : 'none';
+    $('rounds').innerHTML = state.phase === 'lobby' ? '' : [0, 1, 2].map((k) => {
+      const r = state.rounds[k];
+      return `<div class="rdot ${r === undefined ? '' : r === 'tie' ? 'rtie' : 'r' + r}"></div>`;
+    }).join('');
   }
 
   function buildSeat(i) {
@@ -134,20 +118,22 @@
     const av = s.bot
       ? `<div class="avatar">${FACES.svg(personaOf(i))}</div>`
       : `<div class="avatar"><div class="human-av">${HUMAN_EMOJI[i]}</div><div class="phone-badge">📱</div></div>`;
-    el.innerHTML = `<div class="bubble"></div>${av}<div class="seat-info"><div class="nameplate"></div><div class="backs"></div></div>`;
+    el.innerHTML = `<div class="bubble"></div>${av}<div class="seat-info"><div class="nameplate"></div><div class="backs"></div><div class="dealer-chip">🃏 dá as cartas</div></div>`;
   }
 
   function renderSeat(i) {
     buildSeat(i);
     const s = state.seats[i];
     const el = seatEl(i);
-    el.className = `seat pos-${POS[i]} t${i % 2}${state.turn === i && state.phase === 'play' ? ' active' : ''}`;
+    const dealing = state.phase === 'deal' && state.dealer === i && Date.now() < dealingUntil;
+    el.className = `seat pos-${POS[i]} t${i % 2}${state.turn === i && state.phase === 'play' ? ' active' : ''}${dealing ? ' dealing' : ''}`;
     const persona = s.bot ? `<span class="persona">${PERSONA_LABEL[personaOf(i)] || ''}</span>` : '';
     const np = el.querySelector('.nameplate');
     const npHtml = `${s.name}${persona}`;
     if (np.innerHTML !== npHtml) np.innerHTML = npHtml;
     const badge = el.querySelector('.phone-badge');
     if (badge) badge.classList.toggle('off', !s.connected);
+    el.querySelector('.dealer-chip').style.display = state.dealer === i && state.phase !== 'lobby' && state.phase !== 'over' ? '' : 'none';
     const n = Date.now() < dealingUntil ? 0 : s.cards;
     const backs = el.querySelector('.backs');
     if (backs.childElementCount !== n) backs.innerHTML = Array.from({ length: n }, () => S.cardHTML({ hidden: true })).join('');
@@ -163,29 +149,13 @@
       vira.innerHTML = showVira ? S.cardHTML(state.vira, null, 'flip') : '';
     }
     $('man-label').innerHTML = state.manilha && showVira
-      ? `Manilha: <b>${state.manilha} (${S.RANK_NAME[state.manilha]})</b>` : (state.phase === 'deal' ? 'Embaralhando…' : '');
-    // rodadas
-    $('rounds').innerHTML = [0, 1, 2].map((k) => {
-      const r = state.rounds[k];
-      return `<div class="rdot ${r === undefined ? '' : r === 'tie' ? 'rtie' : 'r' + r}"></div>`;
-    }).join('');
-    // valor
-    const vb = $('value-badge');
-    let txt = `Vale ${state.value}`;
-    let hot = false;
-    if (state.pending) { txt = `${S.LEVEL_NAME[state.pending.level]}? Vale ${state.pending.level}!`; hot = true; }
-    else if (state.mode === 'ferro') { txt = 'MÃO DE FERRO · no escuro'; hot = true; }
-    else if (state.mode === 'onze') { txt = state.phase === 'onze' ? 'MÃO DE ONZE' : `MÃO DE ONZE · Vale ${state.value}`; hot = true; }
-    else if (state.value > 1) { txt = `${S.LEVEL_NAME[state.value]} · Vale ${state.value}`; hot = true; }
-    vb.textContent = state.phase === 'lobby' || state.phase === 'over' ? '' : txt;
-    vb.classList.toggle('hot', hot);
-    vb.style.display = vb.textContent ? '' : 'none';
+      ? `Manilha: <b>${state.manilha} (${S.RANK_NAME[state.manilha]})</b>` : '';
     // cartas jogadas
     const done = (state.phase === 'roundEnd' || state.phase === 'handEnd') && state.table.length === 4 && state.lastRound;
     for (let i = 0; i < 4; i++) {
       const slot = $('slot' + i);
       const p = state.table.find((x) => x.seat === i);
-      if (!p) { if (slot.innerHTML) slot.innerHTML = ''; continue; }
+      if (!p) { if (slot.innerHTML) slot.innerHTML = ''; slot.dataset.id = ''; continue; }
       const id = p.card.r + p.card.s;
       if (slot.dataset.id !== id || !slot.firstElementChild) {
         slot.dataset.id = id;
@@ -196,7 +166,6 @@
       c.classList.toggle('win', !!done && state.lastRound.result !== 'tie' && state.lastRound.seat === i);
       c.classList.toggle('lose', !!done && state.lastRound.result !== 'tie' && state.lastRound.seat !== i);
     }
-    for (let i = 0; i < 4; i++) if (!state.table.find((x) => x.seat === i)) $('slot' + i).dataset.id = '';
   }
 
   function flyIn(card, seat) {
@@ -211,33 +180,35 @@
   }
 
   function renderStatus() {
-    const st = $('status');
     let t = '';
     const s = state.seats;
-    if (state.phase === 'deal') t = 'Seu Zé está dando as cartas…';
+    if (state.phase === 'deal' && state.dealer >= 0) t = `${s[state.dealer].name} está dando as cartas…`;
     else if (state.phase === 'play' && state.turn >= 0) {
-      t = s[state.turn].bot ? `${s[state.turn].name} está pensando…` : `Vez de ${s[state.turn].name} — jogue pelo celular 📱`;
+      t = s[state.turn].bot ? `${s[state.turn].name} está pensando…` : `Vez de ${s[state.turn].name} · jogue pelo celular 📱`;
     } else if (state.phase === 'truco' && state.pending) {
-      const v = voiceOf(state.pending.respondTeam);
-      t = `${s[v].name}: aceita, corre ou aumenta?`;
+      t = `${s[voiceOf(state.pending.respondTeam)].name}: aceita, corre ou aumenta?`;
     } else if (state.phase === 'onze') {
       t = `${s[voiceOf(state.onzeTeam)].name}: joga ou corre?`;
     }
-    st.textContent = t;
+    $('status').textContent = t;
   }
 
-  function nag() {
+  // Se uma pessoa demora mais de 20 segundos, a voz dá um toque (uma vez só).
+  function nudge() {
     const key = [state.phase, state.turn, state.pending && state.pending.level, state.handNo].join('|');
-    if (key === nagKey) return;
-    nagKey = key;
-    clearTimeout(nagTimer);
+    if (key === nudgeKey) return;
+    nudgeKey = key;
+    clearTimeout(nudgeTimer);
     let who = -1;
+    let clip = 'vez';
     if (state.phase === 'play') who = state.turn;
-    else if (state.phase === 'truco') who = voiceOf(state.pending.respondTeam);
-    else if (state.phase === 'onze') who = voiceOf(state.onzeTeam);
+    else if (state.phase === 'truco') { who = voiceOf(state.pending.respondTeam); clip = 'responde'; }
+    else if (state.phase === 'onze') { who = voiceOf(state.onzeTeam); clip = 'onze-decide'; }
     if (who < 0 || state.seats[who].bot) return;
-    const name = state.seats[who].name;
-    nagTimer = setTimeout(() => zeSay(fill(pick(L.turnHuman), { n: name })), 16000);
+    nudgeTimer = setTimeout(() => {
+      speak(clip);
+      bubble(seatEl(who).querySelector('.bubble'), 'Sua vez! ⏰', 3000);
+    }, NUDGE_MS);
   }
 
   // ---------- lobby e fim ----------
@@ -262,6 +233,20 @@
     $('end-score').innerHTML = `<span class="t0c">${state.score[0]}</span> x <span class="t1c">${state.score[1]}</span>`;
   }
 
+  function showLink(urls) {
+    const [first, ...rest] = urls;
+    if (!first) return;
+    $('lan-url').innerHTML = `${first}${rest.length ? `<small>Se não abrir, tente: ${rest.join(' ou ')}</small>` : ''}`;
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData(first);
+      qr.make();
+      $('qr').innerHTML = qr.createSvgTag({ cellSize: 8, margin: 0, scalable: true });
+    } catch (e) {
+      $('qr').style.display = 'none';
+    }
+  }
+
   // ---------- eventos ----------
   function preEvent(ev) {
     if (ev.t === 'deal') {
@@ -272,69 +257,53 @@
     }
   }
 
-  function handleEvent(ev, batch) {
+  function handleEvent(ev) {
     const s = state.seats;
     switch (ev.t) {
       case 'start':
         FX.sfx.fanfare();
-        zeSay(pick(L.start));
+        speak('comeca');
         break;
 
       case 'deal': {
-        const ze = $('ze');
-        ze.classList.add('shuffling');
         FX.sfx.shuffle();
-        if (ev.handNo > 1 && Math.random() < 0.5) zeSay(pick(L.shuffle));
         setTimeout(() => {
-          ze.classList.remove('shuffling');
           FX.sfx.deal();
-          const from = ze.getBoundingClientRect();
+          const dealer = ev.dealer >= 0 ? ev.dealer : 0;
+          const from = seatEl(dealer).querySelector('.avatar').getBoundingClientRect();
           for (let k = 0; k < 12; k++) {
             const seat = (ev.starter + k) % 4;
             setTimeout(() => flyCard(from, seatEl(seat).querySelector('.backs')), k * 95);
           }
         }, 1000);
-        setTimeout(() => zeSay(fill(pick(L.vira), { v: S.cardName(ev.vira), m: S.RANK_NAME[ev.manilha] })), 2550);
+        // Manilha: só em mão normal ou de onze (na de ferro, o grito é outro).
+        if (ev.mode !== 'ferro') setTimeout(() => speak('man-' + ev.manilha), 2600);
         break;
       }
 
       case 'play': {
         FX.sfx.slap();
         const c = ev.card;
-        log(`🃏 ${s[ev.seat].name} jogou ${S.cardName(c)}`);
-        const man = c.r === state.manilha;
-        if (man && c.s === 'paus') {
-          zeSay(pick(L.zap));
+        if (c.r === state.manilha && c.s === 'paus') {
           FX.shake(1);
           FX.flash('#ffd400');
-          FX.confetti(50);
-        } else if (man && Math.random() < 0.6) zeSay(pick(L.manilha));
+          FX.confetti(40);
+        }
         break;
       }
 
       case 'round':
-        if (ev.result === 'tie') { FX.sfx.boing(); zeSay(pick(L.tie)); }
-        else {
-          FX.sfx.ding();
-          if (!batch.some((e) => e.t === 'hand') && Math.random() < 0.35) zeSay(fill(pick(L.roundWin), { d: teamName(ev.result) }));
-        }
+        if (ev.result === 'tie') FX.sfx.boing();
+        else FX.sfx.ding();
         break;
 
       case 'hand': {
         const w = ev.winner;
-        if (w === null) { zeSay(pick(L.handNobody)); FX.sfx.sad(); break; }
-        const pts = ev.points === 1 ? '1 tento' : `${ev.points} tentos`;
-        log(`🏁 ${teamName(w)} +${ev.points}`);
-        if (ev.reason === 'jogo') zeSay(fill(pick(L.handWin), { d: teamName(w), p: pts }));
+        if (w === null) { FX.sfx.sad(); break; }
         FX.sfx.fanfare();
-        FX.confetti(ev.points >= 3 ? 160 : 50);
+        FX.confetti(ev.points >= 3 ? 120 : 30);
         if (ev.points >= 3) showOverlay(`<div class="big-word small" style="color:${TEAM_COLOR[w]}">+${ev.points}</div><div class="ov-sub">${teamName(w)}</div>`, 1700);
         for (let i = 0; i < 4; i++) if (s[i].bot) FACES.mood(seatEl(i), i % 2 === w ? 'happy' : 'sad', 3000);
-        const talker = [2, 3].find((i) => s[i].bot && Math.random() < 0.35);
-        if (talker !== undefined) {
-          const set = BL[personaOf(talker)];
-          setTimeout(() => seatSay(talker, pick(talker % 2 === w ? set.win : set.lose)), 600);
-        }
         break;
       }
 
@@ -343,7 +312,7 @@
         setTimeout(() => FX.sfx.fanfare(), 700);
         FX.confetti(320);
         setTimeout(() => FX.confetti(200), 1200);
-        zeSay(fill(pick(L.over), { d: teamName(ev.winner) }), { urgent: true });
+        speak('fim-' + ev.winner, { urgent: true });
         break;
 
       case 'truco':
@@ -352,46 +321,35 @@
 
       case 'aceito':
         FX.sfx.ding();
-        showOverlay(`<div class="stamp">CAI DENTRO!</div>`, 1400);
-        log(`✅ ${s[ev.seat].name} aceitou (${ev.level})`);
-        if (s[ev.seat].bot) seatSay(ev.seat, pick(BL[personaOf(ev.seat)].aceito));
-        else zeSay(pick(L.aceito));
+        showOverlay(`<div class="stamp">ACEITO!</div>`, 1300);
+        bubble(seatEl(ev.seat).querySelector('.bubble'), 'Aceito!');
         break;
 
       case 'corro':
         FX.sfx.chicken();
-        showOverlay(`<div class="big-emoji">🐔</div><div class="ov-sub">${s[ev.seat].name} CORREU!</div>`, 2000);
-        FX.confetti(30, '🐔');
-        log(`🐔 ${s[ev.seat].name} correu`);
-        if (s[ev.seat].bot) seatSay(ev.seat, pick(BL[personaOf(ev.seat)].corro));
-        zeSay(pick(L.correu));
-        break;
-
-      case 'advice':
-        seatSay(ev.seat, pick(BL[personaOf(ev.seat)].publicAdvice));
+        showOverlay(`<div class="big-emoji">🐔</div><div class="ov-sub">${s[ev.seat].name} CORREU!</div>`, 1800);
+        bubble(seatEl(ev.seat).querySelector('.bubble'), 'Corro! 🐔');
         break;
 
       case 'onze':
         FX.sfx.drumroll();
         showOverlay(`<div class="big-word small">MÃO DE ONZE!</div><div class="ov-sub">${teamName(ev.team)} decide</div>`, 2600);
-        zeSay(fill(pick(L.onze), { d: teamName(ev.team) }));
+        speak('onze');
         break;
 
       case 'onzeJoga':
         showOverlay(`<div class="stamp">VALE 3!</div>`, 1500);
-        zeSay(fill(pick(L.onzeJoga), { d: teamName(ev.team) }));
         break;
 
       case 'onzeCorre':
         FX.sfx.chicken();
-        zeSay(fill(pick(L.onzeCorre), { d: teamName(ev.team) }));
         break;
 
       case 'ferro':
         FX.sfx.horn();
         FX.shake(2);
         showOverlay(`<div class="big-word small">MÃO DE FERRO!</div><div class="ov-sub">Todo mundo no escuro!</div>`, 2800);
-        zeSay(pick(L.ferro));
+        speak('ferro');
         break;
 
       case 'signal': {
@@ -401,11 +359,6 @@
         }, ev.delay);
         break;
       }
-
-      case 'say':
-        seatSay(ev.seat, ev.text);
-        if (Math.random() < 0.3) setTimeout(() => zeSay(pick(['Uuuuh! Pegou pesado!', 'Ih, vai ter briga!', 'Olha a boca, que aqui é lugar de família!'])), 1800);
-        break;
     }
   }
 
@@ -437,21 +390,15 @@
     FX.shake(2);
     FX.flash(TEAM_COLOR[team]);
     const sub = `${s.name} ${ev.raise ? 'aumentou' : 'pediu'}!`;
-    log(`📣 ${s.name}: ${word}!`);
+    bubble(seatEl(ev.seat).querySelector('.bubble'), `${word}!`, 2600);
 
-    if (s.bot) {
-      showOverlay(`<div class="big-word">${word}!</div><div class="ov-sub">${sub}</div>`, 2600);
-      FACES.mood(seatEl(ev.seat), 'shock', 1500);
-      const set = BL[personaOf(ev.seat)];
-      seatSay(ev.seat, fill(pick(ev.raise ? set.raise : set.truco), { L: word }), true);
-      return;
-    }
-    if (!FX.micOn) {
+    if (s.bot || !FX.micOn) {
       showOverlay(`<div class="big-word">${word}!</div><div class="ov-sub">${sub}</div>`, 2400);
-      zeSay(`${word}! ${s.name} ${ev.raise ? 'aumentou pra' : 'pediu'} ${word.toLowerCase()}!`, { urgent: true });
+      if (s.bot) FACES.mood(seatEl(ev.seat), 'shock', 1500);
+      speak(LEVEL_CLIP[ev.level], { urgent: true, seat: s.bot ? ev.seat : undefined });
       return;
     }
-    // Gritômetro!
+    // Gritômetro: a pessoa grita, o microfone mede.
     FX.hush();
     const t = showOverlay(`
       <div class="big-word" id="ov-word">${word}!</div>
@@ -470,10 +417,8 @@
     if (peak > record) { record = peak; extra = ' 🏅 RECORDE DA NOITE!'; }
     const lab = $('ov-label');
     if (lab) lab.textContent = `GRITÔMETRO: ${peak}! ${['🥱', '😐', '😮', '🤯'][tier]}${extra}`;
-    log(`🎤 Gritômetro de ${s.name}: ${peak}${extra}`);
-    if (tier >= 2) FX.confetti(tier === 3 ? 220 : 90);
-    if (tier === 3) { FX.shake(3); FX.confetti(25, '💥'); FX.flash('#fff'); }
-    zeSay(pick(L.shout[tier]));
+    if (tier >= 2) FX.confetti(tier === 3 ? 160 : 60);
+    if (tier === 3) { FX.shake(3); FX.flash('#fff'); }
     setTimeout(() => hideOverlay(t), 2000);
   }
 
@@ -491,23 +436,28 @@
   }, 500);
 
   // ---------- botões ----------
+  function paintSound() {
+    $('btn-sound').textContent = FX.soundOn ? '🔊' : '🔇';
+    $('btn-sound').classList.toggle('off', !FX.soundOn);
+  }
   async function unlock() {
     FX.audio();
+    if (!FX.soundOn) { FX.setSound(true); paintSound(); }
+    FX.loadClips();
     FX.sfx.ding();
     const ok = await FX.enableMic();
     $('unlock-status').textContent = ok ? '✅ Som e Gritômetro ligados!' : '🔇 Som ligado. Microfone bloqueado (o Gritômetro fica de folga).';
     $('btn-mic').classList.toggle('on', ok);
-    zeSay(ok ? 'Testando, testando! Tô ouvindo vocês! Quando pedir truco, GRITA!' : 'Som ligado! Sem microfone, mas a zoeira continua.');
   }
   $('btn-unlock').onclick = unlock;
   $('btn-mic').onclick = unlock;
-  $('btn-voice').onclick = () => {
-    const on = !FX.voiceOn;
-    FX.setVoice(on);
-    $('btn-voice').classList.toggle('off', !on);
+  $('btn-sound').onclick = () => {
+    FX.audio();
+    FX.setSound(!FX.soundOn);
+    paintSound();
   };
-  $('btn-lobby').onclick = () => {
-    if (state && state.phase !== 'lobby' && !confirm('Voltar ao início? A partida atual acaba.')) return;
+  $('btn-new').onclick = () => {
+    if (state && state.phase !== 'lobby' && state.phase !== 'over' && !confirm('Começar uma nova partida? A partida atual acaba.')) return;
     post({ type: 'lobby' });
   };
   $('btn-start').onclick = async () => {
@@ -520,17 +470,16 @@
   document.addEventListener('change', (e) => {
     if (e.target.matches('input[data-seat]')) post({ type: 'config', seat: Number(e.target.dataset.seat), bot: e.target.checked });
   });
-  document.addEventListener('click', () => FX.audio(), { once: true });
+  document.addEventListener('click', () => { FX.audio(); FX.loadClips(); }, { once: true });
 
   // ---------- início ----------
-  $('ze').innerHTML = FACES.svg('ze');
-  $('lobby-ze').innerHTML = FACES.svg('ze');
+  paintSound();
+  FX.loadClips();
   fetch('/api/info').then((r) => r.json()).then((info) => {
-    if (info.online) { $('url-hint').textContent = 'No celular, abra:'; info.urls = [`${location.origin}/mao`]; }
-    const [first, ...rest] = info.urls;
-    $('lan-url').innerHTML = first
-      ? `${first}${rest.length ? `<div style="font-size:15px;opacity:.7;margin-top:4px">Se não abrir, tente: ${rest.join(' ou ')}</div>` : ''}`
-      : `http://IP-deste-computador:${info.port}/mao`;
+    if (info.online) {
+      $('url-hint').textContent = 'Aponte a câmera do celular para o QR Code.';
+      showLink([`${location.origin}/mao`]);
+    } else showLink(info.urls);
   });
 
   const es = new EventSource('/events?role=table');
@@ -540,7 +489,7 @@
     state = m.state;
     m.events.forEach(preEvent);
     render();
-    m.events.forEach((ev) => handleEvent(ev, m.events));
+    m.events.forEach((ev) => handleEvent(ev));
   };
 
   window.__truco = { get state() { return state; } };

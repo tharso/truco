@@ -3,7 +3,6 @@
 'use strict';
 const { Game } = require('./game.js');
 const brain = require('./bots.js');
-const { TAUNTS } = require('./public/shared.js');
 
 const ROBOT_NAMES = ['Robô Juca', 'Robô Lurdes'];
 
@@ -123,12 +122,6 @@ class Room {
       case 'truco': return game.truco(seat);
       case 'respond': return game.respond(seat, a.ans);
       case 'onze': return game.onzeDecide(seat, a.ans);
-      case 'taunt': {
-        const i = Number(a.i);
-        if (!(i >= 0 && i < TAUNTS.length)) return 'Provocação inválida.';
-        game.emit({ t: 'say', seat, text: TAUNTS[i] });
-        return null;
-      }
       default: return 'Ação desconhecida.';
     }
   }

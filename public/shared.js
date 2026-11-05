@@ -11,16 +11,6 @@
   const LEVEL_NAME = { 3: 'TRUCO', 6: 'SEIS', 9: 'NOVE', 12: 'DOZE' };
   const TEAM_NAME = ['Dupla Azul', 'Dupla Vermelha'];
 
-  const TAUNTS = [
-    'Pede truco, frouxo!',
-    'Corre que é tempo!',
-    'Essa mão é minha!',
-    'Tá tremendo, é?',
-    'Vai chorar no colo da mamãe?',
-    'Cai dentro, galinha!',
-    'Eu tô só esquentando...',
-    'Já pode ir buscando o feijão!',
-  ];
 
   const SIGNALS = {
     zap: { label: 'Zap (manilha de paus)', how: 'Pisca um olho' },
@@ -49,7 +39,7 @@
 
   const SHARED = {
     RANKS, SUITS, SUIT_SYMBOL, RANK_NAME, MANILHA_NAME, LEVEL_NAME, TEAM_NAME,
-    TAUNTS, SIGNALS, cardName, cardHTML,
+    SIGNALS, cardName, cardHTML,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = SHARED;
   else root.SHARED = SHARED;

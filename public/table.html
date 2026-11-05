@@ -27,54 +27,77 @@
       <div class="team t0">
         <div class="tname shout">DUPLA AZUL</div>
         <div class="members" id="m0"></div>
-        <div class="beans" id="b0"></div>
+        <div class="bar"><div class="bar-fill" id="b0"></div></div>
       </div>
       <div class="pts shout t0c" id="s0">0</div>
-      <div id="title" class="shout">TRUCO<small>do Bar do Zé</small></div>
+      <div id="hud">
+        <div id="value-badge" class="shout"></div>
+        <div id="rounds"></div>
+      </div>
       <div class="pts shout t1c" id="s1">0</div>
       <div class="team t1">
         <div class="tname shout">DUPLA VERMELHA</div>
         <div class="members" id="m1"></div>
-        <div class="beans" id="b1"></div>
+        <div class="bar"><div class="bar-fill" id="b1"></div></div>
+      </div>
+      <div id="controls">
+        <button id="btn-sound" title="Liga e desliga o som">🔊</button>
+        <button id="btn-mic" title="Liga o Gritômetro">🎤</button>
+        <button id="btn-new" title="Nova partida">↺ Nova partida</button>
       </div>
     </header>
 
-    <main id="felt">
-      <div class="seat pos-bottom" id="seat0"></div>
-      <div class="seat pos-left" id="seat1"></div>
+    <main id="room">
       <div class="seat pos-top" id="seat2"></div>
-      <div class="seat pos-right" id="seat3"></div>
-      <div id="center">
-        <div class="slot slot0" id="slot0"></div>
-        <div class="slot slot1" id="slot1"></div>
-        <div class="slot slot2" id="slot2"></div>
-        <div class="slot slot3" id="slot3"></div>
-      </div>
-      <div id="mid">
-          <div id="vira-box">
-            <div id="deck"><div class="card back" style="--cw:62px"><div class="back-art">🃏</div></div></div>
+      <div class="seat pos-left" id="seat1"></div>
+      <div id="felt">
+        <div id="center">
+          <div class="slot slot2" id="slot2"></div>
+          <div class="slot slot1" id="slot1"></div>
+          <div id="mid">
+            <div id="vira-tag" class="shout">VIRA</div>
             <div id="vira"></div>
+            <div id="man-label"></div>
           </div>
-          <div id="man-label"></div>
-          <div id="rounds"></div>
-          <div id="value-badge" class="shout"></div>
+          <div class="slot slot3" id="slot3"></div>
+          <div class="slot slot0" id="slot0"></div>
         </div>
-      <div id="status" class="shout"></div>
+        <div id="status" class="shout"></div>
+      </div>
+      <div class="seat pos-right" id="seat3"></div>
+      <div class="seat pos-bottom" id="seat0"></div>
     </main>
+  </div>
 
-    <aside id="banca">
-      <div class="ze-wrap">
-        <div id="ze-bubble" class="bubble"></div>
-        <div id="ze" class="char"></div>
-        <div class="balcao shout">SEU ZÉ · A BANCA</div>
+  <div id="lobby" class="screen hidden">
+    <div class="lobby-box">
+      <h1 class="shout">TRUCO <span>do Bar do Zé</span></h1>
+      <div class="lobby-grid">
+        <div class="qr-box">
+          <div id="qr"></div>
+          <div id="lan-url" class="url"></div>
+        </div>
+        <div class="lobby-steps">
+          <div class="step">
+            <b>1.</b> Ligue o som (e o microfone, pro Gritômetro).
+            <button id="btn-unlock" class="big-btn yellow">🔊🎤 Ligar som e microfone</button>
+            <span id="unlock-status"></span>
+          </div>
+          <div class="step">
+            <b>2.</b> <span id="url-hint">Aponte a câmera do celular para o QR Code. Use o mesmo Wi-Fi.</span>
+          </div>
+          <div class="step seats-step">
+            <b>3.</b> Cada um escolhe seu lugar no celular:
+            <div class="lobby-seats">
+              <div class="lseat t0" id="lseat0"></div>
+              <div class="lseat t1" id="lseat1"></div>
+            </div>
+          </div>
+          <button id="btn-start" class="big-btn red shout">COMEÇAR!</button>
+          <div id="start-msg"></div>
+        </div>
       </div>
-      <div id="log"></div>
-      <div id="controls">
-        <button id="btn-voice" title="Liga/desliga a voz">🔊 Voz</button>
-        <button id="btn-mic" title="Liga o Gritômetro">🎤 Gritômetro</button>
-        <button id="btn-lobby" title="Voltar ao início">🏠 Início</button>
-      </div>
-    </aside>
+    </div>
   </div>
 
   <div id="lobby" class="screen hidden">
@@ -122,7 +145,7 @@
   <div id="fx-layer"></div>
 
   <script src="/shared.js"></script>
-  <script src="/lines.js"></script>
+  <script src="/vendor/qrcode.js"></script>
   <script src="/faces.js"></script>
   <script src="/fx.js"></script>
   <script src="/table.js"></script>

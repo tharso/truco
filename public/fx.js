@@ -1,4 +1,4 @@
-// Efeitos: som sintetizado, voz, confete, tremor e o Gritômetro.
+// Efeitos: som sintetizado, falas gravadas (public/audio), confete, tremor e o Gritômetro.
 window.FX = (function () {
   let ctx = null;
   const audio = () => {
@@ -7,7 +7,10 @@ window.FX = (function () {
     return ctx;
   };
 
+  let enabled = localStorage.getItem('truco-som') !== 'off';
+
   function tone(freq, dur, type = 'square', vol = 0.15, when = 0, slideTo) {
+    if (!enabled) return;
     const a = audio();
     const t = a.currentTime + when;
     const o = a.createOscillator();
@@ -23,6 +26,7 @@ window.FX = (function () {
   }
 
   function noise(dur = 0.06, vol = 0.3, when = 0, hp = 1500) {
+    if (!enabled) return;
     const a = audio();
     const len = Math.floor(a.sampleRate * dur);
     const buf = a.createBuffer(1, len, a.sampleRate);
@@ -58,57 +62,51 @@ window.FX = (function () {
     chicken() { [0, 0.15, 0.3].forEach((w) => tone(900, 0.1, 'square', 0.08, w, 1400)); tone(700, 0.4, 'square', 0.08, 0.5, 1200); },
   };
 
-  // ---------- voz ----------
+  // ---------- falas gravadas ----------
+  // Cada fala é um arquivo em /audio/<chave>.m4a (gravado por scripts/gravar-vozes.sh).
+  const CLIPS = ['truco', 'seis', 'nove', 'doze', 'onze', 'ferro', 'vez', 'responde', 'onze-decide', 'comeca', 'fim-0', 'fim-1']
+    .concat(['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3'].map((r) => 'man-' + r));
+  const buffers = {};
+  let loading = null;
+  function loadClips() {
+    if (loading) return loading;
+    const a = audio();
+    loading = Promise.all(CLIPS.map((k) => fetch(`/audio/${k}.m4a`)
+      .then((r) => r.arrayBuffer())
+      .then((b) => new Promise((ok, fail) => a.decodeAudioData(b, ok, fail)))
+      .then((buf) => { buffers[k] = buf; })
+      .catch(() => {})));
+    return loading;
+  }
   const queue = [];
-  let speaking = false;
-  let voices = [];
-  function loadVoices() {
-    voices = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
+  let current = null;
+  // Toca uma fala. urgent: corta o que estiver tocando.
+  function speak(key, opts = {}) {
+    if (!enabled) return;
+    if (opts.urgent) hush();
+    if (queue.length > 1) queue.shift();
+    queue.push({ key, onstart: opts.onstart, onend: opts.onend });
+    loadClips().then(next);
   }
-  if (window.speechSynthesis) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
-  function pickVoice(gender) {
-    const pt = voices.filter((v) => /pt[-_]BR/i.test(v.lang));
-    const all = pt.length ? pt : voices.filter((v) => /^pt/i.test(v.lang));
-    if (!all.length) return null;
-    const male = all.find((v) => /felipe|daniel|ricardo|male|masc/i.test(v.name));
-    const female = all.find((v) => /luciana|joana|female|fem/i.test(v.name));
-    return (gender === 'f' ? female : male) || all[0];
-  }
-
-  const VOICE = {
-    ze: { pitch: 0.75, rate: 1.05 },
-    blefador: { pitch: 1.15, rate: 1.15 },
-    medroso: { pitch: 1.6, rate: 1.25 },
-    robo: { pitch: 0.4, rate: 0.95 },
-    human: { pitch: 1.0, rate: 1.1 },
-  };
-
-  let enabled = true;
-  function say(text, who = 'ze', opts = {}) {
-    if (!enabled || !window.speechSynthesis) return;
-    if (opts.urgent) { queue.length = 0; }
-    if (queue.length > 2) queue.shift();
-    queue.push({ text, who, onstart: opts.onstart, onend: opts.onend });
-    pump();
-  }
-  function pump() {
-    if (speaking || !queue.length) return;
+  function next() {
+    if (current || !queue.length) return;
     const item = queue.shift();
-    const u = new SpeechSynthesisUtterance(item.text);
-    const v = VOICE[item.who] || VOICE.human;
-    const voice = pickVoice('m');
-    if (voice) u.voice = voice;
-    u.lang = 'pt-BR';
-    u.pitch = v.pitch;
-    u.rate = v.rate;
-    speaking = true;
-    u.onstart = () => item.onstart && item.onstart();
-    const done = () => { speaking = false; item.onend && item.onend(); setTimeout(pump, 120); };
-    u.onend = done;
-    u.onerror = done;
-    speechSynthesis.speak(u);
-    // segurança: se o navegador engasgar
-    setTimeout(() => { if (speaking) { speaking = false; pump(); } }, 9000);
+    const buf = buffers[item.key];
+    if (!buf || !enabled) return next();
+    const a = audio();
+    const src = a.createBufferSource();
+    src.buffer = buf;
+    const g = a.createGain();
+    g.gain.value = 1;
+    src.connect(g).connect(a.destination);
+    current = src;
+    item.onstart && item.onstart(buf.duration);
+    src.onended = () => { if (current === src) current = null; item.onend && item.onend(); setTimeout(next, 150); };
+    src.start();
+  }
+  function hush() {
+    queue.length = 0;
+    if (current) { const c = current; current = null; try { c.stop(); } catch (e) { /* já parou */ } }
   }
 
   // ---------- confete e tremor ----------
@@ -192,16 +190,10 @@ window.FX = (function () {
     });
   }
 
-  function hush() {
-    queue.length = 0;
-    speaking = false;
-    if (window.speechSynthesis) speechSynthesis.cancel();
-  }
-
   return {
-    sfx, say, hush, confetti, shake, flash, enableMic, listen, audio,
-    get voiceOn() { return enabled; },
+    sfx, speak, hush, loadClips, confetti, shake, flash, enableMic, listen, audio,
+    get soundOn() { return enabled; },
     get micOn() { return micOn; },
-    setVoice(on) { enabled = on; if (!on && window.speechSynthesis) speechSynthesis.cancel(); },
+    setSound(on) { enabled = on; localStorage.setItem('truco-som', on ? 'on' : 'off'); if (!on) hush(); },
   };
 })();
