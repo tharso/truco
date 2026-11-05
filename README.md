@@ -78,10 +78,16 @@ e rode o script com o nome dela. Para mudar uma frase, edite a lista no próprio
 npm test
 ```
 
-Roda todos os `test/*.test.js` pela `node:test`: 500 partidas só com robôs
-(`PARTIDAS=2000 npm test` para mais), as regras do truco (`test/regras.test.js`)
-e as páginas. Atalhos que montam situações por dentro do `Game` (placar 11 a 4,
-11 a 11, cartas escolhidas, Partida só de Robôs) ficam todos em `test/montagem.js`.
+Roda pela `node:test` todos os `test/*.test.js` e `test/navegador/*.test.js`:
+
+- 500 partidas só com robôs (`PARTIDAS=2000 npm test` para mais);
+- a Sala, vista de fora como a Mesa e os Celulares a veem (`test/sala.test.js`, com as telas falsas de `test/telas.js`);
+- as regras do truco (`test/regras.test.js`);
+- as páginas (nenhum `id` repetido);
+- a lógica que saiu das telas para arquivos puros, testada no Node (`test/navegador/`, por exemplo o humor dos Personagens em `public/mood.js`).
+
+Atalhos que montam situações por dentro do `Game` (placar 11 a 4, 11 a 11, cartas
+escolhidas, Partida só de Robôs) ficam todos em `test/montagem.js`.
 
 ```bash
 npm run cobertura
