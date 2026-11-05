@@ -6,6 +6,20 @@
   <title>Truco do Bar do Zé — Mesa</title>
   <link rel="stylesheet" href="/common.css">
   <link rel="stylesheet" href="/table.css">
+  <!-- Google Analytics (só no site publicado, não em localhost nem no Wi-Fi de casa) -->
+  <script>
+    (function (h) {
+      if (h === 'localhost' || h.endsWith('.localhost') || /^[\d.]+$/.test(h) || h.includes(':')) return;
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-KV6LD0W0KF';
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { dataLayer.push(arguments); };
+      gtag('js', new Date());
+      gtag('config', 'G-KV6LD0W0KF');
+    })(location.hostname);
+  </script>
 </head>
 <body>
   <div id="app">
