@@ -264,6 +264,9 @@ describe('Sala: lobby', () => {
     assert.strictEqual(mesa.estado.seats[0].name, 'Maria Aparecida');
     sala.action({ type: 'join', seat: 0, name: 'Maria Aparecida😀' });
     assert.strictEqual(mesa.estado.seats[0].name, 'Maria Aparecida😀');
+    // Uma bandeira é uma letra só, feita de dois pedaços: não se corta ao meio.
+    sala.action({ type: 'join', seat: 0, name: 'Maria Aparecida🇧🇷' });
+    assert.strictEqual(mesa.estado.seats[0].name, 'Maria Aparecida🇧🇷');
     // O nome que o Jogador dá ao parceiro segue a mesma regra.
     sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', partnerName: 'Maria Aparecida Souza' });
     assert.strictEqual(mesa.estado.seats[2].name, 'Maria Aparecida');

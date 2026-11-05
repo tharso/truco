@@ -7,9 +7,13 @@ const { AVATARS } = require('./public/shared.js');
 
 const AVATAR_IDS = AVATARS.map((a) => a.id);
 const avatarName = (id) => (AVATARS.find((a) => a.id === id) || {}).name || id;
-// Tira os símbolos < > & " e corta em 16 letras. Conta por letra (code point), para não partir
-// um emoji ao meio, e tira os espaços de novo depois do corte.
-const clean = (t) => Array.from(String(t || '').replace(/[<>&"]/g, '').trim()).slice(0, 16).join('').trim();
+// Tira os símbolos < > & " e corta em 16 letras. Conta letra como a pessoa vê (grafema), para não
+// partir um emoji ou uma bandeira ao meio, e tira os espaços de novo depois do corte.
+const GRAPHEMES = new Intl.Segmenter('pt-BR', { granularity: 'grapheme' });
+const clean = (t) => {
+  const letters = Array.from(GRAPHEMES.segment(String(t || '').replace(/[<>&"]/g, '').trim()), (g) => g.segment);
+  return letters.slice(0, 16).join('').trim();
+};
 // O Lugar que vem numa ação: um número, ou um texto só com dígitos. Vazio, null, true e false
 // não viram o Lugar 0 ou 1 (Number faria isso); viram NaN, que nenhum Lugar aceita.
 const seatOf = (v) => (typeof v === 'number' || (typeof v === 'string' && /^\d+$/.test(v)) ? Number(v) : NaN);
