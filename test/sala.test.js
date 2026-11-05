@@ -227,6 +227,12 @@ describe('Sala: conexão e o que cada tela vê', () => {
 // Os Personagens dos quatro Lugares, na ordem da Mesa.
 const personagensNaMesa = (mesa) => mesa.estado.seats.map((s) => s.avatar);
 
+// O Personagem e o nome de cada Lugar, na ordem da Mesa.
+const personagensENomes = (mesa) => mesa.estado.seats.map((s) => [s.avatar, s.name]);
+
+// O nome que a Mesa mostra para um Personagem.
+const nomeDe = (id) => AVATARS.find((a) => a.id === id).name;
+
 function semPersonagemRepetido(mesa) {
   const naMesa = personagensNaMesa(mesa);
   assert.strictEqual(new Set(naMesa).size, naMesa.length, `Personagem repetido na Mesa: ${naMesa}`);
@@ -301,7 +307,7 @@ describe('Sala: lobby', () => {
     assert.ok(robo.avatar && robo.avatar !== 'neide', `o Robô ficou com ${robo.avatar}`);
     semPersonagemRepetido(mesa);
     // Qual Personagem livre ele ganha a spec não fixa; o nome tem de ser o desse Personagem.
-    assert.strictEqual(robo.name, AVATARS.find((a) => a.id === robo.avatar).name);
+    assert.strictEqual(robo.name, nomeDe(robo.avatar));
   });
 
   test('desmarcar devolve o Lugar ao Jogador, com o nome dele', () => {
@@ -420,5 +426,202 @@ describe('Sala: lobby', () => {
       assert.deepStrictEqual(mesa.mensagens.at(-1).events, [], `ação ${JSON.stringify(acao)} soltou evento`);
     }
     assert.deepStrictEqual(mesa.estado, antes);
+  });
+});
+
+describe('Sala: escolha de Personagem', () => {
+  test('o Jogador escolhe o próprio Personagem e o do parceiro, e a Mesa mostra os dois', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque' }), { ok: true });
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 1, avatar: 'beto', partner: 'blurp' }), { ok: true });
+    assert.deepStrictEqual(personagensNaMesa(mesa), ['nina', 'beto', 'roque', 'blurp']);
+  });
+
+  test('o parceiro usa o nome dado pelo Jogador, sem os símbolos < > & "', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', partnerName: '<Bi&go"de>' });
+    assert.strictEqual(mesa.estado.seats[2].name, 'Bigode');
+    assert.strictEqual(mesa.estado.seats[2].avatar, 'roque');
+  });
+
+  test('sem nome dado, o parceiro usa o nome do Personagem', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'neide', partnerName: 'Bigode' });
+    // Nome vazio, só espaços ou só símbolos limpos: vale o nome do Personagem.
+    for (const partnerName of [undefined, '', '   ', '<>']) {
+      sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'neide', partnerName });
+      assert.strictEqual(mesa.estado.seats[2].name, 'Dona Neide', `nome ${JSON.stringify(partnerName)}`);
+    }
+  });
+
+  test('um Personagem que não existe dá erro, e a Mesa não muda', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    const antes = personagensNaMesa(mesa);
+    const escolhas = [
+      { avatar: 'xuxa', partner: 'roque' },
+      { avatar: 'nina', partner: 'xuxa' },
+      { partner: 'roque' },
+      { avatar: 'nina' },
+      { avatar: 'Nina', partner: 'roque' },
+    ];
+    for (const escolha of escolhas) {
+      assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, ...escolha }), { error: 'Personagem inválido.' }, JSON.stringify(escolha));
+    }
+    assert.deepStrictEqual(personagensNaMesa(mesa), antes);
+  });
+
+  test('o mesmo Personagem para o Jogador e o parceiro dá erro, e a Mesa não muda', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    const antes = personagensNaMesa(mesa);
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'nina' }), { error: 'Escolha um parceiro diferente de você.' });
+    assert.deepStrictEqual(personagensNaMesa(mesa), antes);
+  });
+
+  test('um Personagem que o outro Jogador já escolheu dá erro, para ele ou para o parceiro', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    sala.action({ type: 'pick', seat: 1, avatar: 'beto', partner: 'blurp', partnerName: 'Bigode' });
+    const antes = personagensENomes(mesa);
+    const erro = { error: 'Esse personagem já foi escolhido. Escolha outro.' };
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'beto', partner: 'roque' }), erro);
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'blurp' }), erro);
+    assert.deepStrictEqual(personagensENomes(mesa), antes);
+  });
+
+  test('o Jogador pode trocar a própria escolha', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque' });
+    // Trocar de lugar com o parceiro não esbarra na escolha que ele mesmo fez.
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'roque', partner: 'nina' }), { ok: true });
+    assert.deepStrictEqual([mesa.estado.seats[0].avatar, mesa.estado.seats[2].avatar], ['roque', 'nina']);
+  });
+
+  test('quem escolhe tira o Personagem do Robô parceiro do outro Jogador, que ainda não escolheu', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    assert.strictEqual(mesa.estado.seats[3].avatar, 'cida');
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'cida', partner: 'nina' }), { ok: true });
+    const robo = mesa.estado.seats[3];
+    assert.strictEqual(mesa.estado.seats[0].avatar, 'cida');
+    assert.ok(robo.avatar && robo.avatar !== 'cida', `o Robô ficou com ${robo.avatar}`);
+    // O Robô se chamava Cida por causa do Personagem: troca de nome junto.
+    assert.strictEqual(robo.name, nomeDe(robo.avatar));
+    semPersonagemRepetido(mesa);
+  });
+
+  test('o Robô que entrou no lugar de quem falta também cede o Personagem e troca de nome', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    sala.action({ type: 'config', seat: 1, bot: true });
+    assert.strictEqual(mesa.estado.seats[1].avatar, 'juninho');
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'juninho', partner: 'nina' }), { ok: true });
+    const robo = mesa.estado.seats[1];
+    assert.ok(robo.avatar && robo.avatar !== 'juninho', `o Robô ficou com ${robo.avatar}`);
+    assert.strictEqual(robo.name, nomeDe(robo.avatar));
+    semPersonagemRepetido(mesa);
+  });
+
+  test('o Robô que cede o Personagem fica com o nome que o Jogador deu a ele', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    sala.action({ type: 'pick', seat: 1, avatar: 'beto', partner: 'blurp', partnerName: 'Bigode' });
+    // Marcar e desmarcar "falta uma pessoa" desfaz a escolha do Jogador 2; o parceiro fica como estava.
+    sala.action({ type: 'config', seat: 1, bot: true });
+    sala.action({ type: 'config', seat: 1, bot: false });
+    assert.deepStrictEqual([mesa.estado.seats[3].avatar, mesa.estado.seats[3].name], ['blurp', 'Bigode']);
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'blurp' }), { ok: true });
+    const robo = mesa.estado.seats[3];
+    assert.ok(robo.avatar && robo.avatar !== 'blurp', `o Robô ficou com ${robo.avatar}`);
+    assert.strictEqual(robo.name, 'Bigode');
+    semPersonagemRepetido(mesa);
+  });
+
+  test('o Jogador que só ganhou um Personagem ao começar cede esse Personagem e fica com o próprio nome', (t) => {
+    pararRelogio(t);
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    sala.action({ type: 'join', seat: 1, name: 'Rita' });
+    comecarPartida(sala);
+    sala.action({ type: 'lobby' });
+    const daRita = mesa.estado.seats[1].avatar;
+    assert.ok(daRita, 'a Rita ficou sem Personagem ao começar');
+    const parceiro = AVATARS.map((a) => a.id).find((id) => !personagensNaMesa(mesa).includes(id));
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: daRita, partner: parceiro }), { ok: true });
+    const rita = mesa.estado.seats[1];
+    assert.strictEqual(mesa.estado.seats[0].avatar, daRita);
+    assert.ok(rita.avatar && rita.avatar !== daRita, `a Rita ficou com ${rita.avatar}`);
+    assert.strictEqual(rita.name, 'Rita');
+    semPersonagemRepetido(mesa);
+  });
+
+  test('no meio da Partida, escolher Personagem dá erro, e a Mesa não muda', (t) => {
+    pararRelogio(t);
+    const sala = new Room({ rng: sorteioFixo(9) });
+    const mesa = conectarMesa(sala);
+    comecarPartida(sala);
+    const erro = { error: 'Só dá pra escolher antes de começar.' };
+    for (const fase of ['deal', 'play']) {
+      if (fase === 'play') t.mock.timers.tick(5000);
+      assert.strictEqual(mesa.estado.phase, fase);
+      const antes = personagensENomes(mesa);
+      assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', partnerName: 'Bigode' }), erro, `na fase ${fase}`);
+      assert.deepStrictEqual(personagensENomes(mesa), antes, `na fase ${fase}`);
+    }
+  });
+
+  test('no fim da Partida, o Jogador pode escolher de novo', (t) => {
+    pararRelogio(t);
+    const sala = new Room({ rng: sorteioFixo(13) });
+    const mesa = conectarMesa(sala);
+    const celulares = [conectarCelular(sala, 0), conectarCelular(sala, 1)];
+    comecarPartida(sala);
+    // Os dois Jogadores jogam a primeira carta, aceitam todo Truco e jogam toda Mão de onze.
+    for (let passo = 0; mesa.estado.phase !== 'over'; passo++) {
+      assert.ok(passo < 5000, 'a Partida não terminou');
+      const celular = celulares.find((c) => c.estado.canPlay || c.estado.mustRespond || c.estado.mustOnze);
+      if (!celular) { t.mock.timers.tick(1000); continue; }
+      const seat = celular.estado.me;
+      const acao = celular.estado.mustOnze ? { type: 'onze', seat, ans: 'joga' }
+        : celular.estado.mustRespond ? { type: 'respond', seat, ans: 'aceito' }
+          : { type: 'play', seat, idx: 0 };
+      assert.deepStrictEqual(sala.action(acao), { ok: true }, JSON.stringify(acao));
+    }
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', partnerName: 'Bigode' }), { ok: true });
+    assert.deepStrictEqual([mesa.estado.seats[0].avatar, mesa.estado.seats[2].avatar, mesa.estado.seats[2].name], ['nina', 'roque', 'Bigode']);
+    semPersonagemRepetido(mesa);
+  });
+
+  test('num Lugar ocupado por Robô, escolher Personagem dá erro, e o Robô fica como estava', { todo: 'hoje a Sala aceita pick num Lugar de Robô' }, () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    // O Celular do Lugar 0 fica aberto depois que um Robô entra no lugar do Jogador.
+    conectarCelular(sala, 0);
+    sala.action({ type: 'config', seat: 0, bot: true });
+    const antes = personagensENomes(mesa);
+    const resposta = sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', partnerName: 'Bigode' });
+    assert.ok(resposta.error, 'a Sala aceitou a escolha num Lugar de Robô');
+    assert.deepStrictEqual(personagensENomes(mesa), antes);
+  });
+
+  test('o jeito de jogar do Robô vem do Personagem, não do Lugar', { todo: 'hoje `persona` fica presa ao Lugar e não muda com o Personagem' }, () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    // Na Sala nova, Tonhão (Lugar 2) e Cida (Lugar 3) têm jeitos de jogar diferentes.
+    const [tonhao, cida] = [mesa.estado.seats[2], mesa.estado.seats[3]];
+    assert.deepStrictEqual([tonhao.avatar, cida.avatar], ['tonhao', 'cida']);
+    assert.notStrictEqual(tonhao.persona, cida.persona);
+    // Cada Jogador leva o parceiro do outro para o Lugar da frente: Cida no 2, Tonhão no 3.
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'cida' }), { ok: true });
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 1, avatar: 'beto', partner: 'tonhao' }), { ok: true });
+    const [lugar2, lugar3] = [mesa.estado.seats[2], mesa.estado.seats[3]];
+    assert.deepStrictEqual([lugar2.avatar, lugar3.avatar], ['cida', 'tonhao']);
+    assert.strictEqual(lugar2.persona, cida.persona, 'a Cida mudou de jeito de jogar ao mudar de Lugar');
+    assert.strictEqual(lugar3.persona, tonhao.persona, 'o Tonhão mudou de jeito de jogar ao mudar de Lugar');
   });
 });
