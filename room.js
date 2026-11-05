@@ -14,8 +14,9 @@ const FILL_AVATARS = ['neide', 'juninho'];
 const OWNED = [[0, 2], [1, 3]];
 
 class Room {
-  constructor() {
-    this.game = new Game({ brain });
+  // opts.rng: sorteio das cartas (os testes passam um fixo). Sem ele, o Game usa Math.random.
+  constructor(opts = {}) {
+    this.game = new Game({ brain, rng: opts.rng });
     this.clients = new Set();
     this.humanNames = ['Jogador 1', 'Jogador 2'];
     this.timer = null;
