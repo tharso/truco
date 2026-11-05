@@ -181,6 +181,19 @@ describe('Sala: conexão e o que cada tela vê', () => {
     }
   });
 
+  test('um pedido de conexão com Lugar vazio vira conexão de Mesa, e não o Celular do Lugar 0', () => {
+    // Como chega do endereço: ?role=seat&seat= ou ?role=seat&seat=%20
+    for (const lugar of ['', ' ']) {
+      const sala = new Room();
+      const mesa = conectarMesa(sala);
+      const tela = conectarTela(sala, 'seat', lugar);
+      const quem = `Lugar ${JSON.stringify(lugar)}`;
+      assert.strictEqual(tela.estado.hand, undefined, quem);
+      assert.deepStrictEqual(tela.estado, mesa.estado, quem);
+      assert.deepStrictEqual(mesa.estado.seats.slice(0, 2).map((s) => s.connected), [false, false], quem);
+    }
+  });
+
   test('toda mudança na Sala chega a todas as telas conectadas', (t) => {
     pararRelogio(t);
     const sala = new Room();

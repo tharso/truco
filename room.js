@@ -14,7 +14,7 @@ const clean = (t) => {
   const letters = Array.from(GRAPHEMES.segment(String(t || '').replace(/[<>&"]/g, '').trim()), (g) => g.segment);
   return letters.slice(0, 16).join('').trim();
 };
-// O Lugar que vem numa ação: um número, ou um texto só com dígitos. Vazio, null, true e false
+// O Lugar que vem numa ação ou num pedido de conexão: um número, ou um texto só com dígitos. Vazio, null, true e false
 // não viram o Lugar 0 ou 1 (Number faria isso); viram NaN, que nenhum Lugar aceita.
 const seatOf = (v) => (typeof v === 'number' || (typeof v === 'string' && /^\d+$/.test(v)) ? Number(v) : NaN);
 // Quem joga no lugar de uma pessoa que não veio (se o rosto estiver livre).
@@ -70,7 +70,7 @@ class Room {
 
   // c = { kind: 'table'|'seat', seat, write(texto) }
   connect(kind, seat, write) {
-    const c = { kind: kind === 'seat' ? 'seat' : 'table', seat: seat === null || seat === undefined ? null : Number(seat), write };
+    const c = { kind: kind === 'seat' ? 'seat' : 'table', seat: seatOf(seat), write };
     if (c.kind === 'seat' && c.seat !== 0 && c.seat !== 1) c.kind = 'table';
     this.clients.add(c);
     if (c.kind === 'seat' && !this.game.seats[c.seat].bot) this.game.seats[c.seat].name = this.humanNames[c.seat];
