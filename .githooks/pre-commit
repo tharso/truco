@@ -1,0 +1,7 @@
+#!/bin/sh
+# Roda os testes antes de cada commit. Se algum falhar, o commit não entra.
+# Ligado por `npm install` (script prepare: git config core.hooksPath .githooks).
+npm test --silent || {
+  echo "pre-commit: os testes falharam. Commit barrado." >&2
+  exit 1
+}

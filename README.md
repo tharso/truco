@@ -78,4 +78,14 @@ e rode o script com o nome dela. Para mudar uma frase, edite a lista no próprio
 npm test
 ```
 
-Roda 500 partidas só com robôs e confere as regras.
+Roda todos os `test/*.test.js` pela `node:test`: 500 partidas só com robôs
+(`PARTIDAS=2000 npm test` para mais), as regras de desempate e as páginas.
+
+```bash
+npm run cobertura
+```
+
+Mostra a cobertura por arquivo. É só pista, não meta (ver `docs/adr/0001`).
+
+O `npm install` liga o gancho de `.githooks/pre-commit`: ele roda o `npm test`
+e barra o commit se algum teste falhar.

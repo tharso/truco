@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test/simula.js 500"
+    "test": "node --test test/*.test.js",
+    "cobertura": "node --test --experimental-test-coverage test/*.test.js",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "license": "UNLICENSED",
   "private": true,
