@@ -171,6 +171,7 @@ class Room {
         // O jogador escolhe o próprio rosto e o do parceiro (e o nome do parceiro).
         if (seat !== 0 && seat !== 1) return 'Lugar inválido.';
         if (game.phase !== 'lobby' && game.phase !== 'over') return 'Só dá pra escolher antes de começar.';
+        if (game.seats[seat].bot) return 'Esse Lugar é de um Robô.';
         const me = String(a.avatar || '');
         const partner = String(a.partner || '');
         if (!AVATAR_IDS.includes(me) || !AVATAR_IDS.includes(partner)) return 'Personagem inválido.';

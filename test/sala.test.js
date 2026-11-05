@@ -602,7 +602,7 @@ describe('Sala: escolha de Personagem', () => {
     semPersonagemRepetido(mesa);
   });
 
-  test('num Lugar ocupado por Robô, escolher Personagem dá erro, e o Robô fica como estava', { todo: 'hoje a Sala aceita pick num Lugar de Robô' }, () => {
+  test('num Lugar ocupado por Robô, escolher Personagem dá erro, e o Robô fica como estava', () => {
     const sala = new Room();
     const mesa = conectarMesa(sala);
     // O Celular do Lugar 0 fica aberto depois que um Robô entra no lugar do Jogador.
