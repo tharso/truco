@@ -22,10 +22,22 @@ button { font: inherit; cursor: pointer; }
   flex: none;
   user-select: none;
 }
-.card .c-r { position: absolute; top: 4%; left: 9%; font-size: calc(var(--cw) * .27); font-weight: 900; line-height: 1; }
-.card .c-s { position: absolute; top: 24%; left: 10%; font-size: calc(var(--cw) * .2); line-height: 1; }
+/* índice do canto: número em cima, naipe embaixo */
+.card .c-idx { position: absolute; top: 3%; left: 5%; display: flex; flex-direction: column; align-items: center; line-height: .95; font-size: calc(var(--cw) * .17); }
+.card .c-idx b { font-size: calc(var(--cw) * .25); font-weight: 900; }
+.card .c-idx2 { top: auto; left: auto; bottom: 3%; right: 5%; transform: rotate(180deg); }
+/* ás: um naipe grande */
 .card .c-big { position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(var(--cw) * .58); }
-.card .c-r2 { top: auto; left: auto; bottom: 4%; right: 9%; transform: rotate(180deg); }
+/* cartas de número: naipes espalhados */
+.card .c-pips { position: absolute; inset: 9% 22%; }
+.card .c-pips span { position: absolute; transform: translate(-50%, -50%); font-size: calc(var(--cw) * .24); line-height: 1; }
+.card .c-pips span.flip { transform: translate(-50%, -50%) rotate(180deg); }
+/* dama, valete e rei: meia figura em cima e a mesma de cabeça para baixo embaixo */
+.card .c-face { position: absolute; inset: 6% 21%; border: 1px solid currentColor; border-radius: 3px; overflow: hidden; display: flex; flex-direction: column; }
+.card .c-face img { flex: 1; min-height: 0; width: 100%; object-fit: cover; object-position: center top; mix-blend-mode: multiply; }
+.card .c-face img.flip { transform: rotate(180deg); }
+.card .c-face-pip { position: absolute; top: 2%; right: 4%; font-size: calc(var(--cw) * .13); line-height: 1; }
+.card .c-face-pip.flip { top: auto; right: auto; bottom: 2%; left: 4%; transform: rotate(180deg); }
 .card.red { color: #d0141b; }
 .card.black { color: #141414; }
 .card.manilha { box-shadow: 0 0 0 3px #ffd400, 0 0 22px #ffd400cc, 0 4px 10px #0007; }

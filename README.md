@@ -40,8 +40,9 @@ npx wrangler dev
 
 ## Duplas
 
-- **Dupla Azul:** Jogador 1 + Tonhão, o Blefador.
-- **Dupla Vermelha:** Jogador 2 + Valdir, o Medroso.
+- **Dupla Azul:** Jogador 1 + Tonhão.
+- **Dupla Vermelha:** Jogador 2 + Cida.
+- Faltou alguém? Marque a caixa no lobby: a Dona Neide joga no lugar do Jogador 1, e o Juninho no lugar do Jogador 2.
 
 ## O que tem de divertido
 

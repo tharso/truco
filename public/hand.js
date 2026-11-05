@@ -149,7 +149,7 @@
   function statusText(st) {
     const s = st.seats;
     const me = st.me;
-    if (s[me].bot) return 'A TV pôs um robô no seu lugar. Desmarque lá.';
+    if (s[me].bot) return `${s[me].name} está jogando no seu lugar. Desmarque na TV.`;
     switch (st.phase) {
       case 'lobby': return 'Esperando começar…';
       case 'deal': return 'Seu Zé está dando as cartas…';

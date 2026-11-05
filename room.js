@@ -4,7 +4,9 @@
 const { Game } = require('./game.js');
 const brain = require('./bots.js');
 
-const ROBOT_NAMES = ['Robô Juca', 'Robô Lurdes'];
+// Quem joga no lugar de uma pessoa que não veio.
+const ROBOT_NAMES = ['Dona Neide', 'Juninho'];
+const ROBOT_AVATARS = ['neide', 'juninho'];
 
 class Room {
   constructor() {
@@ -109,6 +111,7 @@ class Room {
         s.bot = !!a.bot;
         s.persona = s.bot ? 'robo' : null;
         s.name = s.bot ? ROBOT_NAMES[seat] : this.humanNames[seat];
+        s.avatar = s.bot ? ROBOT_AVATARS[seat] : null;
         s.connected = s.bot;
         return null;
       }

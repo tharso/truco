@@ -6,17 +6,20 @@ body { overflow: hidden; }
   background:
     radial-gradient(circle at 20% 10%, #ffb34722, transparent 40%),
     repeating-linear-gradient(90deg, #4a2a12 0 60px, #43250f 60px 120px);
-  --av: clamp(84px, 13.5vh, 150px);   /* tamanho dos rostos */
+  --av: clamp(100px, 19vh, 210px);    /* tamanho dos rostos */
   --pc: clamp(52px, 8.2vh, 100px);    /* tamanho das cartas na mesa */
 }
 
 /* ---------- placar ---------- */
 #scorebar {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(200px, auto) auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(200px, auto) auto minmax(0, 1fr);
+  justify-content: center;
   align-items: center;
   gap: 12px;
-  padding: 6px 18px;
+  /* mesmo espaço dos 2 lados, para o placar ficar no centro (os botões ficam no espaço da direita) */
+  padding: 6px 150px;
   background: linear-gradient(#1b0d03, #2b1608);
   border-bottom: 4px solid #ffd400;
   box-shadow: 0 6px 20px #000a;
@@ -32,7 +35,7 @@ body { overflow: hidden; }
 .bar-fill { height: 100%; width: 0; border-radius: 8px; transition: width .6s cubic-bezier(.3, 1.4, .5, 1); }
 .t0 .bar-fill { background: #2f7bff; }
 .t1 .bar-fill { background: #ff3b3b; margin-left: auto; }
-.pts { font-size: clamp(60px, 10vh, 110px); line-height: 1; min-width: 1.3em; text-align: center; text-shadow: 0 4px 0 #000; }
+.pts { font-size: clamp(60px, 10vh, 110px); line-height: 1; min-width: 1.6em; text-align: center; text-shadow: 0 4px 0 #000; }
 .pts small { display: block; font-size: 14px; color: #fff; opacity: .6; text-shadow: none; font-family: "Avenir Next", sans-serif; }
 .pts.bump { animation: bump .6s; }
 @keyframes bump { 40% { transform: scale(1.5) rotate(-8deg); } }
@@ -45,8 +48,8 @@ body { overflow: hidden; }
 .rdot.r0 { background: #2f7bff; border-color: #fff; }
 .rdot.r1 { background: #ff3b3b; border-color: #fff; }
 .rdot.rtie { background: repeating-linear-gradient(45deg, #2f7bff 0 4px, #ff3b3b 4px 8px); border-color: #fff; }
-#controls { display: flex; gap: 6px; }
-#controls button { background: #0006; color: #fff; border: 1px solid #fff3; border-radius: 10px; padding: 8px 10px; font-size: 16px; white-space: nowrap; }
+#controls { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: flex; gap: 6px; }
+#controls button { background: #0006; color: #fff; border: 1px solid #fff3; border-radius: 10px; width: 40px; height: 40px; padding: 0; font-size: 18px; display: grid; place-items: center; }
 #controls button.off { opacity: .45; }
 #controls button.on { background: #2ecc71aa; }
 
@@ -55,7 +58,7 @@ body { overflow: hidden; }
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(150px, 16vw) 1fr minmax(150px, 16vw);
+  grid-template-columns: minmax(170px, 18vw) 1fr minmax(170px, 18vw);
   grid-template-rows: auto 1fr auto;
   grid-template-areas: ". top ." "left felt right" ". bottom .";
   gap: 6px 12px;
@@ -112,7 +115,13 @@ body { overflow: hidden; }
 /* ---------- assentos ---------- */
 .seat { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; z-index: 2; }
 .pos-top, .pos-bottom { flex-direction: row; gap: 14px; }
-.avatar { width: var(--av); height: calc(var(--av) * 1.15); position: relative; display: grid; place-items: center; }
+.avatar { width: var(--av); height: calc(var(--av) * 1.15); position: relative; display: grid; place-items: center; transition: transform .35s cubic-bezier(.3, 1.5, .5, 1); }
+/* Quem está na vez cresce 35%. Cada lugar cresce para o lado de dentro, sem cortar na borda da tela. */
+.seat.active { z-index: 3; }
+.seat.active .avatar { transform: scale(1.35); }
+.pos-top .avatar { transform-origin: right top; }
+.pos-bottom .avatar { transform-origin: right bottom; }
+.pos-left .avatar, .pos-right .avatar { transform-origin: center bottom; }
 .avatar svg { width: 100%; height: 100%; filter: drop-shadow(0 6px 6px #0008); }
 .human-av { width: calc(var(--av) * .86); height: calc(var(--av) * .86); border-radius: 50%; display: grid; place-items: center; font-size: calc(var(--av) * .5); background: radial-gradient(circle at 35% 30%, #fff4, #0004); border: 5px solid #fff; box-shadow: 0 6px 12px #0009; }
 .t0 .human-av { border-color: #2f7bff; }
@@ -122,7 +131,6 @@ body { overflow: hidden; }
 .nameplate { font: 900 clamp(14px, 2vh, 19px) "Arial Black", sans-serif; padding: 3px 12px; border-radius: 12px; white-space: nowrap; box-shadow: 0 3px 0 #0006; }
 .t0 .nameplate { background: #2f7bff; }
 .t1 .nameplate { background: #ff3b3b; }
-.persona { font-size: 11px; font-family: "Avenir Next", sans-serif; font-weight: 700; opacity: .85; display: block; text-align: center; }
 .backs { display: flex; height: 48px; }
 .backs .card { --cw: 32px; margin-left: -13px; }
 .backs .card:first-child { margin-left: 0; }
@@ -138,6 +146,18 @@ body { overflow: hidden; }
 @keyframes glow { to { transform: scale(1.18); opacity: .5; } }
 .seat.active .nameplate { outline: 3px solid #ffd400; }
 .seat.active .nameplate::after { content: " 👈 VEZ"; color: #ffd400; }
+
+/* rosto com foto */
+.face-photo {
+  position: relative; width: var(--av); height: var(--av); border-radius: 50%; overflow: hidden;
+  border: 5px solid #fff; box-shadow: 0 6px 14px #000a; background: #1c3b6e;
+}
+.t0 .face-photo { border-color: #2f7bff; }
+.t1 .face-photo { border-color: #ff3b3b; }
+.face-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .1s; }
+.face-photo img.on { opacity: 1; }
+/* A cara neutra fica sempre por baixo: na troca de cara, o fundo nunca aparece. */
+.face-photo img[data-x="neutro"] { opacity: 1; transition: none; }
 
 /* balões */
 .bubble {
@@ -233,12 +253,11 @@ body.shake #app { animation: shake .6s; }
 .face.sig-zap .lid-r { opacity: 1; }
 .face.sig-copas .brow { transform: translateY(-11px); }
 .face.sig-copas .eye { transform: scale(1.15); }
-.face.sig-espadas .m-normal { opacity: 0; }
-.face.sig-espadas .m-side { opacity: 1; }
+.face.sig-espadas .pupil { transform: translateX(5px); }
 .face.sig-ouros .cheek { transform: scale(1.35); }
 .face.sig-ouros .m-normal { transform: scaleX(.35); }
-.face.sig-tres .m-normal { opacity: 0; }
-.face.sig-tres .m-bite { opacity: 1; }
+.face.sig-tres .eye { transform: scaleY(.4); }
+.face.sig-tres .brow { transform: translateY(4px); }
 .face.sig-lixo .pupil { transform: translateY(-5px); }
 .face.sig-lixo .brow-l { transform: rotate(-18deg) translateY(-3px); }
 .face.sig-lixo .brow-r { transform: rotate(18deg) translateY(-3px); }

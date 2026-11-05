@@ -4,7 +4,6 @@
   const $ = (id) => document.getElementById(id);
   const POS = ['bottom', 'left', 'top', 'right'];
   const HUMAN_EMOJI = ['🤠', '😎'];
-  const PERSONA_LABEL = { blefador: 'o Blefador', medroso: 'o Medroso', robo: 'robô' };
   const TEAM_COLOR = ['#2f7bff', '#ff3b3b'];
   const LEVEL_CLIP = { 3: 'truco', 6: 'seis', 9: 'nove', 12: 'doze' };
   const NUDGE_MS = 20000;
@@ -21,7 +20,7 @@
 
   const seatEl = (i) => $('seat' + i);
   const teamName = (t) => S.TEAM_NAME[t];
-  const personaOf = (i) => state.seats[i].persona || 'robo';
+  const avatarOf = (i) => state.seats[i].avatar || 'robo';
   const voiceOf = (team) => {
     if (!state.seats[team].bot) return team;
     if (!state.seats[team + 2].bot) return team + 2;
@@ -43,11 +42,11 @@
 
   // Toca uma fala gravada. Se for um robô falando, a boca dele mexe.
   function speak(key, opts = {}) {
-    const svg = opts.seat !== undefined ? seatEl(opts.seat).querySelector('svg') : null;
+    const el = opts.seat !== undefined ? seatEl(opts.seat) : null;
     FX.speak(key, {
       urgent: opts.urgent,
-      onstart: () => svg && svg.classList.add('talking'),
-      onend: () => svg && svg.classList.remove('talking'),
+      onstart: () => el && FACES.talk(el, true),
+      onend: () => el && FACES.talk(el, false),
     });
   }
 
@@ -111,12 +110,12 @@
 
   function buildSeat(i) {
     const s = state.seats[i];
-    const sig = (s.bot ? personaOf(i) : 'h') + i;
+    const sig = (s.bot ? avatarOf(i) : 'h') + i;
     if (built[i] === sig) return;
     built[i] = sig;
     const el = seatEl(i);
     const av = s.bot
-      ? `<div class="avatar">${FACES.svg(personaOf(i))}</div>`
+      ? `<div class="avatar">${FACES.avatar(avatarOf(i))}</div>`
       : `<div class="avatar"><div class="human-av">${HUMAN_EMOJI[i]}</div><div class="phone-badge">📱</div></div>`;
     el.innerHTML = `<div class="bubble"></div>${av}<div class="seat-info"><div class="nameplate"></div><div class="backs"></div><div class="dealer-chip">🃏 dá as cartas</div></div>`;
   }
@@ -126,10 +125,13 @@
     const s = state.seats[i];
     const el = seatEl(i);
     const dealing = state.phase === 'deal' && state.dealer === i && Date.now() < dealingUntil;
-    el.className = `seat pos-${POS[i]} t${i % 2}${state.turn === i && state.phase === 'play' ? ' active' : ''}${dealing ? ' dealing' : ''}`;
-    const persona = s.bot ? `<span class="persona">${PERSONA_LABEL[personaOf(i)] || ''}</span>` : '';
+    // Na vez: quem joga, quem responde ao truco ou quem decide a mão de onze.
+    const onTurn = (state.phase === 'play' && state.turn === i)
+      || (state.phase === 'truco' && state.pending && voiceOf(state.pending.respondTeam) === i)
+      || (state.phase === 'onze' && voiceOf(state.onzeTeam) === i);
+    el.className = `seat pos-${POS[i]} t${i % 2}${onTurn ? ' active' : ''}${dealing ? ' dealing' : ''}`;
     const np = el.querySelector('.nameplate');
-    const npHtml = `${s.name}${persona}`;
+    const npHtml = s.name;
     if (np.innerHTML !== npHtml) np.innerHTML = npHtml;
     const badge = el.querySelector('.phone-badge');
     if (badge) badge.classList.toggle('off', !s.connected);
@@ -216,13 +218,13 @@
     [0, 1].forEach((i) => {
       const s = state.seats[i];
       const partner = state.seats[i + 2];
-      const status = s.bot ? '🤖 Robô neste lugar'
+      const status = s.bot ? `🤖 ${s.name} joga neste lugar`
         : s.connected ? `✅ <b>${s.name}</b> conectado` : '⏳ Esperando um celular…';
       $('lseat' + i).innerHTML = `
         <div class="who ${i ? 't1c' : 't0c'}">Jogador ${i + 1}</div>
-        <div>Parceiro na tela: <b>${partner.name}</b>, ${PERSONA_LABEL[partner.persona]}</div>
+        <div>Dupla na tela: <b>${partner.name}</b></div>
         <div>${status}</div>
-        <label><input type="checkbox" data-seat="${i}" ${s.bot ? 'checked' : ''}> Colocar um robô neste lugar</label>`;
+        <label><input type="checkbox" data-seat="${i}" ${s.bot ? 'checked' : ''}> Ninguém aqui? Joga ${['a Dona Neide', 'o Juninho'][i]}</label>`;
     });
   }
 
@@ -424,9 +426,10 @@
 
   // ---------- vida dos rostos ----------
   setInterval(() => {
+    document.querySelectorAll('.face-photo').forEach((f) => { if (Math.random() < 0.05) FACES.blink(f); });
     document.querySelectorAll('.face').forEach((f) => {
       const r = Math.random();
-      if (r < 0.06) { f.classList.add('blink'); setTimeout(() => f.classList.remove('blink'), 140); }
+      if (r < 0.06) FACES.blink(f);
       else if (r < 0.09) {
         const c = Math.random() < 0.5 ? 'look-l' : 'look-r';
         f.classList.add(c);

@@ -63,8 +63,35 @@ window.FACES = (function () {
     </svg>`;
   }
 
+  // ---------- rostos com foto (gerados por IA, em public/avatars/<nome>/) ----------
+  // Cada personagem tem 12 caras. Sem foto, cai no desenho em SVG do robô.
+  const PHOTOS = ['tonhao', 'cida', 'neide', 'juninho'];
+  const EXPRESSIONS = ['neutro', 'zap', 'copas', 'espadas', 'ouros', 'tres', 'lixo', 'feliz', 'triste', 'susto', 'piscando', 'falando'];
+  const MOOD_PHOTO = { happy: 'feliz', sad: 'triste', shock: 'susto' };
+
+  function avatar(name) {
+    if (!PHOTOS.includes(name)) return svg('robo');
+    const set = name;
+    const imgs = EXPRESSIONS.map((x) => `<img data-x="${x}" src="/avatars/${set}/${x}.jpg" alt=""${x === 'neutro' ? ' class="on"' : ''}>`).join('');
+    return `<div class="face-photo" data-set="${set}">${imgs}</div>`;
+  }
+
+  const photoOf = (el) => el && (el.classList && el.classList.contains('face-photo') ? el : el.querySelector('.face-photo'));
+
+  // Mostra uma cara por um tempo e volta para a neutra.
+  function show(ph, x, ms) {
+    clearTimeout(ph._t);
+    clearInterval(ph._talk);
+    ph._x = x;
+    ph.querySelectorAll('img').forEach((img) => img.classList.toggle('on', img.dataset.x === x));
+    if (ms) ph._t = setTimeout(() => show(ph, 'neutro'), ms);
+  }
+  const idle = (ph) => !ph._x || ph._x === 'neutro';
+
   // Sinal: aplica a expressão por um tempo.
   function signal(el, sig, ms = 1300) {
+    const ph = photoOf(el);
+    if (ph) return show(ph, sig, ms);
     const s = el && el.querySelector('svg');
     if (!s) return;
     s.classList.add('sig-' + sig);
@@ -72,6 +99,8 @@ window.FACES = (function () {
   }
 
   function mood(el, m, ms = 2500) {
+    const ph = photoOf(el);
+    if (ph) { if (idle(ph) || ph._x === 'falando' || MOOD_PHOTO[ph._x]) show(ph, MOOD_PHOTO[m] || 'neutro', ms); return; }
     const s = el && el.querySelector('svg');
     if (!s) return;
     s.classList.remove('mood-happy', 'mood-sad', 'mood-shock');
@@ -79,5 +108,34 @@ window.FACES = (function () {
     setTimeout(() => s.classList.remove('mood-' + m), ms);
   }
 
-  return { svg, signal, mood };
+  // Boca mexendo enquanto fala.
+  function talk(el, on) {
+    const ph = photoOf(el);
+    if (ph) {
+      if (!on) { if (ph._x === 'falando') show(ph, 'neutro'); clearInterval(ph._talk); return; }
+      if (!idle(ph) && ph._x !== 'falando') return;
+      clearInterval(ph._talk);
+      let open = false;
+      ph._talk = setInterval(() => {
+        open = !open;
+        ph._x = open ? 'falando' : 'neutro';
+        ph.querySelectorAll('img').forEach((img) => img.classList.toggle('on', img.dataset.x === ph._x));
+      }, 150);
+      return;
+    }
+    const s = el && el.querySelector('svg');
+    if (s) s.classList.toggle('talking', on);
+  }
+
+  // Piscada de olho normal (vida). Só quando a cara está neutra.
+  function blink(el) {
+    const ph = photoOf(el);
+    if (ph) { if (idle(ph)) show(ph, 'piscando', 150); return; }
+    const f = el.classList && el.classList.contains('face') ? el : el.querySelector('.face');
+    if (!f) return;
+    f.classList.add('blink');
+    setTimeout(() => f.classList.remove('blink'), 140);
+  }
+
+  return { svg, avatar, signal, mood, talk, blink };
 })();
