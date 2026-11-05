@@ -66,9 +66,8 @@ body {
 #truco-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 3px 0 #6d0b07; }
 
 .panel { background: #000c; border: 3px solid #ffd400; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; text-align: center; }
-#resp-title, .onze-title { font-size: 26px; color: #ffd400; }
-#whisper { background: #ffd400; color: #000; font-weight: 800; padding: 8px 10px; border-radius: 12px; }
-#whisper:empty { display: none; }
+#resp-title, #opine-title, .onze-title { font-size: 26px; color: #ffd400; }
+#closed-btn { border: 0; border-radius: 16px; padding: 12px; font-size: 20px; color: #fff; box-shadow: 0 5px 0 #0008; }
 .resp-btns { display: flex; flex-direction: column; gap: 8px; }
 .resp-btns button { border: 0; border-radius: 14px; padding: 14px; font-size: 22px; color: #fff; box-shadow: 0 5px 0 #0008; }
 .b-green { background: #1fae5b; }

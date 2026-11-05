@@ -36,19 +36,26 @@ O nome fica **Truco do Bar do Zé**. Você pensou em trocar, mas decidiu manter.
 3. **Lembrete só depois de 20 segundos.** Se alguém demora mais de 20 segundos, a voz dá um toque, uma vez só.
 4. **Voz mais natural.** Veja a decisão A no fim.
 
-## Bloco 3 — Truco de verdade
+## Bloco 3 — Truco de verdade · ✅ feito em 05/11/2026
 
-1. **Quem responde ao truco é o próximo a jogar.** Hoje é sempre a pessoa que responde.
-   - Se o próximo for o robô, o robô decide sozinho.
-   - Se o próximo for a pessoa, a pessoa decide no celular.
-2. **Sai o cochicho no celular.** Não chega mais a mensagem "minha mão tá boa ou ruim".
-   - No lugar dela, o robô parceiro **faz uma cara** na TV: "vamos" ou "não vamos".
-   - Todo mundo na mesa pode ver a cara, como num jogo de verdade.
-3. **Jogar fechado (carta encoberta).** A partir da 2ª rodada, você pode jogar uma carta virada para baixo.
-   - A carta fechada não vale nada. Ela serve para esconder uma carta.
-   - Os robôs também jogam fechado às vezes.
-   - No celular: toque na carta, depois em "jogar fechada".
-   - Eu entendi assim o "jogar fechado". Se for outra coisa, me diga.
+1. **Quem responde é o Lugar logo depois de quem pediu.** Ele dá a palavra final: aceita, corre ou aumenta.
+   - Vale também para o aumento. Exemplo: o Lugar 2 pede truco, o Lugar 3 grita "seis", e quem responde ao seis é o Lugar 0.
+   - Se quem responde é Robô, ele decide. Se é Jogador, ele decide no Celular.
+2. **O parceiro de quem responde dá a Opinião: "aceita" ou "corre".** Ele não decide.
+   - Robô dá Opinião: o Personagem dele faz cara na Mesa ("aceita" = foto `feliz`, "corre" = foto `triste`). A cara aparece em cerca de 1 segundo.
+   - Jogador dá Opinião: toca "Aceita" ou "Corre" no Celular, uma vez só. O Personagem dele faz a mesma cara na Mesa.
+   - Todo mundo vê a cara. Ela diz a verdade (mesmo cálculo do cochicho antigo). Blefe na cara fica para o Bloco 5.
+   - Robô que responde espera a Opinião do Jogador até 10 segundos. Sem Opinião, decide sozinho.
+   - Robô usa a Opinião como pista: "aceita" deixa ele mais corajoso, "corre" com mais medo. Com mão muito forte ou muito fraca, pode fazer o contrário.
+   - Dupla de dois Robôs: sem Opinião e sem cara.
+   - Robôs não leem caras de ninguém (isso é Bloco 4).
+3. **Sai o cochicho no Celular.** A mensagem "minha mão tá boa ou ruim" some.
+4. **Carta fechada.**
+   - Só a partir da 2ª Rodada. Na Mão de ferro não pode; na Mão de onze pode.
+   - Perde para qualquer carta aberta. Ninguém vê, nem no fim da Mão.
+   - Se as 4 cartas da Rodada forem fechadas, a Rodada empata.
+   - No Celular: toque na carta para escolher. Aparece o botão "Jogar fechada". Tocar de novo na carta joga aberta, como hoje.
+   - Robô fecha só carta que não serve na Rodada (o parceiro já ganha, ou a carta não ganha), 4 em 10 vezes, e nunca fecha Manilha. O número fica fácil de mudar.
 
 ## Bloco 4 — Sinais que dá para pegar · 🟡 em parte (05/11/2026: rostos com foto, maiores, sinais no meio-termo)
 

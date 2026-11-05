@@ -20,7 +20,7 @@ const seatOf = (v) => (typeof v === 'number' || (typeof v === 'string' && /^\d+$
 // Quem joga no lugar de uma pessoa que não veio (se o rosto estiver livre).
 const FILL_AVATARS = ['neide', 'juninho'];
 // As ações que são jogadas na Mão.
-const PLAYS = new Set(['play', 'truco', 'respond', 'onze']);
+const PLAYS = new Set(['play', 'truco', 'respond', 'opiniao', 'onze']);
 // Os lugares de cada jogador: o dele e o do parceiro.
 const OWNED = [[0, 2], [1, 3]];
 
@@ -119,7 +119,7 @@ class Room {
   // Relógio do jogo: robôs e pausas entre rodadas.
   stateKey() {
     const g = this.game;
-    return [g.phase, g.turn, g.table.length, g.rounds.length, g.handNo, g.pending && g.pending.level].join('|');
+    return [g.phase, g.turn, g.table.length, g.rounds.length, g.handNo, g.pending && g.pending.level, !!(g.pending && g.pending.opinion)].join('|');
   }
 
   pump() {
@@ -204,9 +204,10 @@ class Room {
         return game.start();
       }
       case 'lobby': game.toLobby(); return null;
-      case 'play': return game.play(seat, Number(a.idx));
+      case 'play': return game.play(seat, Number(a.idx), a.fechada === true);
       case 'truco': return game.truco(seat);
       case 'respond': return game.respond(seat, a.ans);
+      case 'opiniao': return game.opine(seat, a.ans);
       case 'onze': return game.onzeDecide(seat, a.ans);
       default: return 'Ação desconhecida.';
     }

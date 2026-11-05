@@ -140,7 +140,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
 
   test('as Cartas na mão que o Celular recebe são as do Lugar dele: é delas que sai a jogada que a Mesa vê', (t) => {
     pararRelogio(t);
-    const sala = new Room({ rng: sorteioFixo(5) });
+    const sala = new Room({ rng: sorteioFixo(6) });
     const mesa = conectarMesa(sala);
     const celulares = [conectarCelular(sala, 0), conectarCelular(sala, 1)];
     comecarPartida(sala);
@@ -652,8 +652,8 @@ describe('Sala: escolha de Personagem', () => {
 const PAUSAS = { cartas: 3200, robo: 1400, rodada: 1900, mao: 4500, truco: 3200 };
 
 // Uma Sala com os dois Celulares conectados e a Partida começada, com o sorteio dado.
-// Pare o relógio antes. Sementes usadas: 8 (a 1ª Mão começa pelo Lugar 0), 3 (começa pelo Tonhão,
-// no Lugar 2, que joga uma carta) e 28 (com robos [0, 1], tem Truco e depois Mão de onze). `robos` = Lugares de Jogador marcados como "falta uma pessoa".
+// Pare o relógio antes. Sementes usadas: 8 (a 1ª Mão começa pelo Lugar 0), 4 (chega à 2ª Rodada na vez de um Jogador), 3 (começa pelo Tonhão,
+// no Lugar 2, que joga uma carta) 28 (com robos [0, 1], tem Truco e depois Mão de onze) e 12 (Mão de onze da Vermelha). `robos` = Lugares de Jogador marcados como "falta uma pessoa".
 function partidaComDoisCelulares(semente, { robos = [] } = {}) {
   const sala = new Room({ rng: sorteioFixo(semente) });
   const mesa = conectarMesa(sala);
@@ -684,7 +684,7 @@ function esperarAte(t, pronto, oQue) {
 // Os eventos da última mensagem que a tela recebeu.
 const ultimosEventos = (tela) => tela.mensagens.at(-1).events;
 
-// As jogadas e respostas de um Lugar que a Mesa recebeu (sem os Sinais e os cochichos).
+// As jogadas e respostas de um Lugar que a Mesa recebeu (sem os Sinais e as Opiniões).
 const ACOES = ['play', 'truco', 'aceito', 'corro', 'onzeJoga', 'onzeCorre'];
 const acoesDoLugar = (mesa, lugar) => mesa.eventos.filter((ev) => ev.seat === lugar && ACOES.includes(ev.t));
 
@@ -703,6 +703,30 @@ describe('Sala: jogo, relógio e eventos', () => {
     assert.strictEqual(mesa.estado.seats[0].cards, 2);
     assert.strictEqual(celular.estado.hand.length, 2);
     assert.ok(!cartasEm(celular.estado.hand).includes(cartasEm(carta)[0]), 'a carta jogada ficou nas Cartas na mão');
+  });
+
+  test('na 2ª Rodada, o Jogador joga uma Carta fechada pelo Celular, e ninguém vê a carta', (t) => {
+    pararRelogio(t);
+    const { sala, mesa, celulares } = partidaComDoisCelulares(4);
+    esperarAte(t, () => celulares[0].estado.canPlay, 'a vez do Lugar 0');
+    assert.strictEqual(celulares[0].estado.canPlayClosed, false);
+    assert.deepStrictEqual(sala.action({ type: 'play', seat: 0, idx: 0, fechada: true }), { error: 'Na 1ª Rodada não dá pra jogar fechada.' });
+    // Joga aberto e aceita todo Truco até a vez de um Jogador na 2ª Rodada.
+    for (let passo = 0; !(mesa.estado.rounds.length === 1 && celulares.some((c) => c.estado.canPlay)); passo++) {
+      assert.ok(passo < 5000 && mesa.estado.handNo === 1, 'a 1ª Mão acabou antes da 2ª Rodada');
+      const naVez = celulares.find((c) => c.estado.canPlay || c.estado.mustRespond);
+      if (!naVez) { t.mock.timers.tick(100); continue; }
+      const seat = naVez.estado.me;
+      sala.action(naVez.estado.mustRespond ? { type: 'respond', seat, ans: 'aceito' } : { type: 'play', seat, idx: 0 });
+    }
+    const celular = celulares.find((c) => c.estado.canPlay);
+    const outro = celulares.find((c) => c !== celular);
+    const lugar = celular.estado.me;
+    assert.strictEqual(celular.estado.canPlayClosed, true);
+    assert.deepStrictEqual(sala.action({ type: 'play', seat: lugar, idx: 0, fechada: true }), { ok: true });
+    assert.deepStrictEqual(ultimosEventos(mesa).map((ev) => [ev.t, ev.seat, ev.closed, ev.card]), [['play', lugar, true, undefined]]);
+    for (const tela of [mesa, outro]) assert.deepStrictEqual(tela.estado.table.at(-1), { seat: lugar, closed: true });
+    assert.strictEqual(celular.estado.hand.length, 1);
   });
 
   test('jogar fora da vez dá erro, e a Mesa não muda', (t) => {
@@ -875,17 +899,63 @@ describe('Sala: jogo, relógio e eventos', () => {
     assert.deepStrictEqual(mesa.estado.score, [1, 0]);
   });
 
-  test('quem recebe o Truco pode aumentar para seis, e aí quem pediu responde', (t) => {
+  test('quando o Jogador responde, a Mesa mostra a Opinião do parceiro Robô', (t) => {
     pararRelogio(t);
-    const { sala, mesa, celulares: [celular0, celular1] } = trucoDoLugar0(t);
-    assert.deepStrictEqual(sala.action({ type: 'respond', seat: 1, ans: 'aumento' }), { ok: true });
+    const { mesa, celulares: [, celular1] } = trucoDoLugar0(t);
+    const opinioes = mesa.eventos.filter((ev) => ev.t === 'opiniao');
+    assert.deepStrictEqual(opinioes.map((ev) => ev.seat), [3]);
+    assert.ok(['aceita', 'corre'].includes(opinioes[0].ans));
+    assert.deepStrictEqual(mesa.estado.pending.opinion, { seat: 3, ans: opinioes[0].ans });
+    assert.strictEqual(celular1.estado.mustOpine, false);
+  });
+
+  // Lugar 0 pede Truco e o Lugar 1 aumenta para seis. Quem responde ao seis é o Lugar 2 (Robô),
+  // e quem dá a Opinião é o Jogador do Lugar 0.
+  function seisDoLugar1(t) {
+    const partida = trucoDoLugar0(t);
+    assert.deepStrictEqual(partida.sala.action({ type: 'respond', seat: 1, ans: 'aumento' }), { ok: true });
+    return partida;
+  }
+
+  test('quem recebe o Truco pode aumentar para seis, e aí responde o Lugar depois de quem aumentou', (t) => {
+    pararRelogio(t);
+    const { sala, mesa, celulares: [celular0, celular1] } = seisDoLugar1(t);
     assert.deepStrictEqual(ultimosEventos(mesa).filter((ev) => ev.t === 'truco').map((ev) => [ev.seat, ev.level, ev.raise]), [[1, 6, true]]);
     assert.strictEqual(mesa.estado.phase, 'truco');
-    assert.deepStrictEqual([celular0.estado.mustRespond, celular1.estado.mustRespond], [true, false]);
-    assert.deepStrictEqual(sala.action({ type: 'respond', seat: 0, ans: 'aceito' }), { ok: true });
-    assert.deepStrictEqual(ultimosEventos(mesa).map((ev) => [ev.t, ev.seat, ev.level]), [['aceito', 0, 6]]);
-    assert.strictEqual(mesa.estado.value, 6);
-    assert.strictEqual(mesa.estado.phase, 'play');
+    assert.strictEqual(mesa.estado.value, 3);
+    assert.deepStrictEqual([celular0.estado.mustRespond, celular1.estado.mustRespond], [false, false]);
+    assert.deepStrictEqual(sala.action({ type: 'respond', seat: 0, ans: 'aceito' }), { error: 'Não é você que responde.' });
+    assert.strictEqual(celular0.estado.mustOpine, true);
+    // Sem Opinião, o Robô do Lugar 2 espera até 10 segundos e responde sozinho.
+    t.mock.timers.tick(10000 - 1);
+    assert.deepStrictEqual(acoesDoLugar(mesa, 2), []);
+    t.mock.timers.tick(1);
+    assert.strictEqual(acoesDoLugar(mesa, 2).length, 1);
+    assert.ok(['aceito', 'corro', 'truco'].includes(acoesDoLugar(mesa, 2)[0].t));
+  });
+
+  test('o Jogador dá a Opinião pelo Celular, a Mesa mostra, e o Robô responde depois da pausa de sempre', (t) => {
+    pararRelogio(t);
+    const { sala, mesa, celulares: [celular0] } = seisDoLugar1(t);
+    t.mock.timers.tick(5000);
+    assert.deepStrictEqual(sala.action({ type: 'opiniao', seat: 1, ans: 'aceita' }), { error: 'Não é você que dá opinião.' });
+    assert.deepStrictEqual(sala.action({ type: 'opiniao', seat: 0, ans: 'aceita' }), { ok: true });
+    assert.deepStrictEqual(ultimosEventos(mesa).map((ev) => [ev.t, ev.seat, ev.ans]), [['opiniao', 0, 'aceita']]);
+    assert.strictEqual(celular0.estado.mustOpine, false);
+    t.mock.timers.tick(PAUSAS.truco - 1);
+    assert.deepStrictEqual(acoesDoLugar(mesa, 2), []);
+    t.mock.timers.tick(1);
+    assert.strictEqual(acoesDoLugar(mesa, 2).length, 1);
+  });
+
+  test('numa Dupla de dois Robôs, ninguém dá Opinião', (t) => {
+    pararRelogio(t);
+    const { sala, mesa, celulares: [celular0] } = partidaComDoisCelulares(8, { robos: [1] });
+    esperarAte(t, () => celular0.estado.canTruco, 'o Lugar 0 poder pedir Truco');
+    assert.deepStrictEqual(sala.action({ type: 'truco', seat: 0 }), { ok: true });
+    assert.strictEqual(mesa.estado.pending.opinion, null);
+    t.mock.timers.tick(PAUSAS.truco);
+    assert.ok(!mesa.eventos.some((ev) => ev.t === 'opiniao'));
   });
 
   test('pedir Truco fora da vez, ou responder sem ser a vez de responder, dá erro', (t) => {
@@ -902,9 +972,9 @@ describe('Sala: jogo, relógio e eventos', () => {
   });
 
   // Joga com os dois Celulares (primeira carta, aceita todo Truco) até a Mão de onze.
-  // Com o sorteio 13, a Dupla Vermelha chega a 11 (placar 3 a 11), e quem decide é o Jogador do Lugar 1.
+  // Com o sorteio 12, a Dupla Vermelha chega a 11 (placar 7 a 11), e quem decide é o Jogador do Lugar 1.
   function chegarNaMaoDeOnze(t) {
-    const partida = partidaComDoisCelulares(13);
+    const partida = partidaComDoisCelulares(12);
     const { sala, mesa, celulares } = partida;
     for (let passo = 0; !celulares.some((c) => c.estado.mustOnze); passo++) {
       assert.ok(passo < 5000 && mesa.estado.phase !== 'over', 'a Partida não chegou na Mão de onze');
@@ -914,7 +984,7 @@ describe('Sala: jogo, relógio e eventos', () => {
       const acao = celular.estado.mustRespond ? { type: 'respond', seat, ans: 'aceito' } : { type: 'play', seat, idx: 0 };
       assert.deepStrictEqual(sala.action(acao), { ok: true }, JSON.stringify(acao));
     }
-    assert.deepStrictEqual(mesa.estado.score, [3, 11]);
+    assert.deepStrictEqual(mesa.estado.score, [7, 11]);
     assert.strictEqual(mesa.estado.phase, 'onze');
     assert.deepStrictEqual(ultimosEventos(mesa).filter((ev) => ev.t === 'onze').map((ev) => ev.team), [1]);
     return partida;
@@ -954,8 +1024,8 @@ describe('Sala: jogo, relógio e eventos', () => {
     assert.deepStrictEqual(sala.action({ type: 'onze', seat: 1, ans: 'corre' }), { ok: true });
     const [corre, fimDaMao] = ultimosEventos(mesa);
     assert.deepStrictEqual(campos(corre, ['t', 'team', 'seat']), { t: 'onzeCorre', team: 1, seat: 1 });
-    assert.deepStrictEqual(campos(fimDaMao, ['t', 'winner', 'points', 'reason', 'score']), { t: 'hand', winner: 0, points: 1, reason: 'onze-correu', score: [4, 11] });
-    assert.deepStrictEqual(mesa.estado.score, [4, 11]);
+    assert.deepStrictEqual(campos(fimDaMao, ['t', 'winner', 'points', 'reason', 'score']), { t: 'hand', winner: 0, points: 1, reason: 'onze-correu', score: [8, 11] });
+    assert.deepStrictEqual(mesa.estado.score, [8, 11]);
   });
 
   test('numa Partida inteira, a Mesa recebe início, cartas dadas, Truco, aceito, corro, fim de Mão e fim de Partida, cada evento uma vez', (t) => {

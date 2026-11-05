@@ -68,6 +68,21 @@ function chooseCard(g, seat) {
   return lowest;
 }
 
+// Chance de o Robô jogar fechada uma carta que não serve na Rodada.
+const CLOSE_CHANCE = 0.4;
+
+// Fecha só carta que não serve: o parceiro já ganha a Rodada, ou a carta não ganha. Nunca a Manilha.
+function wantsClosed(g, seat, idx) {
+  if (!g.canPlayClosed(seat)) return false;
+  const card = g.hands[seat][idx];
+  if (card.r === g.manilha) return false;
+  const best = g.currentBest();
+  if (!best) return false;
+  const partnerWins = best.team === seat % 2 && !best.tie;
+  if (!partnerWins && g.power(card) >= best.power) return false;
+  return g.rng() < CLOSE_CHANCE;
+}
+
 function wantsTruco(g, seat) {
   if (!g.canTruco(seat)) return false;
   const per = persona(g, seat);
@@ -78,21 +93,22 @@ function wantsTruco(g, seat) {
   return g.rng() < per.bluff * 0.35;
 }
 
+// Quanto a Opinião do parceiro muda a coragem de quem responde.
+const OPINION_WEIGHT = 0.15;
+
 function respondChoice(g, seat) {
   const per = persona(g, seat);
-  const p = winProb(g, seat);
+  const op = g.pending.opinion;
+  const p = winProb(g, seat) + (op ? (op.ans === 'aceita' ? OPINION_WEIGHT : -OPINION_WEIGHT) : 0);
   if (p > 0.84 - per.nerve * 0.3 && g.pending.level < 12 && g.rng() < 0.6) return 'aumento';
   if (p > 0.38 - per.nerve * 0.6 - per.bluff * 0.3) return 'aceito';
   return 'corro';
 }
 
-// Conselho do robô pro parceiro humano.
-function adviceMood(g, seat) {
+// Opinião do Robô para o parceiro Jogador que responde ao Truco. Diz a verdade (sem blefe).
+function opinionFor(g, seat) {
   const per = persona(g, seat);
-  const p = winProb(g, seat);
-  if (p > 0.82 - per.nerve * 0.3) return 'aumenta';
-  if (p > 0.38 - per.nerve * 0.6) return 'aceita';
-  return 'corre';
+  return winProb(g, seat) > 0.38 - per.nerve * 0.6 ? 'aceita' : 'corre';
 }
 
 function onzeChoice(g, seat) {
@@ -113,11 +129,12 @@ function signalFor(g, seat) {
 function act(g, seat) {
   if (g.phase === 'play' && g.turn === seat) {
     if (wantsTruco(g, seat)) return g.truco(seat);
-    return g.play(seat, chooseCard(g, seat));
+    const idx = chooseCard(g, seat);
+    return g.play(seat, idx, wantsClosed(g, seat, idx));
   }
   if (g.phase === 'truco') return g.respond(seat, respondChoice(g, seat));
   if (g.phase === 'onze') return g.onzeDecide(seat, onzeChoice(g, seat));
   return 'nada a fazer';
 }
 
-module.exports = { act, signalFor, adviceMood, winProb, chooseCard, PERSONAS };
+module.exports = { act, signalFor, opinionFor, winProb, chooseCard, wantsClosed, PERSONAS, CLOSE_CHANCE, OPINION_WEIGHT };

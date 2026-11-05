@@ -10,19 +10,23 @@ const { partidaSoDeRobos } = require('./montagem.js');
 const PARTIDAS = Number(process.env.PARTIDAS || 500);
 
 test(`${PARTIDAS} Partidas de Robôs terminam sem quebrar as regras`, (t) => {
-  const stats = { wins: [0, 0], hands: 0, trucos: 0, corridas: 0, onze: 0, ferro: 0, maxValue: 1 };
+  const stats = { wins: [0, 0], hands: 0, trucos: 0, corridas: 0, onze: 0, ferro: 0, fechadas: 0, maxValue: 1 };
 
   for (let n = 0; n < PARTIDAS; n++) {
     const g = partidaSoDeRobos({ brain });
     assert.strictEqual(g.start(), null);
     let steps = 0;
+    let saiu = null;
     const fase = () => g.publicView().phase;
     while (fase() !== 'over') {
       const nx = g.next();
       if (nx.who === 'timer') g.onTimer();
       else if (nx.who === 'bot') {
+        const antes = g.seatView(nx.seat).hand;
         const err = brain.act(g, nx.seat);
         assert.ok(!err, `Robô fez jogada inválida: ${err} (fase ${fase()})`);
+        const depois = g.seatView(nx.seat).hand;
+        saiu = antes.find((c) => !depois.some((d) => d.r === c.r && d.s === c.s));
       } else throw new Error('travou na fase ' + fase());
       for (const ev of g.drain()) {
         if (ev.t === 'deal') {
@@ -37,6 +41,10 @@ test(`${PARTIDAS} Partidas de Robôs terminam sem quebrar as regras`, (t) => {
         if (ev.t === 'corro') stats.corridas++;
         if (ev.t === 'onze') stats.onze++;
         if (ev.t === 'ferro') stats.ferro++;
+        if (ev.t === 'play' && ev.closed) {
+          stats.fechadas++;
+          assert.notStrictEqual(saiu.r, g.publicView().manilha, 'Robô fechou uma Manilha');
+        }
       }
       const v = g.publicView();
       stats.maxValue = Math.max(stats.maxValue, v.value);
@@ -45,5 +53,6 @@ test(`${PARTIDAS} Partidas de Robôs terminam sem quebrar as regras`, (t) => {
     }
     stats.wins[g.publicView().winner]++;
   }
+  assert.ok(stats.fechadas > 0, 'nenhum Robô jogou fechada');
   t.diagnostic(JSON.stringify(stats));
 });

@@ -248,6 +248,74 @@ describe('Quem dá as cartas', () => {
   });
 });
 
+describe('Carta fechada', () => {
+  const carta = (r, s) => ({ r, s });
+  const VIRA = carta('4', 'copas'); // Manilha 5: o 5 de paus (zap) é a carta mais forte
+
+  // Dá as cartas e joga a 1ª Rodada com os quatro Q (empata). Fica na vez da 2ª Rodada.
+  // segundas[lugar] = a carta que o Lugar joga na 2ª Rodada.
+  function naSegundaRodada(segundas, { placar } = {}) {
+    const g = placar ? partidaComPlacar(...placar) : new Game({ rng: rngFixo() });
+    if (!placar) g.start();
+    darCartas(g, { vira: VIRA, maos: segundas.map((c, lugar) => [carta('Q', NAIPES[lugar]), c, carta('J', NAIPES[lugar])]) });
+    g.onTimer();
+    if (g.publicView().phase === 'onze') assert.strictEqual(g.onzeDecide(g.next().seat, 'joga'), null);
+    for (let i = 0; i < 4; i++) {
+      const vez = g.publicView().turn;
+      assert.ok(!g.seatView(vez).canPlayClosed, 'na 1ª Rodada o Celular ofereceu jogar fechada');
+      const erro = g.publicView().mode === 'ferro' ? 'Na Mão de ferro não dá pra jogar fechada.' : 'Na 1ª Rodada não dá pra jogar fechada.';
+      assert.strictEqual(g.play(vez, 0, true), erro);
+      assert.strictEqual(g.play(vez, 0), null);
+    }
+    g.onTimer();
+    g.drain();
+    return g;
+  }
+
+  // Joga a 2ª Rodada: cada Lugar joga a carta 0, fechada se estiver em `fechadas`. Devolve o evento da Rodada.
+  function jogarSegunda(g, fechadas) {
+    for (let i = 0; i < 4; i++) {
+      const vez = g.publicView().turn;
+      assert.strictEqual(g.play(vez, 0, fechadas.includes(vez)), null);
+    }
+    return g.drain().find((e) => e.t === 'round');
+  }
+
+  test('a carta fechada perde para qualquer carta aberta, até o zap', () => {
+    const g = naSegundaRodada([carta('5', 'paus'), carta('4', 'ouros'), carta('4', 'espadas'), carta('6', 'paus')]);
+    assert.strictEqual(jogarSegunda(g, [0]).result, VERMELHA);
+  });
+
+  test('se as quatro cartas da Rodada são fechadas, a Rodada empata', () => {
+    const g = naSegundaRodada([carta('5', 'paus'), carta('4', 'ouros'), carta('4', 'espadas'), carta('6', 'paus')]);
+    assert.strictEqual(jogarSegunda(g, [0, 1, 2, 3]).result, EMPATE);
+  });
+
+  test('ninguém vê a carta fechada: nem a Mesa, nem os Celulares, nem os eventos', () => {
+    const g = naSegundaRodada([carta('5', 'paus'), carta('4', 'ouros'), carta('4', 'espadas'), carta('6', 'paus')]);
+    const vez = g.publicView().turn;
+    assert.ok(g.seatView(vez).canPlayClosed);
+    assert.strictEqual(g.play(vez, 0, true), null);
+    const eventos = g.drain();
+    assert.deepStrictEqual(eventos.map((e) => [e.t, e.seat, e.closed, e.card]), [['play', vez, true, undefined]]);
+    const naMesa = { seat: vez, closed: true };
+    assert.deepStrictEqual(g.publicView().table, [naMesa]);
+    for (const lugar of [0, 1, 2, 3]) assert.deepStrictEqual(g.seatView(lugar).table, [naMesa]);
+  });
+
+  test('na Mão de ferro não dá para jogar fechada', () => {
+    const g = naSegundaRodada([carta('5', 'paus'), carta('4', 'ouros'), carta('4', 'espadas'), carta('6', 'paus')], { placar: [11, 11] });
+    const vez = g.publicView().turn;
+    assert.ok(!g.seatView(vez).canPlayClosed);
+    assert.strictEqual(g.play(vez, 0, true), 'Na Mão de ferro não dá pra jogar fechada.');
+  });
+
+  test('na Mão de onze dá para jogar fechada', () => {
+    const g = naSegundaRodada([carta('5', 'paus'), carta('4', 'ouros'), carta('4', 'espadas'), carta('6', 'paus')], { placar: [11, 4] });
+    assert.strictEqual(jogarSegunda(g, [0]).result, VERMELHA);
+  });
+});
+
 describe('Truco', () => {
   test('o valor sobe 3 → seis → nove → doze e para no doze', () => {
     assert.strictEqual(nextLevel(1), 3);
@@ -309,6 +377,22 @@ describe('Truco', () => {
     assert.strictEqual(duplaDe(responde), outraDupla(duplaDe(vez)));
     assert.ok(g.seatView(responde).mustRespond);
     assert.strictEqual(g.respond(responde, 'aceito'), null);
+  });
+
+  test('quem responde é o Lugar logo depois de quem pediu, também a cada aumento', () => {
+    const g = partidaNaVez();
+    const vez = g.publicView().turn;
+    assert.strictEqual(g.truco(vez), null);
+    const esperado = [1, 2, 3].map((n) => (vez + n) % 4); // truco, seis, nove: um Lugar à frente a cada pedido
+    for (const [i, lugar] of esperado.entries()) {
+      assert.strictEqual(quemAge(g), lugar, `pedido ${i + 1}`);
+      for (const outro of [0, 1, 2, 3].filter((l) => l !== lugar)) {
+        assert.ok(!g.seatView(outro).mustRespond, `Lugar ${outro} também tinha que responder`);
+        assert.ok(g.respond(outro, 'aceito'), `Lugar ${outro} respondeu no lugar do ${lugar}`);
+      }
+      assert.ok(g.seatView(lugar).mustRespond);
+      assert.strictEqual(g.respond(lugar, 'aumento'), null);
+    }
   });
 });
 
@@ -453,29 +537,53 @@ describe('Mão de ferro', () => {
   });
 });
 
-describe('Cochicho', () => {
-  test('com parceiro Robô, quem responde ao Truco recebe o cochicho no Celular', () => {
+// Pede Truco e aumenta até `quemResponde(lugar)` dar certo. Devolve quem responde agora.
+function pedirAte(g, quemResponde) {
+  assert.strictEqual(g.truco(g.publicView().turn), null);
+  for (let i = 0; !quemResponde(quemAge(g)); i++) {
+    assert.ok(i < 3, 'nenhum pedido chegou em quem devia responder');
+    assert.strictEqual(g.respond(quemAge(g), 'aumento'), null);
+  }
+  return quemAge(g);
+}
+// Na Partida padrão, os Lugares 0 e 1 são de Jogador, e os Lugares 2 e 3, de Robô.
+const ehJogador = (lugar) => lugar < 2;
+
+describe('Opinião', () => {
+  test('quando um Jogador responde, o parceiro Robô dá a Opinião na hora, e todos veem', () => {
     const g = partidaNaVez(1, { brain });
     g.drain();
-    assert.strictEqual(g.truco(g.publicView().turn), null);
-    const responde = quemAge(g);
-    const parceiro = parceiroDe(responde);
-    const cochicho = g.seatView(responde).advice;
-    assert.ok(cochicho, 'faltou o cochicho do parceiro Robô');
-    assert.strictEqual(cochicho.to, responde);
-    assert.strictEqual(cochicho.seat, parceiro);
-    assert.ok(['aumenta', 'aceita', 'corre'].includes(cochicho.mood), `cochicho estranho: ${cochicho.mood}`);
-    assert.ok(g.drain().some((e) => e.t === 'advice' && e.to === responde && e.seat === parceiro));
+    const responde = pedirAte(g, ehJogador);
+    const opiniao = g.publicView().pending.opinion;
+    assert.ok(opiniao, 'faltou a Opinião do parceiro Robô');
+    assert.strictEqual(opiniao.seat, parceiroDe(responde));
+    assert.ok(['aceita', 'corre'].includes(opiniao.ans), `Opinião estranha: ${opiniao.ans}`);
+    const evento = g.drain().find((e) => e.t === 'opiniao');
+    assert.deepStrictEqual([evento.seat, evento.ans], [opiniao.seat, opiniao.ans]);
+    assert.strictEqual(g.seatView(responde).advice, undefined, 'o cochicho no Celular devia ter saído');
   });
 
-  test('quando a outra Dupla aumenta, o cochicho vai para quem responde agora', () => {
+  test('quando um Robô responde, o parceiro Jogador dá a Opinião, uma vez só', () => {
     const g = partidaNaVez(1, { brain });
-    assert.strictEqual(g.truco(g.publicView().turn), null);
-    assert.strictEqual(g.respond(quemAge(g), 'aumento'), null);
-    const responde = quemAge(g);
-    const cochicho = g.seatView(responde).advice;
-    assert.ok(cochicho, 'faltou o cochicho depois do aumento');
-    assert.strictEqual(cochicho.to, responde);
-    assert.strictEqual(cochicho.seat, parceiroDe(responde));
+    const responde = pedirAte(g, (l) => !ehJogador(l));
+    const parceiro = parceiroDe(responde);
+    assert.strictEqual(g.publicView().pending.opinion, null, 'a Opinião do Jogador veio sozinha');
+    for (const lugar of [0, 1, 2, 3]) assert.strictEqual(!!g.seatView(lugar).mustOpine, lugar === parceiro, `Lugar ${lugar}`);
+    for (const outro of [0, 1, 2, 3].filter((l) => l !== parceiro)) {
+      assert.strictEqual(g.opine(outro, 'aceita'), 'Não é você que dá opinião.');
+    }
+    assert.strictEqual(g.opine(parceiro, 'talvez'), 'Opinião inválida.');
+    g.drain();
+    assert.strictEqual(g.opine(parceiro, 'corre'), null);
+    assert.deepStrictEqual(g.drain().map((e) => [e.t, e.seat, e.ans]), [['opiniao', parceiro, 'corre']]);
+    assert.deepStrictEqual(g.publicView().pending.opinion, { seat: parceiro, ans: 'corre' });
+    assert.ok(!g.seatView(parceiro).mustOpine);
+    assert.strictEqual(g.opine(parceiro, 'aceita'), 'Você já deu sua opinião.');
+    assert.strictEqual(quemAge(g), responde, 'a Opinião não responde ao Truco');
+  });
+
+  test('sem Truco pedido, ninguém dá Opinião', () => {
+    const g = partidaNaVez(1, { brain });
+    for (const lugar of [0, 1, 2, 3]) assert.strictEqual(g.opine(lugar, 'aceita'), 'Ninguém pediu nada.');
   });
 });

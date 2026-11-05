@@ -49,7 +49,8 @@ npx wrangler dev
 - **Gritômetro:** pediu truco no celular? Grite "TRUCO!". O microfone mede o berro.
 - **Sinais:** os robôs fazem sinais com o rosto no começo da mão. A cola está no celular.
   O adversário também pode ver!
-- **Cochicho:** quando pedem truco pra você, seu parceiro robô cochicha no seu celular.
+- **Opinião:** quando pedem truco, o parceiro de quem responde faz uma cara na TV: aceita ou corre.
+  Todo mundo vê. Se quem responde é o seu robô, você dá a opinião pelo celular.
 - Mão de onze, mão de ferro, galinha quando alguém corre, confete, tremor.
 - Botão 🔊 no topo da TV liga e desliga o som. Botão ↺ começa uma partida nova.
 
@@ -69,6 +70,9 @@ e rode o script com o nome dela. Para mudar uma frase, edite a lista no próprio
 - Baralho sem 8, 9 e 10. Força: 4 5 6 7 Q J K A 2 3.
 - Manilha = carta seguinte à vira. Ordem: ouros < espadas < copas < paus (zap).
 - Truco 3 → seis 6 → nove 9 → doze 12. Quem corre dá o valor anterior.
+- Quem responde ao truco (ou ao aumento) é o próximo depois de quem pediu. O parceiro dele só dá opinião.
+- Da 2ª rodada em diante, dá pra jogar a carta fechada (virada pra baixo). Ela perde para qualquer carta aberta.
+  Na mão de ferro não pode.
 - Jogo até 12. Mão de onze: a dupla com 11 vê as cartas do parceiro e decide.
   Mão de ferro (11 × 11): todo mundo joga no escuro.
 

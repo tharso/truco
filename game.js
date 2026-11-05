@@ -62,7 +62,7 @@ class Game {
   constructor(opts = {}) {
     this.rng = opts.rng || Math.random;
     this.brain = opts.brain;
-    this.timing = Object.assign({ deal: 3200, bot: 1400, round: 1900, hand: 4500, truco: 3200 }, opts.timing);
+    this.timing = Object.assign({ deal: 3200, bot: 1400, round: 1900, hand: 4500, truco: 3200, opinion: 10000 }, opts.timing);
     this.seats = DEFAULT_SEATS();
     this.events = [];
     this.evSeq = 0;
@@ -78,6 +78,8 @@ class Game {
   emit(ev) { ev.id = ++this.evSeq; this.events.push(ev); }
   drain() { const e = this.events; this.events = []; return e; }
   power(card) { return power(card, this.manilha); }
+  // Força de uma carta na mesa: a Carta fechada perde para qualquer carta aberta.
+  powerOn(p) { return p.closed ? -1 : this.power(p.card); }
 
   dealer() { return this.starter < 0 ? -1 : (this.starter + 3) % 4; }
 
@@ -91,8 +93,8 @@ class Game {
   currentBest() {
     if (!this.table.length) return null;
     let best = -1;
-    for (const p of this.table) best = Math.max(best, this.power(p.card));
-    const tops = this.table.filter((p) => this.power(p.card) === best);
+    for (const p of this.table) best = Math.max(best, this.powerOn(p));
+    const tops = this.table.filter((p) => this.powerOn(p) === best);
     const teams = new Set(tops.map((p) => teamOf(p.seat)));
     return { power: best, seat: tops[0].seat, team: teamOf(tops[0].seat), tie: teams.size > 1 };
   }
@@ -107,7 +109,6 @@ class Game {
     this.value = 1;
     this.lastRaiseTeam = null;
     this.pending = null;
-    this.advice = null;
     this.mode = 'normal';
     this.onzeTeam = null;
     this.lastHand = null;
@@ -122,7 +123,8 @@ class Game {
       case 'roundEnd': return { who: 'timer', delay: T.round };
       case 'handEnd': return { who: 'timer', delay: T.hand };
       case 'play': return this.actor(this.turn, T.bot);
-      case 'truco': return this.actor(this.voiceOf(this.pending.respondTeam), T.truco);
+      // Robô que responde espera a Opinião do parceiro Jogador até T.opinion.
+      case 'truco': return this.actor(this.pending.responder, this.wantsOpinion(this.pending) ? T.opinion : T.truco);
       case 'onze': return this.actor(this.voiceOf(this.onzeTeam), T.truco);
       default: return { who: 'none' };
     }
@@ -194,14 +196,26 @@ class Game {
     }
   }
 
-  play(seat, idx) {
+  canPlayClosed(seat) {
+    return this.phase === 'play' && seat === this.turn && this.rounds.length > 0 && this.mode !== 'ferro';
+  }
+
+  // closed = jogar a carta fechada (virada para baixo).
+  play(seat, idx, closed = false) {
     if (this.phase !== 'play') return 'Agora não dá pra jogar.';
     if (seat !== this.turn) return 'Calma, não é sua vez!';
     const hand = this.hands[seat];
     if (!(Number.isInteger(idx) && idx >= 0 && idx < hand.length)) return 'Carta inválida.';
+    if (closed && this.mode === 'ferro') return 'Na Mão de ferro não dá pra jogar fechada.';
+    if (closed && !this.rounds.length) return 'Na 1ª Rodada não dá pra jogar fechada.';
     const [card] = hand.splice(idx, 1);
-    this.table.push({ seat, card });
-    this.emit({ t: 'play', seat, card, ferro: this.mode === 'ferro' });
+    if (closed) {
+      this.table.push({ seat, card, closed: true });
+      this.emit({ t: 'play', seat, closed: true });
+    } else {
+      this.table.push({ seat, card });
+      this.emit({ t: 'play', seat, card, ferro: this.mode === 'ferro' });
+    }
     if (this.table.length < 4) {
       this.turn = (this.turn + 1) % 4;
     } else {
@@ -215,7 +229,8 @@ class Game {
     const result = best.tie ? 'tie' : best.team;
     this.rounds.push(result);
     this.lastRound = { result, seat: best.seat };
-    this.emit({ t: 'round', n: this.rounds.length, result, seat: best.seat, card: this.table.find((p) => p.seat === best.seat).card });
+    const top = this.table.find((p) => p.seat === best.seat);
+    this.emit({ t: 'round', n: this.rounds.length, result, seat: best.seat, card: top.closed ? undefined : top.card });
     this.turn = -1;
     const d = decide(this.rounds);
     if (d.done) this.endHand(d.winner, this.value, d.winner === null ? 'empate' : 'jogo');
@@ -231,7 +246,6 @@ class Game {
   endHand(winner, points, reason) {
     this.turn = -1;
     this.pending = null;
-    this.advice = null;
     if (winner !== null) this.score[winner] = Math.min(12, this.score[winner] + points);
     this.lastHand = { winner, points: winner === null ? 0 : points, reason };
     this.emit({ t: 'hand', winner, points: this.lastHand.points, reason, score: [...this.score] });
@@ -259,33 +273,57 @@ class Game {
   truco(seat) {
     if (!this.canTruco(seat)) return 'Não dá pra pedir truco agora.';
     const team = teamOf(seat);
-    this.pending = { level: nextLevel(this.value), byTeam: team, bySeat: seat, respondTeam: 1 - team };
+    this.pending = this.request(nextLevel(this.value), seat);
     this.phase = 'truco';
     this.emit({ t: 'truco', seat, level: this.pending.level });
-    this.makeAdvice();
+    this.robotOpinion();
     return null;
   }
 
-  makeAdvice() {
-    this.advice = null;
-    if (!this.brain) return;
-    const resp = this.voiceOf(this.pending.respondTeam);
-    const partner = (resp + 2) % 4;
-    if (this.seats[resp].bot || !this.seats[partner].bot) return;
-    const mood = this.brain.adviceMood(this, partner);
-    this.advice = { seat: partner, to: resp, mood };
-    this.emit({ t: 'advice', seat: partner, to: resp, mood });
+  // Um pedido (truco ou aumento) de `seat`. Quem responde é o Lugar logo depois dele.
+  request(level, seat) {
+    const team = teamOf(seat);
+    return { level, byTeam: team, bySeat: seat, respondTeam: 1 - team, responder: (seat + 1) % 4, opinion: null };
+  }
+
+  // O parceiro de quem responde dá a Opinião. Se ele é Robô e quem responde é Jogador, dá na hora.
+  // Se ele é Jogador e quem responde é Robô, o Jogador dá pelo Celular (opine). Dupla de dois Robôs: nada.
+  adviserOf(p) { return (p.responder + 2) % 4; }
+
+  wantsOpinion(p) {
+    return !p.opinion && !this.seats[this.adviserOf(p)].bot && this.seats[p.responder].bot;
+  }
+
+  robotOpinion() {
+    const p = this.pending;
+    const adv = this.adviserOf(p);
+    if (!this.brain || this.seats[p.responder].bot || !this.seats[adv].bot) return;
+    this.giveOpinion(adv, this.brain.opinionFor(this, adv));
+  }
+
+  giveOpinion(seat, ans) {
+    this.pending.opinion = { seat, ans };
+    this.emit({ t: 'opiniao', seat, ans });
+  }
+
+  opine(seat, ans) {
+    if (this.phase !== 'truco') return 'Ninguém pediu nada.';
+    const p = this.pending;
+    if (seat !== this.adviserOf(p) || this.seats[seat].bot || !this.seats[p.responder].bot) return 'Não é você que dá opinião.';
+    if (p.opinion) return 'Você já deu sua opinião.';
+    if (ans !== 'aceita' && ans !== 'corre') return 'Opinião inválida.';
+    this.giveOpinion(seat, ans);
+    return null;
   }
 
   respond(seat, ans) {
     if (this.phase !== 'truco') return 'Ninguém pediu nada.';
     const p = this.pending;
-    if (seat !== this.voiceOf(p.respondTeam)) return 'Não é você que responde.';
+    if (seat !== p.responder) return 'Não é você que responde.';
     if (ans === 'aceito') {
       this.value = p.level;
       this.lastRaiseTeam = p.byTeam;
       this.pending = null;
-      this.advice = null;
       this.phase = 'play';
       this.emit({ t: 'aceito', seat, level: p.level });
     } else if (ans === 'corro') {
@@ -295,9 +333,9 @@ class Game {
       if (p.level >= 12) return 'Já está no máximo!';
       this.value = p.level; // aumentar = aceitar o anterior
       this.lastRaiseTeam = p.byTeam;
-      this.pending = { level: nextLevel(p.level), byTeam: p.respondTeam, bySeat: seat, respondTeam: p.byTeam };
+      this.pending = this.request(nextLevel(p.level), seat);
       this.emit({ t: 'truco', seat, level: this.pending.level, raise: true });
-      this.makeAdvice();
+      this.robotOpinion();
     } else return 'Resposta inválida.';
     return null;
   }
@@ -328,12 +366,11 @@ class Game {
       dealer: this.dealer(),
       vira: this.vira,
       manilha: this.manilha,
-      table: this.table,
+      table: this.table.map((p) => (p.closed ? { seat: p.seat, closed: true } : p)),
       rounds: this.rounds,
       turn: this.turn,
       value: this.value,
       pending: this.pending,
-      advice: this.advice,
       mode: this.mode,
       onzeTeam: this.onzeTeam,
       lastHand: this.lastHand,
@@ -350,7 +387,9 @@ class Game {
     v.hand = this.hands[seat].map((c) => (ferro ? { hidden: true } : c));
     v.canPlay = this.phase === 'play' && this.turn === seat;
     v.canTruco = this.canTruco(seat);
-    v.mustRespond = this.phase === 'truco' && this.voiceOf(this.pending.respondTeam) === seat;
+    v.canPlayClosed = this.canPlayClosed(seat);
+    v.mustRespond = this.phase === 'truco' && this.pending.responder === seat;
+    v.mustOpine = this.phase === 'truco' && this.wantsOpinion(this.pending) && this.adviserOf(this.pending) === seat;
     v.mustOnze = this.phase === 'onze' && this.voiceOf(this.onzeTeam) === seat;
     if (v.mustOnze) v.partnerHand = this.hands[(seat + 2) % 4];
     return v;

@@ -62,15 +62,25 @@
 
     <div id="hand"></div>
 
+    <button id="closed-btn" class="shout b-gray hidden">🙈 JOGAR FECHADA</button>
+
     <button id="truco-btn" class="shout" disabled>TRUCO!</button>
 
     <div id="respond" class="panel hidden">
       <div id="resp-title" class="shout"></div>
-      <div id="whisper"></div>
       <div class="resp-btns">
         <button data-ans="aceito" class="shout b-green">ACEITO!</button>
         <button data-ans="corro" class="shout b-gray">CORRO 🐔</button>
         <button data-ans="aumento" id="btn-raise" class="shout b-red"></button>
+      </div>
+    </div>
+
+    <div id="opine" class="panel hidden">
+      <div id="opine-title" class="shout"></div>
+      <div id="opine-hint"></div>
+      <div class="resp-btns">
+        <button data-opine="aceita" class="shout b-green">😃 ACEITA</button>
+        <button data-opine="corre" class="shout b-gray">😟 CORRE</button>
       </div>
     </div>
 
@@ -98,7 +108,6 @@
   <div id="toast"></div>
 
   <script src="/shared.js"></script>
-  <script src="/lines.js"></script>
   <script src="/hand.js"></script>
 </body>
 </html>

@@ -66,9 +66,20 @@ As cartas logo acima da Vira em força. São as mais fortes da Mão, e o naipe d
 O pedido para aumentar o valor da Mão (3, depois seis, nove e doze). A outra Dupla aceita, corre ou aumenta.
 _Evitar_: aposta
 
+**Quem responde**:
+O Lugar logo depois de quem pediu o Truco (ou o aumento). Ele dá a palavra final: aceita, corre ou aumenta.
+
+**Opinião**:
+O que o parceiro de Quem responde acha do Truco: "aceita" ou "corre". Todos veem, pela cara do Personagem na Mesa. Não decide nada.
+_Evitar_: cochicho, conselho, voto
+
 **Correr**:
 Recusar um Truco. A Dupla que corre perde a Mão pelo valor de antes do pedido.
 _Evitar_: fugir, desistir
+
+**Carta fechada**:
+Uma carta jogada virada para baixo, a partir da 2ª Rodada. Ela perde para qualquer carta aberta e ninguém a vê, nem no fim da Mão.
+_Evitar_: carta coberta, encoberta (no texto do jogo)
 
 **Mão de onze**:
 A Mão em que uma Dupla tem 11 pontos. Essa Dupla vê as cartas do parceiro e decide se joga.

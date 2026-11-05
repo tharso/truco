@@ -2,7 +2,6 @@
 (function () {
   const S = window.SHARED;
   const $ = (id) => document.getElementById(id);
-  const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
   let seat = localStorage.getItem('truco-seat');
   seat = seat === null ? null : Number(seat);
@@ -10,8 +9,6 @@
   let es = null;
   let selected = -1;
   let wasMyMove = false;
-  let whisperKey = '';
-  let whisperText = '';
   let busy = false;
   // escolha de personagens
   let choosing = false;   // a tela de escolha está aberta
@@ -188,7 +185,7 @@
     vm.classList.toggle('hot', st.value > 1 || st.mode !== 'normal');
 
     // status
-    const myMove = st.canPlay || st.mustRespond || st.mustOnze;
+    const myMove = st.canPlay || st.mustRespond || st.mustOpine || st.mustOnze;
     const stEl = $('status');
     stEl.classList.toggle('myturn', !!st.canPlay);
     stEl.textContent = statusText(st);
@@ -202,6 +199,9 @@
     hand.innerHTML = (st.hand || []).map((c, i) => S.cardHTML(c, st.manilha, i === selected ? 'sel' : '')).join('');
     [...hand.children].forEach((el, i) => { el.onclick = () => tapCard(i); });
 
+    // jogar fechada (a partir da 2ª Rodada, com uma carta escolhida)
+    $('closed-btn').classList.toggle('hidden', !(st.canPlayClosed && selected >= 0));
+
     // truco
     const tb = $('truco-btn');
     tb.style.display = playing && st.mode === 'normal' ? '' : 'none';
@@ -213,16 +213,17 @@
     if (st.mustRespond) {
       const p = st.pending;
       $('resp-title').textContent = `${st.seats[p.bySeat].name} pediu ${S.LEVEL_NAME[p.level]}!`;
-      const key = `${st.handNo}-${p.level}`;
-      if (key !== whisperKey) {
-        whisperKey = key;
-        whisperText = st.advice && st.advice.to === me
-          ? `🤫 ${st.seats[st.advice.seat].name} cochicha: “${pick(window.WHISPER[st.advice.mood])}”` : '';
-      }
-      $('whisper').textContent = whisperText;
       const raise = $('btn-raise');
       raise.style.display = p.level < 12 ? '' : 'none';
       raise.textContent = p.level < 12 ? `${S.LEVEL_NAME[p.level + 3]}!` : '';
+    }
+
+    // Opinião: quem responde é o parceiro Robô; você diz o que acha, e o seu Personagem faz a cara na TV.
+    $('opine').classList.toggle('hidden', !st.mustOpine);
+    if (st.mustOpine) {
+      const p = st.pending;
+      $('opine-title').textContent = `${st.seats[p.bySeat].name} pediu ${S.LEVEL_NAME[p.level]}!`;
+      $('opine-hint').textContent = `Quem responde é ${st.seats[p.responder].name}. O que você acha?`;
     }
 
     // mão de onze
@@ -248,9 +249,15 @@
       case 'lobby': return 'Esperando começar…';
       case 'deal': return st.dealer >= 0 ? `${s[st.dealer].name} está dando as cartas…` : 'Dando as cartas…';
       case 'onze': return st.mustOnze ? 'Decida a mão de onze!' : 'Mão de onze: esperando os outros…';
-      case 'truco': return st.mustRespond ? 'E aí? Vai encarar?' : `Esperando resposta…`;
+      case 'truco':
+        if (st.mustRespond) return 'E aí? Vai encarar?';
+        if (st.mustOpine) return 'Dê a sua opinião!';
+        return `${s[st.pending.responder].name} está pensando…`;
       case 'play':
-        if (st.canPlay) return selected >= 0 ? 'Toque de novo pra jogar!' : 'SUA VEZ! Escolha uma carta';
+        if (st.canPlay) {
+          if (selected < 0) return 'SUA VEZ! Escolha uma carta';
+          return st.canPlayClosed ? 'Toque de novo, ou jogue fechada' : 'Toque de novo pra jogar!';
+        }
         return `Vez de ${s[st.turn].name}…`;
       case 'roundEnd': {
         const r = st.lastRound;
@@ -277,6 +284,15 @@
     busy = false;
   }
 
+  $('closed-btn').onclick = async () => {
+    if (!state || !state.canPlayClosed || selected < 0 || busy) return;
+    const i = selected;
+    busy = true;
+    selected = -1;
+    await post({ type: 'play', idx: i, fechada: true });
+    busy = false;
+  };
+
   $('truco-btn').onclick = async () => {
     if (busy) return;
     busy = true;
@@ -285,6 +301,7 @@
     busy = false;
   };
   document.querySelectorAll('[data-ans]').forEach((b) => { b.onclick = () => post({ type: 'respond', ans: b.dataset.ans }); });
+  document.querySelectorAll('[data-opine]').forEach((b) => { b.onclick = () => post({ type: 'opiniao', ans: b.dataset.opine }); });
   document.querySelectorAll('[data-onze]').forEach((b) => { b.onclick = () => post({ type: 'onze', ans: b.dataset.onze }); });
   $('game-btns').onclick = (e) => {
     if (e.target.dataset.act === 'start') post({ type: 'start' });

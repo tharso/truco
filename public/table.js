@@ -19,6 +19,7 @@
   let record = 0;
 
   const seatEl = (i) => $('seat' + i);
+  const OPINION_FACE_MS = 9000;
   const teamName = (t) => S.TEAM_NAME[t];
   const avatarOf = (i) => state.seats[i].avatar || 'robo';
   const voiceOf = (team) => {
@@ -127,7 +128,7 @@
     const dealing = state.phase === 'deal' && state.dealer === i && Date.now() < dealingUntil;
     // Na vez: quem joga, quem responde ao truco ou quem decide a mão de onze.
     const onTurn = (state.phase === 'play' && state.turn === i)
-      || (state.phase === 'truco' && state.pending && voiceOf(state.pending.respondTeam) === i)
+      || (state.phase === 'truco' && state.pending && state.pending.responder === i)
       || (state.phase === 'onze' && voiceOf(state.onzeTeam) === i);
     el.className = `seat pos-${POS[i]} t${i % 2}${onTurn ? ' active' : ''}${dealing ? ' dealing' : ''}`;
     const np = el.querySelector('.nameplate');
@@ -158,7 +159,7 @@
       const slot = $('slot' + i);
       const p = state.table.find((x) => x.seat === i);
       if (!p) { if (slot.innerHTML) slot.innerHTML = ''; slot.dataset.id = ''; continue; }
-      const id = p.card.r + p.card.s;
+      const id = p.closed ? 'fechada' : p.card.r + p.card.s;
       if (slot.dataset.id !== id || !slot.firstElementChild) {
         slot.dataset.id = id;
         slot.innerHTML = S.cardHTML(p.card, state.manilha);
@@ -188,7 +189,7 @@
     else if (state.phase === 'play' && state.turn >= 0) {
       t = s[state.turn].bot ? `${s[state.turn].name} está pensando…` : `Vez de ${s[state.turn].name} · jogue pelo celular 📱`;
     } else if (state.phase === 'truco' && state.pending) {
-      t = `${s[voiceOf(state.pending.respondTeam)].name}: aceita, corre ou aumenta?`;
+      t = `${s[state.pending.responder].name}: aceita, corre ou aumenta?`;
     } else if (state.phase === 'onze') {
       t = `${s[voiceOf(state.onzeTeam)].name}: joga ou corre?`;
     }
@@ -204,7 +205,7 @@
     let who = -1;
     let clip = 'vez';
     if (state.phase === 'play') who = state.turn;
-    else if (state.phase === 'truco') { who = voiceOf(state.pending.respondTeam); clip = 'responde'; }
+    else if (state.phase === 'truco') { who = state.pending.responder; clip = 'responde'; }
     else if (state.phase === 'onze') { who = voiceOf(state.onzeTeam); clip = 'onze-decide'; }
     if (who < 0 || state.seats[who].bot) return;
     nudgeTimer = setTimeout(() => {
@@ -286,8 +287,8 @@
 
       case 'play': {
         FX.sfx.slap();
-        const c = ev.card;
-        if (c.r === state.manilha && c.s === 'paus') {
+        const c = ev.card; // Carta fechada: sem carta no evento.
+        if (c && c.r === state.manilha && c.s === 'paus') {
           FX.shake(1);
           FX.flash('#ffd400');
           FX.confetti(40);
@@ -321,6 +322,14 @@
       case 'truco':
         trucoFx(ev);
         break;
+
+      // Opinião do parceiro de quem responde: a cara fica até a resposta chegar.
+      // A do Robô vem um segundo depois do grito, como quem pensa.
+      case 'opiniao': {
+        const face = () => FACES.mood(seatEl(ev.seat), ev.ans === 'aceita' ? 'happy' : 'sad', OPINION_FACE_MS);
+        if (s[ev.seat].bot) setTimeout(face, 1000); else face();
+        break;
+      }
 
       case 'aceito':
         FX.sfx.ding();
