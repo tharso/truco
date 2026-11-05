@@ -630,7 +630,7 @@ describe('Sala: escolha de Personagem', () => {
     assert.deepStrictEqual(personagensENomes(mesa), antes);
   });
 
-  test('o jeito de jogar do Robô vem do Personagem, não do Lugar', { todo: 'hoje `persona` fica presa ao Lugar e não muda com o Personagem' }, () => {
+  test('o jeito de jogar do Robô vem do Personagem, não do Lugar', { todo: 'hoje `persona` fica presa ao Lugar; espera o Bloco 5 (barras de blefe e coragem), decidido em 05/11/2026' }, () => {
     const sala = new Room();
     const mesa = conectarMesa(sala);
     // Na Sala nova, Tonhão (Lugar 2) e Cida (Lugar 3) têm jeitos de jogar diferentes.

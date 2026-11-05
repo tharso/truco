@@ -64,7 +64,7 @@ O nome fica **Truco do Bar do Zé**. Você pensou em trocar, mas decidiu manter.
    - Os números 80% e 20% ficam fáceis de mudar depois.
 4. **Não chega sinal no celular.** Vocês decidiram assim: a graça é ver ou não ver.
 
-## Bloco 5 — Escolher seu parceiro e seu rosto
+## Bloco 5 — Escolher seu parceiro e seu rosto · 🟡 em parte (05/11/2026: escolha de personagem e nome do parceiro no celular)
 
 1. **Escolher o seu rosto.** Ao entrar, cada pessoa escolhe um emoji ou personagem.
 2. **Montar o seu parceiro robô.** Ao entrar, você escolhe:
@@ -73,6 +73,7 @@ O nome fica **Truco do Bar do Zé**. Você pensou em trocar, mas decidiu manter.
    - o quanto ele tem coragem, numa barra de 0 a 10.
 3. **O adversário não vê** as barras. Na TV aparece só o nome.
 4. **Saem o "Blefador" e o "Medroso"** fixos. Os robôs ficam mais equilibrados: ninguém foge sempre.
+   - Hoje o jeito de jogar do robô ainda vem do lugar na mesa, não do personagem. Há um teste "a fazer" para isso, e ele espera este bloco (decidido em 05/11/2026).
 
 ---
 
