@@ -48,7 +48,8 @@ body { overflow: hidden; }
 .rdot.r0 { background: #2f7bff; border-color: #fff; }
 .rdot.r1 { background: #ff3b3b; border-color: #fff; }
 .rdot.rtie { background: repeating-linear-gradient(45deg, #2f7bff 0 4px, #ff3b3b 4px 8px); border-color: #fff; }
-#controls { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); display: flex; gap: 6px; }
+/* fixo no canto do placar (top 6px + altura do .pts = a faixa do placar) e acima das .screen (z-index 50), para o som ligar e desligar a qualquer hora */
+#controls { position: fixed; right: 14px; top: 6px; height: clamp(60px, 10vh, 110px); z-index: 55; display: flex; align-items: center; gap: 6px; }
 #controls button { background: #0006; color: #fff; border: 1px solid #fff3; border-radius: 10px; width: 40px; height: 40px; padding: 0; font-size: 18px; display: grid; place-items: center; }
 #controls button.off { opacity: .45; }
 #controls button.on { background: #2ecc71aa; }
