@@ -652,8 +652,8 @@ describe('Sala: escolha de Personagem', () => {
 const PAUSAS = { cartas: 3200, robo: 1400, rodada: 1900, mao: 4500, truco: 3200 };
 
 // Uma Sala com os dois Celulares conectados e a Partida começada, com o sorteio dado.
-// Pare o relógio antes. Sementes usadas: 8 (a 1ª Mão começa pelo Lugar 0) e 3 (começa pelo Tonhão,
-// no Lugar 2, que joga uma carta). `robos` = Lugares de Jogador marcados como "falta uma pessoa".
+// Pare o relógio antes. Sementes usadas: 8 (a 1ª Mão começa pelo Lugar 0), 3 (começa pelo Tonhão,
+// no Lugar 2, que joga uma carta) e 28 (com robos [0, 1], tem Truco e depois Mão de onze). `robos` = Lugares de Jogador marcados como "falta uma pessoa".
 function partidaComDoisCelulares(semente, { robos = [] } = {}) {
   const sala = new Room({ rng: sorteioFixo(semente) });
   const mesa = conectarMesa(sala);

@@ -20,7 +20,7 @@ const seatOf = (v) => (typeof v === 'number' || (typeof v === 'string' && /^\d+$
 // Quem joga no lugar de uma pessoa que não veio (se o rosto estiver livre).
 const FILL_AVATARS = ['neide', 'juninho'];
 // As ações que são jogadas na Mão.
-const JOGADAS = new Set(['play', 'truco', 'respond', 'onze']);
+const PLAYS = new Set(['play', 'truco', 'respond', 'onze']);
 // Os lugares de cada jogador: o dele e o do parceiro.
 const OWNED = [[0, 2], [1, 3]];
 
@@ -149,7 +149,7 @@ class Room {
     const game = this.game;
     const seat = seatOf(a.seat);
     // Os Robôs jogam pelo relógio (pump), direto no Game. Um Celular nunca joga pelo Lugar de um Robô.
-    if (JOGADAS.has(a.type) && game.seats[seat] && game.seats[seat].bot) return 'Esse Lugar é de um Robô.';
+    if (PLAYS.has(a.type) && game.seats[seat] && game.seats[seat].bot) return 'Esse Lugar é de um Robô.';
     switch (a.type) {
       case 'join': {
         if (seat !== 0 && seat !== 1) return 'Lugar inválido.';
