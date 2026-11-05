@@ -50,7 +50,7 @@ O nome fica **Truco do Bar do Zé**. Você pensou em trocar, mas decidiu manter.
    - No celular: toque na carta, depois em "jogar fechada".
    - Eu entendi assim o "jogar fechado". Se for outra coisa, me diga.
 
-## Bloco 4 — Sinais que dá para pegar
+## Bloco 4 — Sinais que dá para pegar · 🟡 em parte (05/11/2026: rostos com foto, maiores, sinais no meio-termo)
 
 1. **Rostos maiores e sinais mais claros.** Os sinais ficam mais lentos e mais exagerados.
    - Uma piscadinha dura mais tempo e mexe o rosto todo.
@@ -96,3 +96,14 @@ A cada bloco: rodo os testes, jogo uma partida no navegador e publico.
 1. **Áudios gravados com as vozes do Mac (eu recomendo).** Como a voz vai falar pouco, as frases são poucas, umas 25. Eu gravo cada frase com a melhor voz em português do seu Mac e guardo os arquivos no projeto. Não custa nada e soa igual em qualquer aparelho.
    - Para a melhor qualidade, você baixa uma voz "Premium" em Ajustes do Sistema → Acessibilidade → Conteúdo Falado.
 2. **Voz de um serviço pago (ElevenLabs ou OpenAI).** Soa mais humana. Mas precisa de conta e chave, e custa alguns centavos para gerar os áudios uma vez.
+
+---
+
+## Feito fora do plano (05/11/2026)
+
+- 4 personagens com foto (Tonhão, Cida, Dona Neide, Juninho), 12 caras cada. Arte em `arte/`.
+- Apelidos (Blefador, Medroso) saíram das telas.
+- Baralho com figuras de verdade e naipes espalhados.
+- Quem está na vez cresce 35%. Placar centralizado.
+- Deploy automático na Cloudflare religado (o app do GitHub não tinha acesso ao repositório).
+
