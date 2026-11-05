@@ -8,6 +8,7 @@ body { overflow: hidden; }
     repeating-linear-gradient(90deg, #4a2a12 0 60px, #43250f 60px 120px);
   --av: clamp(100px, 19vh, 210px);    /* tamanho dos rostos */
   --pc: clamp(52px, 8.2vh, 100px);    /* tamanho das cartas na mesa */
+  --pts: clamp(60px, 10vh, 110px);    /* altura dos pontos no placar (e dos botões do canto) */
 }
 
 /* ---------- placar ---------- */
@@ -18,7 +19,7 @@ body { overflow: hidden; }
   justify-content: center;
   align-items: center;
   gap: 12px;
-  /* mesmo espaço dos 2 lados, para o placar ficar no centro (os botões ficam no espaço da direita) */
+  /* mesmo espaço dos 2 lados, para o placar ficar no centro (os botões fixos do #controls ficam por cima do espaço da direita) */
   padding: 6px 150px;
   background: linear-gradient(#1b0d03, #2b1608);
   border-bottom: 4px solid #ffd400;
@@ -35,7 +36,7 @@ body { overflow: hidden; }
 .bar-fill { height: 100%; width: 0; border-radius: 8px; transition: width .6s cubic-bezier(.3, 1.4, .5, 1); }
 .t0 .bar-fill { background: #2f7bff; }
 .t1 .bar-fill { background: #ff3b3b; margin-left: auto; }
-.pts { font-size: clamp(60px, 10vh, 110px); line-height: 1; min-width: 1.6em; text-align: center; text-shadow: 0 4px 0 #000; }
+.pts { font-size: var(--pts); line-height: 1; min-width: 1.6em; text-align: center; text-shadow: 0 4px 0 #000; }
 .pts small { display: block; font-size: 14px; color: #fff; opacity: .6; text-shadow: none; font-family: "Avenir Next", sans-serif; }
 .pts.bump { animation: bump .6s; }
 @keyframes bump { 40% { transform: scale(1.5) rotate(-8deg); } }
@@ -48,9 +49,9 @@ body { overflow: hidden; }
 .rdot.r0 { background: #2f7bff; border-color: #fff; }
 .rdot.r1 { background: #ff3b3b; border-color: #fff; }
 .rdot.rtie { background: repeating-linear-gradient(45deg, #2f7bff 0 4px, #ff3b3b 4px 8px); border-color: #fff; }
-/* fixo no canto do placar (top 6px + altura do .pts = a faixa do placar) e acima das .screen (z-index 50), para o som ligar e desligar a qualquer hora */
-#controls { position: fixed; right: 14px; top: 6px; height: clamp(60px, 10vh, 110px); z-index: 55; display: flex; align-items: center; gap: 6px; }
-#controls button { background: #0006; color: #fff; border: 1px solid #fff3; border-radius: 10px; width: 40px; height: 40px; padding: 0; font-size: 18px; display: grid; place-items: center; }
+/* fixo no canto do placar (top = padding do #scorebar, altura = a do .pts) e acima das .screen (z-index 50), para o som ligar e desligar a qualquer hora */
+#controls { position: fixed; right: 14px; top: 6px; height: var(--pts); z-index: 55; display: flex; align-items: center; gap: 6px; pointer-events: none; }
+#controls button { pointer-events: auto; background: #0006; color: #fff; border: 1px solid #fff3; border-radius: 10px; width: 40px; height: 40px; padding: 0; font-size: 18px; display: grid; place-items: center; }
 #controls button.off { opacity: .45; }
 #controls button.on { background: #2ecc71aa; }
 
