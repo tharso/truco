@@ -29,7 +29,7 @@
       if (j.error) toast(j.error);
       return j;
     } catch {
-      toast('Sem conexão com a mesa. Mesmo Wi-Fi?');
+      toast('Sem conexão com a mesa. Confira a internet.');
       return { error: 'rede' };
     }
   }

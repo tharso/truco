@@ -8,5 +8,8 @@
     "test": "node test/simula.js 500"
   },
   "license": "UNLICENSED",
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "wrangler": "^4.157.0"
+  }
 }

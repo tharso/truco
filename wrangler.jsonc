@@ -1,0 +1,22 @@
+// Configuração da Cloudflare para o Truco do Bar do Zé.
+// Deploy automático: Workers Builds roda `npx wrangler deploy` a cada push na main.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "truco",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-04-01",
+  // Telas (HTML, CSS, JS) vêm da pasta public/.
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "html_handling": "none"
+  },
+  // A partida mora num Durable Object chamado Mesa.
+  "durable_objects": {
+    "bindings": [{ "name": "MESA", "class_name": "Mesa" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Mesa"] }],
+  // Endereço público. A Cloudflare cria o DNS e o certificado sozinha.
+  "routes": [{ "pattern": "truco.tharso.com", "custom_domain": true }],
+  "observability": { "enabled": true }
+}

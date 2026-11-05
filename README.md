@@ -20,6 +20,24 @@ O Seu Zé é a banca: ele dá as cartas e narra tudo em voz alta.
 
 Se o macOS perguntar se o `node` pode receber conexões, clique em **Permitir**.
 
+## Jogar pela internet
+
+O jogo também roda na Cloudflare: https://truco.tharso.com
+
+- A TV abre `https://truco.tharso.com`. Os celulares abrem `https://truco.tharso.com/mao`.
+- Não precisa estar no mesmo Wi-Fi.
+- Existe uma mesa só. Quem tem o link entra nela.
+- Cada push na `main` publica sozinho (Workers Builds).
+
+Como funciona: `worker/index.js` entrega as telas e guarda a partida num Durable Object
+(a "Mesa"). A lógica da sala (`room.js`) é a mesma do servidor local.
+
+Para testar a versão Cloudflare no computador (precisa de Node 22 para o wrangler novo):
+
+```bash
+npx wrangler dev
+```
+
 ## Duplas
 
 - **Dupla Azul:** Jogador 1 + Tonhão, o Blefador.

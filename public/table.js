@@ -526,6 +526,7 @@
   $('ze').innerHTML = FACES.svg('ze');
   $('lobby-ze').innerHTML = FACES.svg('ze');
   fetch('/api/info').then((r) => r.json()).then((info) => {
+    if (info.online) { $('url-hint').textContent = 'No celular, abra:'; info.urls = [`${location.origin}/mao`]; }
     const [first, ...rest] = info.urls;
     $('lan-url').innerHTML = first
       ? `${first}${rest.length ? `<div style="font-size:15px;opacity:.7;margin-top:4px">Se não abrir, tente: ${rest.join(' ou ')}</div>` : ''}`
