@@ -18,6 +18,6 @@ test('a página do Celular não repete nenhum id', () => {
   assert.deepStrictEqual(idsRepetidos('hand.html'), []);
 });
 
-test('a página da Mesa não repete nenhum id', { todo: 'o lobby da Mesa está duplicado' }, () => {
+test('a página da Mesa não repete nenhum id', () => {
   assert.deepStrictEqual(idsRepetidos('table.html'), []);
 });
