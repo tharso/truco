@@ -8,6 +8,7 @@ const { moodPhoto } = require('../../public/mood.js');
 
 test('Personagem parado (cara neutra) mostra a foto do humor pedido', () => {
   assert.strictEqual(moodPhoto('neutro', 'happy'), 'feliz');
+  assert.strictEqual(moodPhoto(undefined, 'happy'), 'feliz'); // cara recém-montada, nada marcado ainda
 });
 
 test('Sinal em curso não é atropelado por humor', () => {
