@@ -1,0 +1,52 @@
+# Truco do Bar do Zé
+
+Truco paulista para 2 pessoas na mesa + 2 parceiros robôs na tela.
+O Seu Zé é a banca: ele dá as cartas e narra tudo em voz alta.
+
+## Como jogar
+
+1. No notebook, dentro desta pasta:
+
+   ```bash
+   npm start
+   ```
+
+2. No notebook, abra `http://localhost:3000` (use `localhost`: o microfone só funciona assim).
+   Ligue o notebook na TV, se quiser.
+3. Clique em **Ligar som e microfone**.
+4. Cada pessoa abre no celular o endereço que aparece na tela (mesmo Wi-Fi).
+   Ex.: `http://192.168.68.60:3000/mao`. Escolhe nome e lugar.
+5. Clique em **COMEÇAR!**
+
+Se o macOS perguntar se o `node` pode receber conexões, clique em **Permitir**.
+
+## Duplas
+
+- **Dupla Azul:** Jogador 1 + Tonhão, o Blefador.
+- **Dupla Vermelha:** Jogador 2 + Valdir, o Medroso.
+
+## O que tem de divertido
+
+- **Gritômetro:** pediu truco no celular? Grite "TRUCO!". O microfone mede o berro.
+- **Sinais:** os robôs fazem sinais com o rosto no começo da mão. A cola está no celular.
+  O adversário também pode ver!
+- **Cochicho:** quando pedem truco pra você, seu parceiro robô cochicha no seu celular.
+  Na TV ele fala outra coisa, pra enganar.
+- **Provocações:** botões no celular. A TV fala em voz alta.
+- Mão de onze, mão de ferro, galinha quando alguém corre, confete, tremor.
+
+## Regras (truco paulista)
+
+- Baralho sem 8, 9 e 10. Força: 4 5 6 7 Q J K A 2 3.
+- Manilha = carta seguinte à vira. Ordem: ouros < espadas < copas < paus (zap).
+- Truco 3 → seis 6 → nove 9 → doze 12. Quem corre dá o valor anterior.
+- Jogo até 12. Mão de onze: a dupla com 11 vê as cartas do parceiro e decide.
+  Mão de ferro (11 × 11): todo mundo joga no escuro.
+
+## Teste
+
+```bash
+npm test
+```
+
+Roda 500 partidas só com robôs e confere as regras.

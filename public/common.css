@@ -1,0 +1,46 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  color: #fff;
+  background: #2a1608;
+  -webkit-tap-highlight-color: transparent;
+}
+.shout { font-family: "Arial Black", Impact, "Avenir Next Condensed", sans-serif; font-weight: 900; letter-spacing: .02em; }
+button { font: inherit; cursor: pointer; }
+
+/* ---------- cartas ---------- */
+.card {
+  --cw: 90px;
+  width: var(--cw);
+  height: calc(var(--cw) * 1.42);
+  background: linear-gradient(160deg, #fffef8, #f3ecd9);
+  border-radius: calc(var(--cw) * .11);
+  box-shadow: 0 4px 10px #0007, inset 0 0 0 1px #0002;
+  position: relative;
+  font-family: Georgia, "Times New Roman", serif;
+  flex: none;
+  user-select: none;
+}
+.card .c-r { position: absolute; top: 4%; left: 9%; font-size: calc(var(--cw) * .27); font-weight: 900; line-height: 1; }
+.card .c-s { position: absolute; top: 24%; left: 10%; font-size: calc(var(--cw) * .2); line-height: 1; }
+.card .c-big { position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(var(--cw) * .58); }
+.card .c-r2 { top: auto; left: auto; bottom: 4%; right: 9%; transform: rotate(180deg); }
+.card.red { color: #d0141b; }
+.card.black { color: #141414; }
+.card.manilha { box-shadow: 0 0 0 3px #ffd400, 0 0 22px #ffd400cc, 0 4px 10px #0007; }
+.card.zap { animation: zapglow .7s infinite alternate; }
+@keyframes zapglow { to { box-shadow: 0 0 0 4px #fff200, 0 0 40px #ffae00, 0 4px 10px #0007; } }
+.man-tag {
+  position: absolute; bottom: calc(var(--cw) * -.1); left: 50%; transform: translateX(-50%);
+  background: #ffd400; color: #000; font: 900 calc(var(--cw) * .13) "Arial Black", sans-serif;
+  padding: 1px 6px; border-radius: 6px; white-space: nowrap; box-shadow: 0 2px 4px #0006;
+}
+.card.back {
+  background: repeating-linear-gradient(45deg, #b3221d 0 7px, #8c1714 7px 14px);
+  border: calc(var(--cw) * .05) solid #fff8e8;
+}
+.card.back .back-art { display: grid; place-items: center; height: 100%; font-size: calc(var(--cw) * .38); filter: drop-shadow(0 2px 2px #0008); }
+
+.t0c { color: #5ea2ff; }
+.t1c { color: #ff6464; }

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#2a1608">
+  <title>Truco — Minha mão</title>
+  <link rel="stylesheet" href="/common.css">
+  <link rel="stylesheet" href="/hand.css">
+</head>
+<body>
+  <div id="pick" class="hidden">
+    <h1 class="shout">TRUCO <small>do Bar do Zé</small></h1>
+    <label class="name-label">Seu nome
+      <input id="name" maxlength="16" placeholder="Ex.: Tharso" autocomplete="off">
+    </label>
+    <p>Quem é você?</p>
+    <button class="seat-btn t0" data-seat="0"><b class="shout">JOGADOR 1</b><span>Dupla Azul · parceiro: Tonhão, o Blefador</span></button>
+    <button class="seat-btn t1" data-seat="1"><b class="shout">JOGADOR 2</b><span>Dupla Vermelha · parceiro: Valdir, o Medroso</span></button>
+  </div>
+
+  <div id="main" class="hidden">
+    <header id="top">
+      <div id="score" class="shout"></div>
+      <div id="team-line"></div>
+    </header>
+
+    <div id="info-row">
+      <div id="vira-mini"></div>
+      <div id="man-mini"></div>
+      <div id="value-mini" class="shout"></div>
+    </div>
+
+    <div id="status" class="shout"></div>
+
+    <div id="hand"></div>
+
+    <button id="truco-btn" class="shout" disabled>TRUCO!</button>
+
+    <div id="respond" class="panel hidden">
+      <div id="resp-title" class="shout"></div>
+      <div id="whisper"></div>
+      <div class="resp-btns">
+        <button data-ans="aceito" class="shout b-green">ACEITO!</button>
+        <button data-ans="corro" class="shout b-gray">CORRO 🐔</button>
+        <button data-ans="aumento" id="btn-raise" class="shout b-red"></button>
+      </div>
+    </div>
+
+    <div id="onze" class="panel hidden">
+      <div class="shout onze-title">MÃO DE ONZE!</div>
+      <div>As suas cartas e as do seu parceiro:</div>
+      <div id="onze-cards"></div>
+      <div class="resp-btns">
+        <button data-onze="joga" class="shout b-green">JOGA (vale 3)</button>
+        <button data-onze="corre" class="shout b-gray">CORRE (dá 1)</button>
+      </div>
+    </div>
+
+    <div id="game-btns"></div>
+
+    <div id="taunts"></div>
+
+    <details id="signals">
+      <summary>🤫 Cola dos sinais do parceiro</summary>
+      <div id="sig-list"></div>
+      <p class="tip">Olhe a TV no começo de cada mão. O parceiro faz o sinal rapidinho. O adversário também pode ver!</p>
+    </details>
+
+    <footer><span id="me-line"></span> · <a href="#" id="change-seat">trocar de lugar</a></footer>
+  </div>
+
+  <div id="toast"></div>
+
+  <script src="/shared.js"></script>
+  <script src="/lines.js"></script>
+  <script src="/hand.js"></script>
+</body>
+</html>

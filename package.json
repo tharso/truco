@@ -1,0 +1,12 @@
+{
+  "name": "truco-do-bar-do-ze",
+  "version": "1.0.0",
+  "description": "Truco paulista espalhafatoso: 2 pessoas na mesa, 2 parceiros robôs na tela, Seu Zé na banca.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/simula.js 500"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}
