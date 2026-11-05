@@ -10,6 +10,9 @@ const avatarName = (id) => (AVATARS.find((a) => a.id === id) || {}).name || id;
 // Tira os símbolos < > & " e corta em 16 letras. Conta por letra (code point), para não partir
 // um emoji ao meio, e tira os espaços de novo depois do corte.
 const clean = (t) => Array.from(String(t || '').replace(/[<>&"]/g, '').trim()).slice(0, 16).join('').trim();
+// O Lugar que vem numa ação: um número, ou um texto só com dígitos. Vazio, null, true e false
+// não viram o Lugar 0 ou 1 (Number faria isso); viram NaN, que nenhum Lugar aceita.
+const seatOf = (v) => (typeof v === 'number' || (typeof v === 'string' && /^\d+$/.test(v)) ? Number(v) : NaN);
 // Quem joga no lugar de uma pessoa que não veio (se o rosto estiver livre).
 const FILL_AVATARS = ['neide', 'juninho'];
 // Os lugares de cada jogador: o dele e o do parceiro.
@@ -138,7 +141,7 @@ class Room {
 
   handle(a) {
     const game = this.game;
-    const seat = Number(a.seat);
+    const seat = seatOf(a.seat);
     switch (a.type) {
       case 'join': {
         if (seat !== 0 && seat !== 1) return 'Lugar inválido.';

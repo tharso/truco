@@ -282,7 +282,7 @@ describe('Sala: lobby', () => {
     assert.deepStrictEqual(mesa.estado.seats.map((s) => s.bot), [false, false, true, true]);
   });
 
-  test('um Lugar vazio, falso ou verdadeiro também é inválido, e não vira o Lugar 0 ou 1', { todo: 'hoje Number(a.seat) faz null, "", " " e false virarem 0, e true virar 1' }, () => {
+  test('um Lugar vazio, falso ou verdadeiro também é inválido, e não vira o Lugar 0 ou 1', () => {
     const sala = new Room();
     const mesa = conectarMesa(sala);
     for (const seat of [null, '', ' ', false, true]) {
