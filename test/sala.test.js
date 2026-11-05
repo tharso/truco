@@ -704,7 +704,7 @@ describe('Sala: jogo, relógio e eventos', () => {
     assert.ok(!mesa.eventos.some((ev) => ev.t === 'play'), 'a Mesa viu uma carta jogada');
   });
 
-  test('um Celular não joga nem pede Truco pelo Lugar de um Robô', { todo: 'hoje play e truco aceitam o Lugar de um Robô, na vez dele' }, (t) => {
+  test('um Celular não joga nem pede Truco pelo Lugar de um Robô', (t) => {
     pararRelogio(t);
     const { sala, mesa } = partidaComDoisCelulares(3);
     esperarAte(t, () => mesa.estado.phase === 'play', 'o fim da pausa das cartas');
@@ -714,6 +714,22 @@ describe('Sala: jogo, relógio e eventos', () => {
       assert.ok(sala.action(acao).error, `a Sala aceitou ${JSON.stringify(acao)}`);
     }
     assert.deepStrictEqual(acoesDoLugar(mesa, 2), []);
+  });
+
+  test('um Celular não responde ao Truco nem decide a Mão de onze pelo Lugar de um Robô', (t) => {
+    pararRelogio(t);
+    // Os dois Celulares ficam abertos, mas os dois Lugares de Jogador viraram Robôs.
+    // Com o sorteio 28, essa Partida tem Truco e, depois, Mão de onze.
+    const { sala, mesa } = partidaComDoisCelulares(28, { robos: [0, 1] });
+    const tentarPelosCelulares = (fase, acoes) => {
+      esperarAte(t, () => mesa.estado.phase === fase, `a fase ${fase}`);
+      const eventosAntes = mesa.eventos.length;
+      for (const acao of acoes) assert.ok(sala.action(acao).error, `a Sala aceitou ${JSON.stringify(acao)}`);
+      assert.strictEqual(mesa.estado.phase, fase);
+      assert.deepStrictEqual(mesa.eventos.slice(eventosAntes).filter((ev) => ACOES.includes(ev.t)), []);
+    };
+    tentarPelosCelulares('truco', [0, 1].map((seat) => ({ type: 'respond', seat, ans: 'corro' })));
+    tentarPelosCelulares('onze', [0, 1].map((seat) => ({ type: 'onze', seat, ans: 'corre' })));
   });
 
   test('as cartas são dadas e, depois da pausa, a Mão começa sozinha', (t) => {
