@@ -5,8 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test test/*.test.js",
-    "cobertura": "node --test --experimental-test-coverage test/*.test.js",
+    "test": "node --test test/*.test.js test/navegador/*.test.js",
+    "cobertura": "node --test --experimental-test-coverage test/*.test.js test/navegador/*.test.js",
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "license": "UNLICENSED",

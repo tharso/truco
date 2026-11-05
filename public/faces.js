@@ -67,7 +67,6 @@ window.FACES = (function () {
   // Cada personagem tem 12 caras. Sem foto, cai no desenho em SVG do robô.
   const PHOTOS = ['tonhao', 'cida', 'neide', 'juninho', 'blurp', 'beto', 'roque', 'nina'];
   const EXPRESSIONS = ['neutro', 'zap', 'copas', 'espadas', 'ouros', 'tres', 'lixo', 'feliz', 'triste', 'susto', 'piscando', 'falando'];
-  const MOOD_PHOTO = { happy: 'feliz', sad: 'triste', shock: 'susto' };
 
   function avatar(name) {
     if (!PHOTOS.includes(name)) return svg('robo');
@@ -100,7 +99,7 @@ window.FACES = (function () {
 
   function mood(el, m, ms = 2500) {
     const ph = photoOf(el);
-    if (ph) { if (idle(ph) || ph._x === 'falando' || MOOD_PHOTO[ph._x]) show(ph, MOOD_PHOTO[m] || 'neutro', ms); return; }
+    if (ph) { const x = window.MOOD.moodPhoto(ph._x, m); if (x) show(ph, x, ms); return; }
     const s = el && el.querySelector('svg');
     if (!s) return;
     s.classList.remove('mood-happy', 'mood-sad', 'mood-shock');
