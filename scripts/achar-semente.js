@@ -12,6 +12,9 @@ const path = require('path');
 const raiz = path.join(__dirname, '..');
 
 // O mesmo relógio falso dos testes (t.mock.timers): as Partidas andam igual às de test/sala.test.js.
+// Cala só o aviso de que o MockTimers é experimental; os outros avisos continuam.
+const avisar = process.emitWarning;
+process.emitWarning = (aviso, ...resto) => { if (!String(aviso).includes('MockTimers')) avisar.call(process, aviso, ...resto); };
 const { mock } = require('node:test');
 const andar = (ms) => mock.timers.tick(ms);
 
