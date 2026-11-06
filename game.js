@@ -185,7 +185,7 @@ class Game {
 
   // Muda sempre que a vez de agir muda. A Sala usa para não recomeçar o relógio à toa.
   stateKey() {
-    return [this.phase, this.turn, this.table.length, this.rounds.length, this.handNo, this.pending && this.pending.level, !!(this.pending && this.pending.opinion)].join('|');
+    return [this.phase, this.turn, this.table.length, this.rounds.length, this.handNo, this.value, this.pending && this.pending.level, !!(this.pending && this.pending.opinion)].join('|');
   }
 
   onTimer() {
