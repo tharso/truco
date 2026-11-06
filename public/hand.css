@@ -11,7 +11,15 @@ body {
 #pick h1 { font-size: 46px; color: #ffd400; margin: 0; text-shadow: 3px 3px 0 #b3221d, 6px 6px 0 #000; text-align: center; }
 #pick h1 small { display: block; font-size: 18px; color: #fff; text-shadow: none; }
 .name-label { display: flex; flex-direction: column; gap: 6px; font-weight: 700; }
-#name { font-size: 22px; padding: 12px; border-radius: 12px; border: 0; }
+/* os dois campos de nome: grandes para o dedo e com 16px ou mais, para o iPhone não dar zoom */
+#name, #partner-name {
+  font: 700 26px "Avenir Next", "Segoe UI", system-ui, sans-serif; color: #1a1a1a;
+  padding: 16px; border-radius: 16px; border: 3px solid transparent; background: #fffef8;
+  box-shadow: 0 4px 0 #0006; outline: none; width: 100%;
+}
+#name:focus, #partner-name:focus { border-color: #ffd400; }
+#ch-name { margin-top: 10px; font-size: 17px; letter-spacing: .04em; text-transform: uppercase; color: #fffc; }
+#partner-name { text-align: center; }
 #pick p { margin: 6px 0 0; font-weight: 700; }
 .seat-btn { border: 0; border-radius: 16px; padding: 18px; color: #fff; text-align: left; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 5px 0 #0007; }
 .seat-btn b { font-size: 26px; }
@@ -19,17 +27,20 @@ body {
 .seat-btn.t1 { background: #e3261f; }
 
 /* escolher personagens */
-#choose { padding: 18px 14px 28px; display: flex; flex-direction: column; gap: 12px; }
-#choose h2 { margin: 0; font-size: 30px; color: #ffd400; text-align: center; text-shadow: 2px 2px 0 #000; }
-#choose p { margin: 0; text-align: center; font-weight: 700; }
-.av-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 8px; }
-.av { border: 0; background: none; color: #fff; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; font: 700 12px sans-serif; }
+#choose { padding: 20px 16px 32px; display: flex; flex-direction: column; gap: 16px; }
+#choose h2 { margin: 0; font-size: 34px; line-height: 1.05; color: #ffd400; text-align: center; text-shadow: 2px 2px 0 #000; }
+#choose p { margin: 0; text-align: center; font-weight: 700; font-size: 19px; line-height: 1.3; }
+.av-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 8px; }
+.av { border: 0; background: none; color: #fff; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; font: 700 16px "Avenir Next", "Segoe UI", system-ui, sans-serif; line-height: 1.15; }
+/* o nome fica na frente da foto, mesmo quando a foto cresce ao ser escolhida */
+.av span { position: relative; z-index: 1; text-shadow: 0 1px 2px #000a; }
+.av.sel span { color: #ffd400; transform: translateY(6px); }
 .av img { width: 100%; aspect-ratio: 1; border-radius: 50%; border: 4px solid #fff3; object-fit: cover; transition: transform .15s; }
 .av.sel img { border-color: #ffd400; transform: scale(1.08); box-shadow: 0 0 0 3px #000, 0 0 18px #ffd400; }
 .av.me img { border-color: #2ecc71; }
 .av:disabled { opacity: .28; }
 .ch-btns { display: flex; gap: 10px; }
-.ch-btns button { flex: 1; border: 0; border-radius: 14px; padding: 14px; font-size: 20px; color: #fff; box-shadow: 0 5px 0 #0008; }
+.ch-btns button { flex: 1; border: 0; border-radius: 16px; padding: 16px; font-size: 24px; font-weight: 800; color: #fff; box-shadow: 0 5px 0 #0008; }
 .ch-btns button:disabled { filter: grayscale(1) brightness(.6); }
 #game-btns { display: flex; flex-direction: column; gap: 8px; }
 #game-btns button.alt { background: #0007; font-size: 16px; padding: 10px; box-shadow: none; border: 1px solid #fff4; }
@@ -54,7 +65,7 @@ body {
 .sig-btn { border: 0; border-radius: 50%; width: 44px; height: 44px; font-size: 24px; background: #0008; box-shadow: 0 3px 0 #0008; }
 .sig-btn.off { visibility: hidden; }
 #ch-bars { display: flex; flex-direction: column; gap: 10px; }
-.bar { display: flex; flex-direction: column; gap: 4px; font-weight: 700; }
+.bar { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 18px; }
 .bar b { color: #ffd400; }
 .bar input { width: 100%; accent-color: #ffd400; }
 #hand .card { --cw: min(28vw, 120px); transition: transform .15s, filter .15s; }
@@ -90,7 +101,7 @@ body {
 #signals summary { font-weight: 800; cursor: pointer; }
 .sig { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid #fff2; }
 .sig b { color: #ffd400; }
-.tip { opacity: .8; font-size: 12px; }
+.tip { opacity: .8; font-size: 15px; }
 footer { text-align: center; font-size: 12px; opacity: .7; }
 footer a { color: #fff; }
 

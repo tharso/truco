@@ -33,11 +33,14 @@ button { font: inherit; cursor: pointer; }
 .card .c-pips span { position: absolute; transform: translate(-50%, -50%); font-size: calc(var(--cw) * .24); line-height: 1; }
 .card .c-pips span.flip { transform: translate(-50%, -50%) rotate(180deg); }
 /* dama, valete e rei: meia figura em cima e a mesma de cabeça para baixo embaixo */
-.card .c-face { position: absolute; inset: 6% 21%; border: 1px solid currentColor; border-radius: 3px; overflow: hidden; display: flex; flex-direction: column; }
+/* a moldura começa depois do índice do canto, para a letra nunca encostar nela */
+.card .c-face {
+  position: absolute; inset: 5% 25%;
+  border: max(1.5px, calc(var(--cw) * .016)) solid currentColor; border-radius: calc(var(--cw) * .05);
+  overflow: hidden; display: flex; flex-direction: column; background: #fff;
+}
 .card .c-face img { flex: 1; min-height: 0; width: 100%; object-fit: cover; object-position: center top; mix-blend-mode: multiply; }
-.card .c-face img.flip { transform: rotate(180deg); }
-.card .c-face-pip { position: absolute; top: 2%; right: 4%; font-size: calc(var(--cw) * .13); line-height: 1; }
-.card .c-face-pip.flip { top: auto; right: auto; bottom: 2%; left: 4%; transform: rotate(180deg); }
+.card .c-face img.flip { transform: rotate(180deg); border-bottom: max(1px, calc(var(--cw) * .01)) solid currentColor; }
 .card.red { color: #d0141b; }
 .card.black { color: #141414; }
 .card.manilha { box-shadow: 0 0 0 3px #ffd400, 0 0 22px #ffd400cc, 0 4px 10px #0007; }

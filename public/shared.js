@@ -46,7 +46,7 @@
     let mid;
     if (FACE[c.r]) {
       const src = `/cards/${c.r}-${c.s}.jpg`;
-      mid = `<div class="c-face"><img src="${src}" alt=""><img class="flip" src="${src}" alt=""><span class="c-face-pip">${sym}</span><span class="c-face-pip flip">${sym}</span></div>`;
+      mid = `<div class="c-face"><img src="${src}" alt=""><img class="flip" src="${src}" alt=""></div>`;
     } else if (PIPS[c.r]) {
       mid = `<div class="c-pips">${PIPS[c.r].map(([x, y]) => `<span style="left:${x}%;top:${y}%"${y > 50 ? ' class="flip"' : ''}>${sym}</span>`).join('')}</div>`;
     } else {
