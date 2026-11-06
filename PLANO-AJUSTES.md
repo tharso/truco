@@ -167,7 +167,7 @@ Falta: jogar uma Partida de verdade e ajustar o ritmo e os balões, se precisar.
 
 ---
 
-## Rodada 4 — Mesa e Celular mais limpos, vozes dos Personagens (06/11/2026) · decidida, falta fazer (#23 Mesa, #24 Celular, #25 vozes)
+## Rodada 4 — Mesa e Celular mais limpos, vozes dos Personagens (06/11/2026) · Mesa (#23) e Celular (#24) feitos; vozes (#25) esperam as gravações
 
 Grilling com Tharso, com um board de "fica / sai" (`docs/board-rodada4.html`).
 
