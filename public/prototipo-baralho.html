@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protótipo: baralho</title>
+<!-- Página descartável (issue #15). Tharso escolhe fonte, verso e nome; depois ela é apagada. -->
+<style>
+  @font-face { font-family: "PB Shrikhand"; src: url("/fonts/prototipo-baralho-shrikhand.ttf") format("truetype"); font-display: block; }
+  @font-face { font-family: "PB Abril"; src: url("/fonts/prototipo-baralho-abrilfatface.ttf") format("truetype"); font-display: block; }
+  @font-face { font-family: "PB Fredoka"; src: url("/fonts/prototipo-baralho-fredoka.ttf") format("truetype"); font-weight: 300 700; font-display: block; }
+  @font-face { font-family: "PB Saira"; src: url("/fonts/prototipo-baralho-sairastencil.ttf") format("truetype"); font-display: block; }
+  @font-face { font-family: "PB Outfit"; src: url("/fonts/prototipo-baralho-outfit.ttf") format("truetype"); font-weight: 100 900; font-display: block; }
+
+  :root {
+    --madeira: oklch(0.25 0.05 55);
+    --madeira-2: oklch(0.29 0.06 55);
+    --papel: oklch(0.97 0.018 85);
+    --papel-2: oklch(0.93 0.03 82);
+    --tinta-vermelha: oklch(0.53 0.21 27);
+    --tinta-preta: oklch(0.21 0.012 60);
+    --texto: oklch(0.96 0.012 85);
+    --texto-2: oklch(0.80 0.03 80);
+    --amarelo: oklch(0.88 0.18 95);
+    /* a fonte escolhida; trocada pelo seletor */
+    --f: "PB Shrikhand"; --fw: 400; --fs: 1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; color: var(--texto);
+    font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    background: repeating-linear-gradient(90deg, var(--madeira) 0 60px, var(--madeira-2) 60px 120px);
+    min-height: 100vh;
+  }
+  main { max-width: 1240px; margin: 0 auto; padding: 24px 20px 64px; }
+
+  /* ---------- títulos do hall ---------- */
+  .halls { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .hall { background: oklch(0.18 0.03 55); border-bottom: 4px solid var(--amarelo); border-radius: 14px; padding: 18px 16px 20px; text-align: center; }
+  .hall h1 { margin: 0; font-family: var(--f), serif; font-weight: var(--fw); line-height: 1; font-size: clamp(28px, 4.4vw, 54px); letter-spacing: .01em; }
+  .hall h1 span { display: block; font-size: .55em; color: var(--amarelo); margin-top: .18em; }
+  .hall small { display: block; margin-top: 10px; font-size: 12px; color: var(--texto-2); letter-spacing: .12em; text-transform: uppercase; }
+
+  /* ---------- seletores ---------- */
+  .controles { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 10px 28px; padding: 12px 16px; margin: 0 -16px 24px;
+    background: oklch(0.16 0.03 55 / .94); border-bottom: 1px solid oklch(1 0 0 / .1); }
+  fieldset { border: 0; margin: 0; padding: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  legend { float: left; margin-right: 6px; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--texto-2); }
+  .op input { position: absolute; opacity: 0; pointer-events: none; }
+  .op span { display: inline-block; padding: 7px 12px; border-radius: 999px; font-size: 14px; cursor: pointer; border: 1px solid oklch(1 0 0 / .18); transition: background .15s, color .15s; }
+  .op span b { font-weight: 800; margin-right: 4px; }
+  .op span:hover { background: oklch(1 0 0 / .08); }
+  .op input:checked + span { background: var(--amarelo); color: oklch(0.2 0.02 60); border-color: var(--amarelo); }
+  .op input:focus-visible + span { outline: 2px solid var(--amarelo); outline-offset: 2px; }
+
+  h2 { font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--amarelo); margin: 34px 0 4px; font-weight: 700; }
+  .nota { margin: 0 0 14px; font-size: 14px; color: var(--texto-2); max-width: 70ch; }
+  .naipe-linha { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+
+  /* comparar fontes: uma linha por fonte */
+  .compara { display: grid; grid-template-columns: max-content 1fr; gap: 10px 18px; align-items: center; }
+  .compara .rot { font-size: 14px; color: var(--texto-2); }
+  .compara .rot b { color: var(--texto); display: block; font-size: 15px; }
+  .compara .rot.ativa b { color: var(--amarelo); }
+
+  /* ---------- carta ---------- */
+  .carta {
+    --cw: 80px;
+    width: var(--cw); height: calc(var(--cw) * 1.42); flex: none;
+    border-radius: calc(var(--cw) * .1);
+    background: linear-gradient(165deg, var(--papel), var(--papel-2));
+    box-shadow: 0 4px 10px oklch(0 0 0 / .45), inset 0 0 0 1px oklch(0 0 0 / .1);
+    position: relative; overflow: hidden;
+  }
+  .carta.vermelha { color: var(--tinta-vermelha); }
+  .carta.preta { color: var(--tinta-preta); }
+  .carta svg { position: absolute; display: block; fill: currentColor; }
+  /* número grande em cima, à esquerda */
+  .carta .num {
+    position: absolute; left: 8%; top: 3%;
+    font-family: var(--f), serif; font-weight: var(--fw);
+    font-size: calc(var(--cw) * .56 * var(--fs)); line-height: 1;
+  }
+  /* naipe grande embaixo, à direita */
+  .carta .naipe-g { width: 56%; height: auto; right: 7%; bottom: 6%; aspect-ratio: 1; }
+  /* figura: letra + naipe pequeno em cima; símbolo grande embaixo */
+  .carta .letra { font-size: calc(var(--cw) * .44 * var(--fs)); }
+  .carta .naipe-p { width: 26%; aspect-ratio: 1; height: auto; top: 9%; right: 9%; }
+  .carta .simbolo { width: 76%; aspect-ratio: 1; height: auto; left: 12%; bottom: 3%; }
+  .carta .simbolo.dama { width: 66%; left: 17%; bottom: 5%; } /* tiara pequena */
+
+  /* ---------- versos ---------- */
+  .carta.verso { padding: calc(var(--cw) * .06); background: var(--papel); }
+  .verso .arte { position: relative; width: 100%; height: 100%; border-radius: calc(var(--cw) * .06); overflow: hidden; }
+  /* A: losangos clássicos */
+  .verso-A .arte {
+    background-color: oklch(0.42 0.15 22);
+    background-image:
+      repeating-linear-gradient(45deg, transparent 0 calc(var(--cw) * .07), oklch(0.97 0.018 85 / .55) calc(var(--cw) * .07) calc(var(--cw) * .085)),
+      repeating-linear-gradient(-45deg, transparent 0 calc(var(--cw) * .07), oklch(0.97 0.018 85 / .55) calc(var(--cw) * .07) calc(var(--cw) * .085));
+    box-shadow: inset 0 0 0 calc(var(--cw) * .025) oklch(0.42 0.15 22), inset 0 0 0 calc(var(--cw) * .04) var(--papel);
+  }
+  /* B: os 4 naipes em padrão */
+  .verso-B .arte { background: oklch(0.36 0.07 155); }
+  .verso-B svg.padrao { position: absolute; inset: 0; width: 100%; height: 100%; fill: oklch(0.97 0.018 85 / .85); }
+  /* C: xadrez de toalha de boteco */
+  .verso-C .arte {
+    background-color: var(--papel);
+    background-image:
+      repeating-linear-gradient(0deg, oklch(0.55 0.2 27 / .55) 0 calc(var(--cw) * .1), transparent calc(var(--cw) * .1) calc(var(--cw) * .2)),
+      repeating-linear-gradient(90deg, oklch(0.55 0.2 27 / .55) 0 calc(var(--cw) * .1), transparent calc(var(--cw) * .1) calc(var(--cw) * .2));
+  }
+  /* D: emblema do bar */
+  .verso-D .arte { background: oklch(0.24 0.05 55); display: grid; place-items: center; }
+  .verso-D .emblema {
+    width: 82%; aspect-ratio: .78; border-radius: 50%;
+    border: calc(var(--cw) * .025) solid var(--amarelo); outline: calc(var(--cw) * .012) solid var(--amarelo); outline-offset: calc(var(--cw) * .025);
+    display: grid; place-content: center; text-align: center; color: var(--amarelo);
+    font-family: var(--f), serif; font-weight: var(--fw); line-height: .95;
+  }
+  .verso-D .emblema i { font-style: normal; font-size: calc(var(--cw) * .1); letter-spacing: .12em; color: var(--texto); font-family: "Avenir Next", system-ui, sans-serif; font-weight: 700; }
+  .verso-D .emblema b { font-weight: inherit; font-size: calc(var(--cw) * .2 * var(--fs)); }
+  /* E: o Blurp */
+  .verso-E .arte { background: radial-gradient(circle at 50% 50%, oklch(0.55 0.17 300) 0 40%, oklch(0.42 0.17 300) 70%); display: grid; place-items: center; }
+  .verso-E .anel { width: 80%; aspect-ratio: 1; border-radius: 50%; padding: calc(var(--cw) * .025); background: oklch(0.74 0.17 55); box-shadow: 0 0 0 calc(var(--cw) * .02) oklch(0.6 0.24 350); }
+  .verso-E img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+  .verso-E .marca { position: absolute; left: 0; right: 0; text-align: center; font-family: var(--f), serif; font-weight: var(--fw); color: oklch(0.74 0.17 55); font-size: calc(var(--cw) * .13 * var(--fs)); }
+  .verso-E .marca.cima { top: 5%; } .verso-E .marca.baixo { bottom: 5%; transform: rotate(180deg); }
+
+  .tam-mesa .carta { --cw: 80px; }
+  .tam-celular .carta { --cw: min(28vw, 120px); }
+  .tam-mini .carta { --cw: 44px; }
+
+  @media (max-width: 700px) {
+    .halls { grid-template-columns: 1fr; }
+    .controles { position: static; }
+    .compara { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="halls">
+    <div class="hall"><h1>TRUCO <span>do Bar do Zé</span></h1><small>Nome A</small></div>
+    <div class="hall"><h1>TRUCO <span>do Bar do Blurp</span></h1><small>Nome B</small></div>
+  </div>
+
+  <form class="controles" id="controles" onsubmit="return false">
+    <fieldset id="sel-fonte"><legend>Fonte</legend></fieldset>
+    <fieldset id="sel-verso"><legend>Verso</legend></fieldset>
+    <fieldset id="sel-nome"><legend>Nome no verso</legend></fieldset>
+  </form>
+
+  <h2>As 5 fontes lado a lado</h2>
+  <p class="nota">Tamanho da Mesa. A fonte marcada em amarelo é a que está no resto da página.</p>
+  <div class="compara tam-mesa" id="compara"></div>
+
+  <h2>Os 5 versos</h2>
+  <p class="nota">Tamanho do Celular e da Mesa. O verso escolhido vem primeiro, com borda amarela.</p>
+  <div class="naipe-linha tam-celular" id="versos-celular"></div>
+  <div class="naipe-linha tam-mesa" id="versos-mesa"></div>
+
+  <h2>Mesa</h2>
+  <p class="nota">80 px de largura, perto do meio do que a Mesa usa (de 52 a 100 px). Da mais fraca para a mais forte: 4, 5, 6, 7, Q, J, K, A, 2, 3.</p>
+  <div class="tam-mesa" id="deck-mesa"></div>
+
+  <h2>Celular</h2>
+  <p class="nota">O mesmo tamanho das Cartas na mão: 28% da largura da tela, até 120 px.</p>
+  <div class="tam-celular" id="deck-celular"></div>
+
+  <h2>Bem pequeno</h2>
+  <p class="nota">44 px, a Vira no canto do Celular. Aqui se vê se a carta ainda se lê.</p>
+  <div class="tam-mini" id="deck-mini"></div>
+
+</main>
+
+<script>
+(() => {
+  // ---------- desenhos (caixa 100 × 100) ----------
+  const NAIPE = {
+    copas: 'M50 92C22 70 4 52 4 31 4 15 16 5 29 5c10 0 17 6 21 14C54 11 61 5 71 5c13 0 25 10 25 26 0 21-18 39-46 61z',
+    ouros: 'M50 3C61 20 74 36 90 50 74 64 61 80 50 97 39 80 26 64 10 50 26 36 39 20 50 3z',
+    espadas: 'M50 3C70 24 95 40 95 61c0 13-10 22-22 22-9 0-16-5-19-11 1 11 5 18 13 24H33c8-6 12-13 13-24-3 6-10 11-19 11-12 0-22-9-22-22C5 40 30 24 50 3z',
+    paus: 'M50 5a21 21 0 0 1 17 33 21 21 0 1 1-2 39c-5 0-9-2-12-5 1 10 5 18 13 24H34c8-6 12-14 13-24-3 3-7 5-12 5a21 21 0 1 1-2-39A21 21 0 0 1 50 5z',
+  };
+  const SIMBOLO = {
+    // Rei: coroa
+    K: '<path d="M12 78 8 30l22 22 20-34 20 34 22-22-4 48z"/><rect x="12" y="81" width="76" height="10" rx="3"/><circle cx="8" cy="27" r="6"/><circle cx="50" cy="15" r="7"/><circle cx="92" cy="27" r="6"/>',
+    // Dama: tiara pequena
+    Q: '<path d="M10 82Q50 64 90 82V93Q50 75 10 93z"/><path d="M41 75L50 22L59 75z"/><circle cx="50" cy="22" r="8"/><path d="M22 77L31 40L40 77z"/><circle cx="31" cy="40" r="7"/><path d="M60 77L69 40L78 77z"/><circle cx="69" cy="40" r="7"/><path d="M7 82L16 60L25 82z"/><circle cx="16" cy="60" r="6"/><path d="M75 82L84 60L93 82z"/><circle cx="84" cy="60" r="6"/>',
+    // Valete: chapéu com pena
+    J: '<path d="M26 70c0-22 6-36 24-36s24 14 24 36z"/><ellipse cx="50" cy="73" rx="44" ry="9"/><path d="M64 46c10-16 20-26 32-32-6 12-14 26-26 38z"/><rect x="26" y="62" width="48" height="5" fill="var(--papel)"/>',
+  };
+  const svg = (inner, cls) => `<svg class="${cls}" viewBox="0 0 100 100" aria-hidden="true">${inner}</svg>`;
+
+  const RANKS = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3'];
+  const SUITS = ['copas', 'ouros', 'espadas', 'paus'];
+  const NOME_RANK = { Q: 'Dama', J: 'Valete', K: 'Rei', A: 'Ás' };
+
+  // fs acerta o tamanho de cada fonte, que vêm com proporções diferentes.
+  const FONTES = {
+    A: { nome: 'Letreiro de bar', fonte: 'Shrikhand', f: 'PB Shrikhand', fw: 400, fs: .92 },
+    B: { nome: 'Baralho antigo', fonte: 'Abril Fatface', f: 'PB Abril', fw: 400, fs: 1 },
+    C: { nome: 'Redonda e gorda', fonte: 'Fredoka', f: 'PB Fredoka', fw: 700, fs: 1 },
+    D: { nome: 'Caixote de feira', fonte: 'Saira Stencil', f: 'PB Saira', fw: 400, fs: 1 },
+    E: { nome: 'Geométrica', fonte: 'Outfit', f: 'PB Outfit', fw: 800, fs: 1 },
+  };
+  const VERSOS = { A: 'Losangos', B: 'Naipes', C: 'Toalha de boteco', D: 'Emblema do bar', E: 'Blurp' };
+  const NOMES = { ze: 'Bar do Zé', blurp: 'Bar do Blurp' };
+
+  const estado = { fonte: 'A', verso: 'A', nome: 'ze' };
+  const VALIDOS = { fonte: FONTES, verso: VERSOS, nome: NOMES };
+  for (const [k, v] of new URLSearchParams(location.hash.slice(1))) if (VALIDOS[k] && v in VALIDOS[k]) estado[k] = v;
+
+  function estiloFonte(id) {
+    const f = FONTES[id];
+    return `--f:"${f.f}";--fw:${f.fw};--fs:${f.fs}`;
+  }
+
+  function carta(r, s, fonteId) {
+    const cor = s === 'copas' || s === 'ouros' ? 'vermelha' : 'preta';
+    const titulo = `${NOME_RANK[r] || r} de ${s}`;
+    const style = fonteId ? ` style='${estiloFonte(fonteId)}'` : '';
+    if (SIMBOLO[r]) {
+      return `<div class="carta ${cor}" role="img" aria-label="${titulo}"${style}>
+        <span class="num letra">${r}</span>${svg(`<path d="${NAIPE[s]}"/>`, 'naipe-p')}${svg(SIMBOLO[r], r === 'Q' ? 'simbolo dama' : 'simbolo')}</div>`;
+    }
+    return `<div class="carta ${cor}" role="img" aria-label="${titulo}"${style}>
+      <span class="num">${r}</span>${svg(`<path d="${NAIPE[s]}"/>`, 'naipe-g')}</div>`;
+  }
+
+  function padraoNaipes() {
+    let p = '';
+    const ordem = ['copas', 'espadas', 'ouros', 'paus'];
+    for (let y = 0; y < 7; y++) for (let x = 0; x < 5; x++) {
+      const s = ordem[(x + y) % 4];
+      const cx = x * 24 + (y % 2 ? 12 : 0) - 6, cy = y * 24 - 4;
+      p += `<path transform="translate(${cx} ${cy}) scale(.14)" d="${NAIPE[s]}"/>`;
+    }
+    return `<svg class="padrao" viewBox="0 0 100 142" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${p}</svg>`;
+  }
+
+  function verso(id) {
+    let arte = '';
+    if (id === 'B') arte = padraoNaipes();
+    if (id === 'D') {
+      arte = `<div class="emblema"><i>BAR DO</i><b>${NOMES[estado.nome].replace('Bar do ', '')}</b><i>TRUCO</i></div>`;
+    }
+    if (id === 'E') arte = `<span class="marca cima">Blurp</span><div class="anel"><img src="/avatars/blurp/feliz.jpg" alt=""></div><span class="marca baixo">Blurp</span>`;
+    return `<div class="carta verso verso-${id}" role="img" aria-label="Verso ${VERSOS[id]}"><div class="arte">${arte}</div></div>`;
+  }
+
+  function baralho() {
+    return SUITS.map((s) => `<div class="naipe-linha">${RANKS.map((r) => carta(r, s)).join('')}</div>`).join('');
+  }
+
+  function opcoes(fs, nome, itens) {
+    fs.insertAdjacentHTML('beforeend', Object.entries(itens).map(([v, rot]) =>
+      `<label class="op"><input type="radio" name="${nome}" value="${v}"${estado[nome] === v ? ' checked' : ''}><span>${nome === 'nome' ? '' : `<b>${v}</b>`}${rot}</span></label>`).join(''));
+  }
+
+  function desenhar() {
+    const root = document.documentElement.style;
+    const f = FONTES[estado.fonte];
+    root.setProperty('--f', `"${f.f}"`); root.setProperty('--fw', f.fw); root.setProperty('--fs', f.fs);
+
+    const amostra = [['3', 'espadas'], ['7', 'copas'], ['A', 'ouros'], ['K', 'copas'], ['Q', 'ouros'], ['J', 'paus'], ['4', 'paus']];
+    document.getElementById('compara').innerHTML = Object.entries(FONTES).map(([id, x]) =>
+      `<div class="rot${id === estado.fonte ? ' ativa' : ''}"><b>${id} · ${x.nome}</b>${x.fonte}</div>
+       <div class="naipe-linha">${amostra.map(([r, s]) => carta(r, s, id)).join('')}</div>`).join('');
+
+    // o verso escolhido abre cada baralho, para ver frente e verso juntos
+    const deck = `<div class="naipe-linha">${verso(estado.verso)}</div>` + baralho();
+    document.getElementById('deck-mesa').innerHTML = deck;
+    document.getElementById('deck-celular').innerHTML = deck;
+    document.getElementById('deck-mini').innerHTML = deck;
+    const vs = Object.keys(VERSOS).map(verso).join('');
+    document.getElementById('versos-celular').innerHTML = vs;
+    document.getElementById('versos-mesa').innerHTML = vs;
+    // na fileira dos 5 versos, o escolhido vem primeiro
+    for (const el of document.querySelectorAll('.verso')) {
+      const escolhido = el.classList.contains(`verso-${estado.verso}`);
+      el.style.order = escolhido ? -1 : 0;
+      el.style.outline = escolhido ? '3px solid var(--amarelo)' : '';
+    }
+    history.replaceState(null, '', '#' + new URLSearchParams(estado));
+  }
+
+  opcoes(document.getElementById('sel-fonte'), 'fonte', Object.fromEntries(Object.entries(FONTES).map(([k, v]) => [k, v.nome])));
+  opcoes(document.getElementById('sel-verso'), 'verso', VERSOS);
+  opcoes(document.getElementById('sel-nome'), 'nome', NOMES);
+  document.getElementById('controles').addEventListener('change', (e) => { estado[e.target.name] = e.target.value; desenhar(); });
+  desenhar();
+})();
+</script>
+</body>
+</html>
