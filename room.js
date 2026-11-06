@@ -172,14 +172,9 @@ class Room {
   }
 
   // Relógio do jogo: robôs e pausas entre rodadas.
-  stateKey() {
-    const g = this.game;
-    return [g.phase, g.turn, g.table.length, g.rounds.length, g.handNo, g.pending && g.pending.level, !!(g.pending && g.pending.opinion)].join('|');
-  }
-
   pump() {
     const n = this.game.next();
-    const key = this.stateKey();
+    const key = this.game.stateKey();
     if (this.timer && key === this.timerKey) return; // já está contando
     clearTimeout(this.timer);
     this.timer = null;

@@ -696,13 +696,15 @@ describe('Sala: escolha de Personagem', () => {
 });
 
 // O ritmo da Partida, em ms: quanto dura cada pausa antes de a Sala andar sozinha.
-// É o ritmo que a Mesa mostra no bar (game.js, `timing`). Se o ritmo mudar, muda só aqui.
-const PAUSAS = { cartas: 3200, robo: 1400, rodada: 1900, mao: 4500, truco: 3200 };
+// É o ritmo que a Mesa mostra no bar (game.js, `timing` e `THINK`). Se o ritmo mudar, muda só aqui.
+// O Robô não tem pausa fixa: ele pensa um tempo sorteado a cada jogada, entre [menor, maior].
+const PAUSAS = { cartas: 3200, rodada: 1900, mao: 4500 };
+const PENSAR = { carta: [2500, 4500], truco: [3500, 5500] };
 
 // Uma Sala com os dois Celulares conectados e a Partida começada, com o sorteio dado.
 // Pare o relógio antes. Sementes usadas: 8 (a 1ª Mão começa pelo Lugar 0), 3 (começa pelo Tonhão, no Lugar 2, que joga uma carta;
-// também chega à 2ª Rodada na vez de um Jogador, e um Robô faz Sinal), 4 (com robos [0, 1], tem Truco e depois Mão de onze)
-// e 17 (Mão de onze da Vermelha). As sementes mudaram quando o Sinal do Robô passou a acontecer na hora marcada. `robos` = Lugares de Jogador marcados como "falta uma pessoa".
+// também chega à 2ª Rodada na vez de um Jogador, e um Robô faz Sinal), 2 (com robos [0, 1], tem Truco e depois Mão de onze)
+// e 58 (Mão de onze da Vermelha, 8 a 11). As sementes mudaram quando o Sinal do Robô passou a acontecer na hora marcada e quando o Robô passou a pensar um tempo sorteado. `robos` = Lugares de Jogador marcados como "falta uma pessoa".
 // Regra nova mudou as Partidas? Ache sementes novas com `node scripts/achar-semente.js <alvo>`.
 function partidaComDoisCelulares(semente, { robos = [] } = {}) {
   const sala = new Room({ rng: sorteioFixo(semente) });
@@ -729,6 +731,21 @@ function esperarAte(t, pronto, oQue) {
     assert.ok(passo < 5000, `o relógio andou e não chegou: ${oQue}`);
     t.mock.timers.tick(100);
   }
+}
+
+// Passa o relógio, de 100 em 100 ms, até `pronto()`. Devolve quantos ms passaram.
+function msAte(t, pronto, oQue) {
+  let ms = 0;
+  for (; !pronto(); ms += 100) {
+    assert.ok(ms < 60000, `o relógio andou e não chegou: ${oQue}`);
+    t.mock.timers.tick(100);
+  }
+  return ms;
+}
+
+// O tempo cabe na faixa [menor, maior] de PENSAR.
+function dentroDe(ms, [menor, maior], oQue) {
+  assert.ok(ms >= menor && ms <= maior, `${oQue}: ${ms} ms, fora de ${menor} a ${maior} ms`);
 }
 
 // Os eventos da última mensagem que a tela recebeu.
@@ -809,8 +826,8 @@ describe('Sala: jogo, relógio e eventos', () => {
   test('um Celular não responde ao Truco nem decide a Mão de onze pelo Lugar de um Robô', (t) => {
     pararRelogio(t);
     // Os dois Celulares ficam abertos, mas os dois Lugares de Jogador viraram Robôs.
-    // Com o sorteio 4, essa Partida tem Truco e, depois, Mão de onze.
-    const { sala, mesa } = partidaComDoisCelulares(4, { robos: [0, 1] });
+    // Com o sorteio 2, essa Partida tem Truco e, depois, Mão de onze.
+    const { sala, mesa } = partidaComDoisCelulares(2, { robos: [0, 1] });
     const tentarPelosCelulares = (fase, acoes) => {
       esperarAte(t, () => mesa.estado.phase === fase, `a fase ${fase}`);
       const eventosAntes = mesa.eventos.length;
@@ -834,31 +851,80 @@ describe('Sala: jogo, relógio e eventos', () => {
     assert.strictEqual(mesa.estado.turn, 0);
   });
 
-  test('na vez do Robô, ele joga sozinho depois da pausa, e a vez passa para o próximo Lugar', (t) => {
+  test('na vez do Robô, ele joga sozinho depois de pensar, e a vez passa para o próximo Lugar', (t) => {
     pararRelogio(t);
     const { mesa } = partidaComDoisCelulares(3);
     esperarAte(t, () => mesa.estado.phase === 'play', 'o fim da pausa das cartas');
     assert.strictEqual(mesa.estado.turn, 2);
-    t.mock.timers.tick(PAUSAS.robo - 1);
-    assert.deepStrictEqual(acoesDoLugar(mesa, 2), []);
-    t.mock.timers.tick(1);
+    const ms = msAte(t, () => acoesDoLugar(mesa, 2).length > 0, 'o Tonhão jogar');
+    dentroDe(ms, PENSAR.carta, 'o Tonhão pensou');
     assert.deepStrictEqual(acoesDoLugar(mesa, 2).map((ev) => ev.t), ['play']);
     assert.deepStrictEqual(mesa.estado.table.map((p) => p.seat), [2]);
     assert.strictEqual(mesa.estado.turn, 3);
   });
 
-  test('quando o Jogador pede Truco a uma Dupla de Robôs, um Robô responde sozinho depois da pausa', (t) => {
+  test('quando o Jogador pede Truco a uma Dupla de Robôs, um Robô responde sozinho depois de pensar', (t) => {
     pararRelogio(t);
     const { sala, mesa, celulares: [celular0] } = partidaComDoisCelulares(8, { robos: [1] });
     esperarAte(t, () => celular0.estado.canTruco, 'o Lugar 0 poder pedir Truco');
     assert.deepStrictEqual(sala.action({ type: 'truco', seat: 0 }), { ok: true });
-    t.mock.timers.tick(PAUSAS.truco - 1);
-    assert.strictEqual(mesa.estado.phase, 'truco');
-    assert.deepStrictEqual(acoesDoLugar(mesa, 1), []);
-    t.mock.timers.tick(1);
+    const ms = msAte(t, () => acoesDoLugar(mesa, 1).length > 0, 'a Dupla Vermelha responder');
+    dentroDe(ms, PENSAR.truco, 'o Robô pensou na resposta');
     // Com o sorteio 8, a Dupla Vermelha corre.
     assert.deepStrictEqual(acoesDoLugar(mesa, 1).map((ev) => ev.t), ['corro']);
     assert.strictEqual(mesa.estado.phase, 'handEnd');
+  });
+
+  // Uma Partida só de Robôs, com o relógio andando de 100 em 100 ms até `ateMs` ou até `basta(amostras)`.
+  // Cada amostra é uma ação de Robô: a fase em que ele pensou, o que fez e quantos ms pensou.
+  function tempoDosRobos(t, semente, { ateMs = 60000, basta = () => false } = {}) {
+    const { mesa } = partidaDeRobos(semente);
+    const acoes = () => mesa.eventos.filter((ev) => ACOES.includes(ev.t));
+    const retrato = () => [mesa.estado.phase, mesa.estado.turn, mesa.estado.table.length, acoes().length].join('|');
+    const amostras = [];
+    let antes = retrato();
+    let feitas = acoes().length;
+    let fase = mesa.estado.phase;
+    let desde = 0;
+    for (let agora = 100; agora <= ateMs && mesa.estado.phase !== 'over' && !basta(amostras); agora += 100) {
+      t.mock.timers.tick(100);
+      const depois = retrato();
+      if (depois === antes) continue;
+      const nova = acoes()[feitas];
+      if (nova) amostras.push({ fase, acao: nova.t, ms: agora - desde });
+      antes = depois;
+      feitas = acoes().length;
+      fase = mesa.estado.phase;
+      desde = agora;
+    }
+    return amostras;
+  }
+
+  test('o Robô pensa de 2,5 a 4,5 s antes de jogar, e cada jogada leva um tempo diferente', (t) => {
+    pararRelogio(t);
+    const jogadas = tempoDosRobos(t, 11).filter((a) => a.fase === 'play');
+    assert.ok(jogadas.length >= 8, `só ${jogadas.length} jogadas`);
+    for (const { ms } of jogadas) dentroDe(ms, PENSAR.carta, 'o Robô pensou na jogada');
+    assert.ok(new Set(jogadas.map((a) => a.ms)).size > 1, 'todas as jogadas levaram o mesmo tempo');
+  });
+
+  test('o Robô pensa de 3,5 a 5,5 s antes de responder ao Truco', (t) => {
+    pararRelogio(t);
+    const respostas = tempoDosRobos(t, 11).filter((a) => a.fase === 'truco');
+    assert.ok(respostas.length >= 1, 'com o sorteio 11, ninguém respondeu a Truco');
+    for (const { ms } of respostas) dentroDe(ms, PENSAR.truco, 'o Robô pensou na resposta');
+  });
+
+  test('o Robô pensa de 3,5 a 5,5 s antes de decidir a Mão de onze', (t) => {
+    pararRelogio(t);
+    // Nem toda Partida passa pela Mão de onze: joga Partidas de sorteios seguidos até uma passar.
+    let decisoes = [];
+    for (let semente = 1; semente <= 20 && decisoes.length === 0; semente++) {
+      const amostras = tempoDosRobos(t, semente, { ateMs: 3600000, basta: (a) => a.some((x) => x.fase === 'onze') });
+      decisoes = amostras.filter((a) => a.fase === 'onze');
+    }
+    assert.ok(decisoes.length >= 1, 'nenhuma das 20 Partidas chegou à Mão de onze');
+    for (const { ms } of decisoes) dentroDe(ms, PENSAR.truco, 'o Robô pensou na Mão de onze');
   });
 
   test('a pausa entre Rodadas e a pausa entre Mãos acontecem sozinhas', (t) => {
@@ -887,12 +953,15 @@ describe('Sala: jogo, relógio e eventos', () => {
 
   test('várias ações seguidas de telas diferentes não fazem um Robô jogar duas vezes nem fora de hora', (t) => {
     pararRelogio(t);
+    // Numa Sala igual, sem nada acontecendo, o Tonhão pensa um tanto antes de jogar.
+    const quieta = partidaComDoisCelulares(3);
+    esperarAte(t, () => quieta.mesa.estado.phase === 'play', 'o fim da pausa das cartas na Sala quieta');
+    const pensou = msAte(t, () => acoesDoLugar(quieta.mesa, 2).length > 0, 'o Tonhão jogar na Sala quieta');
     const { sala, mesa, celulares: [, celular1] } = partidaComDoisCelulares(3);
     esperarAte(t, () => mesa.estado.phase === 'play', 'o fim da pausa das cartas');
     assert.strictEqual(mesa.estado.turn, 2);
     // Enquanto o Tonhão pensa, telas chegam e saem, e os Celulares mandam ações (umas valem, outras dão erro).
-    const metade = PAUSAS.robo / 2;
-    t.mock.timers.tick(metade);
+    t.mock.timers.tick(1000);
     sala.action({ type: 'join', seat: 0, name: 'Zé' });
     conectarMesa(sala);
     sala.action({ type: 'play', seat: 0, idx: 0 });
@@ -900,8 +969,8 @@ describe('Sala: jogo, relógio e eventos', () => {
     conectarCelular(sala, 1);
     sala.action({ type: 'truco', seat: 1 });
     sala.action({ type: 'respond', seat: 0, ans: 'aceito' });
-    // Ele joga na hora de sempre: nada disso reinicia a pausa dele.
-    t.mock.timers.tick(PAUSAS.robo - metade - 1);
+    // Ele joga na mesma hora da Sala quieta: nada disso reinicia nem sorteia de novo o tempo dele.
+    t.mock.timers.tick(pensou - 1000 - 1);
     assert.deepStrictEqual(acoesDoLugar(mesa, 2), []);
     t.mock.timers.tick(1);
     assert.deepStrictEqual(acoesDoLugar(mesa, 2).map((ev) => ev.t), ['play']);
@@ -992,9 +1061,8 @@ describe('Sala: jogo, relógio e eventos', () => {
     assert.deepStrictEqual(sala.action({ type: 'opiniao', seat: 0, ans: 'aceita' }), { ok: true });
     assert.deepStrictEqual(ultimosEventos(mesa).map((ev) => [ev.t, ev.seat, ev.ans]), [['opiniao', 0, 'aceita']]);
     assert.strictEqual(celular0.estado.mustOpine, false);
-    t.mock.timers.tick(PAUSAS.truco - 1);
-    assert.deepStrictEqual(acoesDoLugar(mesa, 2), []);
-    t.mock.timers.tick(1);
+    const ms = msAte(t, () => acoesDoLugar(mesa, 2).length > 0, 'o Robô do Lugar 2 responder');
+    dentroDe(ms, PENSAR.truco, 'depois da Opinião, o Robô pensou');
     assert.strictEqual(acoesDoLugar(mesa, 2).length, 1);
   });
 
@@ -1004,7 +1072,7 @@ describe('Sala: jogo, relógio e eventos', () => {
     esperarAte(t, () => celular0.estado.canTruco, 'o Lugar 0 poder pedir Truco');
     assert.deepStrictEqual(sala.action({ type: 'truco', seat: 0 }), { ok: true });
     assert.strictEqual(mesa.estado.pending.opinion, null);
-    t.mock.timers.tick(PAUSAS.truco);
+    t.mock.timers.tick(PENSAR.truco[1]);
     assert.ok(!mesa.eventos.some((ev) => ev.t === 'opiniao'));
   });
 
@@ -1022,9 +1090,9 @@ describe('Sala: jogo, relógio e eventos', () => {
   });
 
   // Joga com os dois Celulares (primeira carta, aceita todo Truco) até a Mão de onze.
-  // Com o sorteio 17, a Dupla Vermelha chega a 11 (placar 8 a 11), e quem decide é o Jogador do Lugar 1.
+  // Com o sorteio 58, a Dupla Vermelha chega a 11 (placar 8 a 11), e quem decide é o Jogador do Lugar 1.
   function chegarNaMaoDeOnze(t) {
-    const partida = partidaComDoisCelulares(17);
+    const partida = partidaComDoisCelulares(58);
     const { sala, mesa, celulares } = partida;
     for (let passo = 0; !celulares.some((c) => c.estado.mustOnze); passo++) {
       assert.ok(passo < 5000 && mesa.estado.phase !== 'over', 'a Partida não chegou na Mão de onze');

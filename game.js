@@ -69,11 +69,17 @@ const DEFAULT_SEATS = () => [
 // O que todo mundo vê de um Lugar: tudo, menos as barras do Robô.
 const publicSeat = ({ bars, ...rest }) => rest;
 
+// Quanto o Robô pensa antes de agir, em ms: sorteado a cada vez, entre [menor, maior], de 100 em 100 ms.
+// card = jogar carta (ou pedir Truco na vez dele); answer = responder ao Truco e decidir a Mão de onze.
+const THINK = { card: [2500, 4500], answer: [3500, 5500] };
+
 class Game {
   constructor(opts = {}) {
     this.rng = opts.rng || Math.random;
     this.brain = opts.brain;
-    this.timing = Object.assign({ deal: 3200, bot: 1400, round: 1900, hand: 4500, truco: 3200, opinion: 10000 }, opts.timing);
+    this.timing = Object.assign({ deal: 3200, round: 1900, hand: 4500, opinion: 10000 }, opts.timing);
+    // O tempo que o Robô da vez está pensando: { key, ms }. Sorteado uma vez por estado (ver think).
+    this.thinking = null;
     this.seats = DEFAULT_SEATS();
     this.events = [];
     this.evSeq = 0;
@@ -152,16 +158,34 @@ class Game {
       case 'roundEnd': return { who: 'timer', delay: T.round };
       // Mão decidida: a Mesa pausa com a carta que decidiu antes do fim de Mão de sempre.
       case 'handEnd': return { who: 'timer', delay: T.hand + (this.lastHand && this.lastHand.decided ? DECIDED_PAUSE : 0) };
-      case 'play': return this.actor(this.turn, T.bot);
+      case 'play': return this.actor(this.turn, THINK.card);
       // Robô que responde espera a Opinião do parceiro Jogador até T.opinion.
-      case 'truco': return this.actor(this.pending.responder, this.wantsOpinion(this.pending) ? T.opinion : T.truco);
-      case 'onze': return this.actor(this.voiceOf(this.onzeTeam), T.truco);
+      case 'truco': return this.actor(this.pending.responder, this.wantsOpinion(this.pending) ? T.opinion : THINK.answer);
+      case 'onze': return this.actor(this.voiceOf(this.onzeTeam), THINK.answer);
       default: return { who: 'none' };
     }
   }
 
-  actor(seat, delay) {
-    return this.seats[seat].bot ? { who: 'bot', seat, delay } : { who: 'human', seat };
+  // wait = ms fixos, ou [menor, maior] para o Robô pensar um tempo sorteado.
+  actor(seat, wait) {
+    if (!this.seats[seat].bot) return { who: 'human', seat };
+    return { who: 'bot', seat, delay: Array.isArray(wait) ? this.think(wait) : wait };
+  }
+
+  // O sorteio sai uma vez por estado: next() chamado de novo no mesmo estado devolve o mesmo tempo
+  // e não gasta o rng. Só gasta quando um Robô começa a pensar, então Partidas sem Robô na vez não mudam.
+  think([min, max]) {
+    const key = this.stateKey();
+    if (!this.thinking || this.thinking.key !== key) {
+      const steps = (max - min) / 100;
+      this.thinking = { key, ms: min + Math.floor(this.rng() * (steps + 1)) * 100 };
+    }
+    return this.thinking.ms;
+  }
+
+  // Muda sempre que a vez de agir muda. A Sala usa para não recomeçar o relógio à toa.
+  stateKey() {
+    return [this.phase, this.turn, this.table.length, this.rounds.length, this.handNo, this.pending && this.pending.level, !!(this.pending && this.pending.opinion)].join('|');
   }
 
   onTimer() {
