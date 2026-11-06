@@ -1,11 +1,11 @@
 # Truco do Bar do Zé
 
-Truco paulista para jogar no bar: duas pessoas, cada uma com um parceiro robô, olhando a mesma TV e jogando pelo celular.
+Truco paulista para duas pessoas, cada uma com um parceiro robô, jogando pelo celular. No bar, todos olham a mesma TV. Online, cada um joga da sua casa, com a Mesa na própria TV ou no computador.
 
 ## Telas e partida
 
 **Mesa**:
-A tela da TV, que todo mundo vê: personagens, cartas jogadas, vira e placar.
+A tela grande (TV ou computador) que mostra a Sala: personagens, cartas jogadas, vira e placar. Ela só mostra, não joga. Online, cada casa abre a sua Mesa da mesma Sala.
 _Evitar_: tabuleiro, TV (como nome de tela); "Mesa" como nome da sala
 
 **Celular**:
@@ -13,8 +13,12 @@ A tela de um jogador, onde ele vê as cartas na mão dele e faz as jogadas.
 _Evitar_: mão (como nome de tela), controle
 
 **Sala**:
-Uma partida em andamento junto com quem está conectado a ela (a Mesa e os Celulares).
+Uma partida em andamento junto com quem está conectado a ela (as Mesas e os Celulares). Na internet podem existir várias Salas ao mesmo tempo. Uma Sala sem ninguém conectado por 6 horas acaba.
 _Evitar_: Mesa, room (em texto para pessoas)
+
+**Código da Sala**:
+As 4 letras que dizem qual é a Sala (exemplo: `KF4P`). Vão no link e no QR Code que a Mesa mostra.
+_Evitar_: senha, PIN, ID
 
 **Partida**:
 O jogo inteiro, até uma dupla chegar a 12 pontos.
@@ -31,12 +35,16 @@ Quem joga sozinho, decidido pelo computador: o parceiro de cada Jogador, ou quem
 _Evitar_: bot (em texto para pessoas), IA
 
 **Lugar**:
-Uma das quatro posições na Mesa. Cada Jogador tem o seu Lugar, e o parceiro dele fica no Lugar da frente.
+Uma das quatro posições na Mesa. Cada Jogador tem o seu Lugar, e o parceiro dele fica no Lugar da frente. O Lugar de um Jogador fica com o primeiro Celular que o pegou: outro Celular não joga por ele.
 _Evitar_: assento, cadeira
 
 **Dupla**:
 Um Jogador e o parceiro dele. São duas: a Dupla Azul e a Dupla Vermelha.
 _Evitar_: time, equipe
+
+**Cair**:
+Um Jogador ficar sem Celular conectado à Sala. A Partida espera ele voltar, e o Robô não joga no lugar dele. O mesmo Celular volta para o mesmo Lugar.
+_Evitar_: desconectar (em texto para pessoas), sair
 
 **Personagem**:
 A figura que aparece na Mesa no Lugar de alguém, com nome e caras próprias (Tonhão, Cida, Nina…).

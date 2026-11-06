@@ -106,8 +106,8 @@ Depois do Bloco 5 teve uma revisão do código (`/code-review` desde `efd4f91`).
 
 ## Fica para depois (versão futura)
 
-- Jogar online, cada um da sua casa, com avatares para todos.
-- Jogar com 3 ou 4 pessoas, sem robôs.
+- Jogar online, cada um da sua casa. Planejado em 05/11/2026: spec na issue #8, tickets #9 a #12, decisões no ADR 0002.
+- Jogar com 2, 3 ou 4 pessoas, no bar e online. Fica depois do online: issue #13.
 
 ## Ordem que eu sugiro
 
