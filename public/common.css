@@ -40,14 +40,6 @@ button { font: inherit; cursor: pointer; }
 .card .c-head img { width: 100%; height: 100%; display: block; object-fit: cover; object-position: center top; mix-blend-mode: multiply; }
 .card.red { color: oklch(0.53 0.21 27); }
 .card.black { color: oklch(0.21 0.012 60); }
-.card.manilha { box-shadow: 0 0 0 3px #ffd400, 0 0 22px #ffd400cc, 0 4px 10px #0007; }
-.card.zap { animation: zapglow .7s infinite alternate; }
-@keyframes zapglow { to { box-shadow: 0 0 0 4px #fff200, 0 0 40px #ffae00, 0 4px 10px #0007; } }
-.man-tag {
-  position: absolute; bottom: calc(var(--cw) * -.1); left: 50%; transform: translateX(-50%);
-  background: #ffd400; color: #000; font: 900 calc(var(--cw) * .13) "Arial Black", sans-serif;
-  padding: 1px 6px; border-radius: 6px; white-space: nowrap; box-shadow: 0 2px 4px #0006;
-}
 /* verso: losangos vermelhos numa moldura de papel */
 .card.back { padding: calc(var(--cw) * .06); background: oklch(0.97 0.018 85); }
 .card.back .back-art {

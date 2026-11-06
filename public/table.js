@@ -20,6 +20,7 @@
   let nudgeTimer = null;
   let nudgeKey = '';
   let scoreHeldUntil = 0; // Mão decidida: o placar só muda depois da pausa
+  let ultimaRodada = null; // a última Rodada da Mão, para a festa do zap
 
   const seatEl = (i) => $('seat' + i);
   // Quanto tempo a cara do Sinal fica na tela (ms).
@@ -134,7 +135,7 @@
     const face = s.avatar || s.bot ? FACES.avatar(avatarOf(i)) : `<div class="human-av">${HUMAN_EMOJI[i]}</div>`;
     // Pensando: três pontinhos piscando ao lado do rosto de quem está na vez.
     const av = `<div class="avatar">${face}${s.bot ? '' : '<div class="phone-badge">📱</div>'}<div class="pensando" aria-hidden="true"><i></i><i></i><i></i></div></div>`;
-    el.innerHTML = `${av}<div class="seat-info"><div class="nameplate"></div><div class="backs"></div></div>`;
+    el.innerHTML = `${av}<div class="seat-info"><div class="nameplate"></div><div class="backs"></div><div class="marcas"></div></div>`;
   }
 
   function renderSeat(i) {
@@ -144,15 +145,20 @@
     const dealing = state.phase === 'deal' && state.dealer === i && Date.now() < dealingUntil;
     // Na vez: quem joga, quem responde ao truco ou quem decide a mão de onze.
     const onTurn = T.seatOnTurn(state) === i;
-    el.className = `seat pos-${POS[i]} t${i % 2}${onTurn ? ' vez' : ''}${dealing ? ' dealing' : ''}`;
+    const caiu = T.fellSeat(state, i);
+    el.className = `seat pos-${POS[i]} t${i % 2}${onTurn ? ' vez' : ''}${dealing ? ' dealing' : ''}${caiu ? ' caiu' : ''}`;
     const np = el.querySelector('.nameplate');
-    const npHtml = s.name;
+    const npHtml = caiu ? `${s.name} · 📵 caiu` : s.name;
     if (np.innerHTML !== npHtml) np.innerHTML = npHtml;
     const badge = el.querySelector('.phone-badge');
     if (badge) badge.classList.toggle('off', !s.connected);
     const n = Date.now() < dealingUntil ? 0 : s.cards;
     const backs = el.querySelector('.backs');
     if (backs.childElementCount !== n) backs.innerHTML = Array.from({ length: n }, () => S.cardHTML({ hidden: true })).join('');
+    // Marcas da Rodada: 1ª, 2ª, 3ª embaixo das cartas de quem ganhou (cor da Dupla) ou empatou (cinza).
+    const marcas = el.querySelector('.marcas');
+    const mHtml = T.roundMarksOf(state, i).map((m) => `<span class="marca ${m.kind}">${m.n}ª</span>`).join('');
+    if (marcas.innerHTML !== mHtml) marcas.innerHTML = mHtml;
   }
 
   function renderCenter() {
@@ -177,6 +183,7 @@
       if (slot.dataset.id !== id || !slot.firstElementChild) {
         slot.dataset.id = id;
         slot.innerHTML = S.cardHTML(p.card, state.manilha);
+        entorta(slot.firstElementChild);
         flyIn(slot.firstElementChild, i);
       }
       const c = slot.firstElementChild;
@@ -184,6 +191,14 @@
       c.classList.toggle('lose', !!done && state.lastRound.result !== 'tie' && state.lastRound.seat !== i);
       c.classList.toggle('decisive', decisive === i);
     }
+  }
+
+  // A carta cai um pouco torta e fora do centro, sem exagero: até 7° e 6% da carta.
+  function entorta(card) {
+    const sorteio = (max) => (Math.random() * 2 - 1) * max;
+    card.style.setProperty('--torto', sorteio(7).toFixed(1) + 'deg');
+    card.style.setProperty('--dx', `calc(var(--pc) * ${sorteio(0.06).toFixed(3)})`);
+    card.style.setProperty('--dy', `calc(var(--pc) * ${sorteio(0.06).toFixed(3)})`);
   }
 
   function flyIn(card, seat) {
@@ -299,23 +314,22 @@
 
       case 'play': {
         FX.sfx.slap();
-        const c = ev.card; // Carta fechada: sem carta no evento.
-        if (c && c.r === state.manilha && c.s === 'paus') {
-          FX.shake(1);
-          FX.flash('#ffd400');
-          FX.confetti(40);
-        }
         break;
       }
 
       case 'round':
+        // Guarda a Rodada (e a Manilha dela) para ver, no fim da Mão, se foi o zap que decidiu.
+        ultimaRodada = { ev, manilha: state.manilha };
         if (ev.result === 'tie') FX.sfx.boing();
         else FX.sfx.ding();
         break;
 
       case 'hand': {
         const w = ev.winner;
+        const zap = ultimaRodada && T.zapDecidiu(ultimaRodada.ev, ev, ultimaRodada.manilha);
+        ultimaRodada = null;
         const handFx = () => {
+          if (zap) { FX.shake(1); FX.flash('#ffd400'); FX.confetti(40); }
           if (w === null) { FX.sfx.sad(); return; }
           FX.sfx.fanfare();
           FX.confetti(ev.points >= 3 ? 120 : 30);

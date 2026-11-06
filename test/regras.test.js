@@ -282,6 +282,15 @@ describe('Carta fechada', () => {
     return g.drain().find((e) => e.t === 'round');
   }
 
+  test('Marca da Rodada: quem empatou leva a marca de empate; quem ganhou leva a marca da Dupla', () => {
+    const g = naSegundaRodada([carta('6', 'paus'), carta('4', 'ouros'), carta('4', 'espadas'), carta('7', 'paus')]);
+    // 1ª Rodada: os quatro Q empatam, e os quatro Lugares levam a marca de empate.
+    assert.deepStrictEqual(g.publicView().roundMarks, [{ n: 1, result: EMPATE, seats: [0, 1, 2, 3] }]);
+    const quemGanha = [0, 1, 2, 3].find((s) => g.seatView(s).hand[0].r === '7');
+    jogarSegunda(g, []);
+    assert.deepStrictEqual(g.publicView().roundMarks[1], { n: 2, result: duplaDe(quemGanha), seats: [quemGanha] });
+  });
+
   test('a carta fechada perde para qualquer carta aberta, até o zap', () => {
     const g = naSegundaRodada([carta('5', 'paus'), carta('4', 'ouros'), carta('4', 'espadas'), carta('6', 'paus')]);
     assert.strictEqual(jogarSegunda(g, [0]).result, VERMELHA);

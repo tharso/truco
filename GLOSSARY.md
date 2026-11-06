@@ -8,6 +8,10 @@ Truco paulista para duas pessoas, cada uma com um parceiro robô, jogando pelo c
 A tela grande (TV ou computador) que mostra a Sala: personagens, cartas jogadas, vira e placar. Ela só mostra, não joga. Online, cada casa abre a sua Mesa da mesma Sala.
 _Evitar_: tabuleiro, TV (como nome de tela); "Mesa" como nome da sala
 
+**Tampo**:
+A mesa de madeira e feltro desenhada na Mesa, vista um pouco de lado. As cartas jogadas e a Vira caem nele; os Personagens ficam em volta.
+_Evitar_: mesa, feltro, tabuleiro (para o móvel desenhado)
+
 **Celular**:
 A tela de um jogador, onde ele vê as cartas na mão dele e faz as jogadas.
 _Evitar_: mão (como nome de tela), controle
@@ -43,7 +47,7 @@ Um Jogador e o parceiro dele. São duas: a Dupla Azul e a Dupla Vermelha.
 _Evitar_: time, equipe
 
 **Cair**:
-Um Jogador ficar sem Celular conectado à Sala. A Partida espera ele voltar, e o Robô não joga no lugar dele. O mesmo Celular volta para o mesmo Lugar.
+Um Jogador ficar sem Celular conectado à Sala. A Partida espera ele voltar, e o Robô não joga no lugar dele. O mesmo Celular volta para o mesmo Lugar. Na Mesa, o Personagem dele fica apagado, nunca um aviso no Tampo.
 _Evitar_: desconectar (em texto para pessoas), sair
 
 **Personagem**:
@@ -60,6 +64,10 @@ _Evitar_: rodada (para a mão inteira)
 Uma volta em que cada Lugar joga uma carta. A carta mais forte ganha a Rodada.
 _Evitar_: vaza, turno
 
+**Marca da Rodada**:
+A bolinha com 1ª, 2ª ou 3ª que a Mesa põe embaixo das cartas de um Personagem: na cor da Dupla para quem ganhou aquela Rodada, cinza para quem empatou. Some quando começa a Mão seguinte.
+_Evitar_: bolinha, ponto, estrela
+
 **Mão decidida**:
 A Mão em que a carta na mesa não pode mais perder nem empatar, e isso já dá a Mão a uma Dupla. Conta só o que todos já viram, nunca as cartas escondidas. Aí a Mão acaba na hora e ninguém joga o resto. Exemplo: o zap aberto na 3ª Rodada.
 _Evitar_: mão ganha, mão morta
@@ -72,7 +80,7 @@ _Evitar_: mão (sozinho, para as cartas)
 A carta aberta no centro no começo de cada Mão. Ela define a Manilha.
 
 **Manilha**:
-As cartas logo acima da Vira em força. São as mais fortes da Mão, e o naipe desempata entre elas.
+As cartas logo acima da Vira em força. São as mais fortes da Mão, e o naipe desempata entre elas. Nenhuma carta diz que é Manilha: perceber faz parte do jogo. Só a Mesa diz qual é, ao lado da Vira.
 
 **Truco**:
 O pedido para aumentar o valor da Mão (3, depois seis, nove e doze). A outra Dupla aceita, corre ou aumenta.

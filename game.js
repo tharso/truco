@@ -126,7 +126,7 @@ class Game {
     for (const p of this.table) best = Math.max(best, this.powerOn(p));
     const tops = this.table.filter((p) => this.powerOn(p) === best);
     const teams = new Set(tops.map((p) => teamOf(p.seat)));
-    return { power: best, seat: tops[0].seat, team: teamOf(tops[0].seat), tie: teams.size > 1 };
+    return { power: best, seat: tops[0].seat, team: teamOf(tops[0].seat), tie: teams.size > 1, seats: tops.map((p) => p.seat) };
   }
 
   clearHand() {
@@ -135,6 +135,8 @@ class Game {
     this.manilha = null;
     this.table = [];
     this.rounds = [];
+    // Marcas da Rodada: quem ganhou cada Rodada desta Mão (ou quem empatou). { n, result, seats }
+    this.roundMarks = [];
     this.turn = -1;
     this.value = 1;
     this.lastRaiseTeam = null;
@@ -352,6 +354,7 @@ class Game {
     const result = best.tie ? 'tie' : best.team;
     this.rounds.push(result);
     this.lastRound = { result, seat: best.seat };
+    this.roundMarks.push({ n: this.rounds.length, result, seats: best.tie ? [...best.seats].sort() : [best.seat] });
     const top = this.table.find((p) => p.seat === best.seat);
     this.emit({ t: 'round', n: this.rounds.length, result, seat: best.seat, card: top.closed ? undefined : top.card, decided: decided || undefined });
     this.turn = -1;
@@ -497,6 +500,7 @@ class Game {
       manilha: this.manilha,
       table: this.table.map((p) => (p.closed ? { seat: p.seat, closed: true } : p)),
       rounds: this.rounds,
+      roundMarks: this.roundMarks,
       turn: this.turn,
       value: this.value,
       pending: this.pending,

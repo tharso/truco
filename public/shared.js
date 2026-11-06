@@ -38,15 +38,15 @@
   // HTML de uma carta. Funciona no navegador (o servidor não usa).
   // Número: número grande em cima à esquerda, naipe grande embaixo à direita.
   // Figura (Q, J, K): letra e naipe pequeno em cima, cabeça colorida embaixo.
-  function cardHTML(c, manilha, extra) {
+  // Nenhuma carta diz que é Manilha: perceber faz parte do jogo. Só a Mesa diz qual é, ao lado da Vira.
+  // (O 2º parâmetro fica para não mexer em quem chama.)
+  function cardHTML(c, _manilha, extra) {
     if (!c || c.hidden) return `<div class="card back ${extra || ''}"><div class="back-art"></div></div>`;
     const red = c.s === 'ouros' || c.s === 'copas';
-    const isMan = c.r === manilha;
-    const label = isMan ? `<div class="man-tag">${MANILHA_NAME[c.s]}</div>` : '';
     const body = FACE[c.r]
       ? `<span class="c-num c-letter">${c.r}</span>${suitSVG(c.s, 'c-suit-s')}<span class="c-head${c.r === 'Q' ? ' c-queen' : ''}"><img src="/cards/cabeca-${c.r}-${c.s}.jpg" alt=""></span>`
       : `<span class="c-num">${c.r}</span>${suitSVG(c.s, 'c-suit-l')}`;
-    return `<div class="card ${red ? 'red' : 'black'} ${isMan ? 'manilha' : ''} ${c.s === 'paus' && isMan ? 'zap' : ''} ${extra || ''}" data-id="${c.r}${c.s}" role="img" aria-label="${cardName(c)}">${body}${label}</div>`;
+    return `<div class="card ${red ? 'red' : 'black'} ${extra || ''}" data-id="${c.r}${c.s}" role="img" aria-label="${cardName(c)}">${body}</div>`;
   }
 
   // Personagens com foto (public/avatars/<id>/). name = nome padrão quando joga como parceiro.

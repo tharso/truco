@@ -26,16 +26,32 @@
   // A linha de estado. A vez de jogar não aparece aqui: aparece no Pensando, ao lado do rosto.
   function statusText(state) {
     const s = state.seats;
-    // Quem caiu (ADR 0002): a Partida espera ele voltar.
-    const fallen = state.phase !== 'lobby' && state.phase !== 'over' ? [0, 1].filter((i) => !s[i].bot && !s[i].connected) : [];
-    if (fallen.length) return `📵 ${fallen.map((i) => s[i].name).join(' e ')} ${fallen.length > 1 ? 'caíram' : 'caiu'}. Esperando voltar…`;
+    // Quem caiu (ADR 0002) não aparece aqui: aparece no Personagem dele (fellSeat).
     if (state.phase === 'deal' && state.dealer >= 0) return `${s[state.dealer].name} está dando as cartas…`;
     if (state.phase === 'truco' && state.pending) return `${s[state.pending.responder].name}: aceita, corre ou aumenta?`;
     if (state.phase === 'onze') return `${s[voiceOf(state, state.onzeTeam)].name}: joga ou corre?`;
     return '';
   }
 
-  const TABLE_TEXT = { manilhaText, seatOnTurn, statusText, voiceOf };
+  // Cair: um Jogador sem Celular na Sala, no meio da Partida. A Mesa apaga o Personagem dele.
+  function fellSeat(state, i) {
+    const s = state.seats[i];
+    return state.phase !== 'lobby' && state.phase !== 'over' && !!s && !s.bot && !s.connected;
+  }
+
+  // Marcas da Rodada de um Lugar: as Rodadas desta Mão que ele ganhou ('win') ou empatou ('tie').
+  function roundMarksOf(state, i) {
+    return (state.roundMarks || []).filter((m) => m.seats.includes(i)).map((m) => ({ n: m.n, kind: m.result === 'tie' ? 'tie' : 'win' }));
+  }
+
+  // Festa do zap: só quando o zap ganhou a Rodada que deu a Mão (fim de Mão 'jogo').
+  // Zap no meio da Mão não faz festa: perceber a Manilha faz parte do jogo.
+  function zapDecidiu(rodada, fimDaMao, manilha) {
+    const c = rodada && rodada.card;
+    return !!(c && fimDaMao && fimDaMao.reason === 'jogo' && c.r === manilha && c.s === 'paus' && rodada.result === fimDaMao.winner);
+  }
+
+  const TABLE_TEXT = { manilhaText, seatOnTurn, statusText, voiceOf, fellSeat, roundMarksOf, zapDecidiu };
   if (typeof module !== 'undefined' && module.exports) module.exports = TABLE_TEXT;
   else root.TABLE_TEXT = TABLE_TEXT;
 })(typeof window !== 'undefined' ? window : globalThis);
