@@ -10,39 +10,36 @@ body {
 button { font: inherit; cursor: pointer; }
 
 /* ---------- cartas ---------- */
+/* Desenho escolhido no protótipo do baralho (#15, #22): fonte Abril Fatface, verso de losangos. */
+@font-face { font-family: "Abril Fatface"; src: url("/fonts/abrilfatface.ttf") format("truetype"); font-display: block; }
 .card {
   --cw: 90px;
   width: var(--cw);
   height: calc(var(--cw) * 1.42);
-  background: linear-gradient(160deg, #fffef8, #f3ecd9);
-  border-radius: calc(var(--cw) * .11);
+  background: linear-gradient(165deg, oklch(0.97 0.018 85), oklch(0.93 0.03 82));
+  border-radius: calc(var(--cw) * .1);
   box-shadow: 0 4px 10px #0007, inset 0 0 0 1px #0002;
   position: relative;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Abril Fatface", Georgia, serif;
   flex: none;
   user-select: none;
 }
-/* índice do canto: número em cima, naipe embaixo */
-.card .c-idx { position: absolute; top: 3%; left: 5%; display: flex; flex-direction: column; align-items: center; line-height: .95; font-size: calc(var(--cw) * .17); }
-.card .c-idx b { font-size: calc(var(--cw) * .25); font-weight: 900; }
-.card .c-idx2 { top: auto; left: auto; bottom: 3%; right: 5%; transform: rotate(180deg); }
-/* ás: um naipe grande */
-.card .c-big { position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(var(--cw) * .58); }
-/* cartas de número: naipes espalhados */
-.card .c-pips { position: absolute; inset: 9% 22%; }
-.card .c-pips span { position: absolute; transform: translate(-50%, -50%); font-size: calc(var(--cw) * .24); line-height: 1; }
-.card .c-pips span.flip { transform: translate(-50%, -50%) rotate(180deg); }
-/* dama, valete e rei: meia figura em cima e a mesma de cabeça para baixo embaixo */
-/* a moldura começa depois do índice do canto, para a letra nunca encostar nela */
-.card .c-face {
-  position: absolute; inset: 5% 25%;
-  border: max(1.5px, calc(var(--cw) * .016)) solid currentColor; border-radius: calc(var(--cw) * .05);
-  overflow: hidden; display: flex; flex-direction: column; background: #fff;
+.card svg { position: absolute; display: block; fill: currentColor; }
+/* número (ou letra da figura) grande em cima, à esquerda */
+.card .c-num { position: absolute; left: 8%; top: 3%; font-size: calc(var(--cw) * .56); line-height: 1; }
+/* carta de número: naipe grande embaixo, à direita */
+.card .c-suit-l { width: 56%; height: auto; aspect-ratio: 1; right: 7%; bottom: 6%; }
+/* figura: letra menor e naipe pequeno em cima; cabeça colorida embaixo, até a borda */
+.card .c-letter { font-size: calc(var(--cw) * .44); }
+.card .c-suit-s { width: 26%; height: auto; aspect-ratio: 1; top: 9%; right: 9%; }
+.card .c-head {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 67%;
+  overflow: hidden; border-radius: 0 0 calc(var(--cw) * .1) calc(var(--cw) * .1);
 }
-.card .c-face img { flex: 1; min-height: 0; width: 100%; object-fit: cover; object-position: center top; mix-blend-mode: multiply; }
-.card .c-face img.flip { transform: rotate(180deg); border-bottom: max(1px, calc(var(--cw) * .01)) solid currentColor; }
-.card.red { color: #d0141b; }
-.card.black { color: #141414; }
+.card .c-head.c-queen { height: 62%; } /* a coroa da Dama é alta: mais espaço até o Q */
+.card .c-head img { width: 100%; height: 100%; display: block; object-fit: cover; object-position: center top; mix-blend-mode: multiply; }
+.card.red { color: oklch(0.53 0.21 27); }
+.card.black { color: oklch(0.21 0.012 60); }
 .card.manilha { box-shadow: 0 0 0 3px #ffd400, 0 0 22px #ffd400cc, 0 4px 10px #0007; }
 .card.zap { animation: zapglow .7s infinite alternate; }
 @keyframes zapglow { to { box-shadow: 0 0 0 4px #fff200, 0 0 40px #ffae00, 0 4px 10px #0007; } }
@@ -51,11 +48,16 @@ button { font: inherit; cursor: pointer; }
   background: #ffd400; color: #000; font: 900 calc(var(--cw) * .13) "Arial Black", sans-serif;
   padding: 1px 6px; border-radius: 6px; white-space: nowrap; box-shadow: 0 2px 4px #0006;
 }
-.card.back {
-  background: repeating-linear-gradient(45deg, #b3221d 0 7px, #8c1714 7px 14px);
-  border: calc(var(--cw) * .05) solid #fff8e8;
+/* verso: losangos vermelhos numa moldura de papel */
+.card.back { padding: calc(var(--cw) * .06); background: oklch(0.97 0.018 85); }
+.card.back .back-art {
+  width: 100%; height: 100%; border-radius: calc(var(--cw) * .06);
+  background-color: oklch(0.42 0.15 22);
+  background-image:
+    repeating-linear-gradient(45deg, transparent 0 calc(var(--cw) * .07), oklch(0.97 0.018 85 / .55) calc(var(--cw) * .07) calc(var(--cw) * .085)),
+    repeating-linear-gradient(-45deg, transparent 0 calc(var(--cw) * .07), oklch(0.97 0.018 85 / .55) calc(var(--cw) * .07) calc(var(--cw) * .085));
+  box-shadow: inset 0 0 0 calc(var(--cw) * .025) oklch(0.42 0.15 22), inset 0 0 0 calc(var(--cw) * .04) oklch(0.97 0.018 85);
 }
-.card.back .back-art { display: grid; place-items: center; height: 100%; font-size: calc(var(--cw) * .38); filter: drop-shadow(0 2px 2px #0008); }
 
 .t0c { color: #5ea2ff; }
 .t1c { color: #ff6464; }

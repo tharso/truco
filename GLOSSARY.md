@@ -1,4 +1,4 @@
-# Truco do Bar do Zé
+# Truco do Bar do Blurp
 
 Truco paulista para duas pessoas, cada uma com um parceiro robô, jogando pelo celular. No bar, todos olham a mesma TV. Online, cada um joga da sua casa, com a Mesa na própria TV ou no computador.
 

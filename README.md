@@ -1,4 +1,4 @@
-# Truco do Bar do Zé
+# Truco do Bar do Blurp
 
 Truco paulista para 2 pessoas na mesa + 2 parceiros robôs na tela.
 Quem dá as cartas muda a cada mão. A voz fala só o básico: a manilha, o truco e a mão de onze ou de ferro.

@@ -25,35 +25,28 @@
     return `${RANK_NAME[c.r]} de ${c.s}`;
   }
 
-  // Onde ficam os naipes nas cartas de número (x, y em % da área do meio). y > 50 fica de cabeça para baixo.
-  const PIPS = {
-    '2': [[50, 12], [50, 88]],
-    '3': [[50, 12], [50, 50], [50, 88]],
-    '4': [[27, 12], [73, 12], [27, 88], [73, 88]],
-    '5': [[27, 12], [73, 12], [50, 50], [27, 88], [73, 88]],
-    '6': [[27, 12], [73, 12], [27, 50], [73, 50], [27, 88], [73, 88]],
-    '7': [[27, 12], [73, 12], [50, 31], [27, 50], [73, 50], [27, 88], [73, 88]],
+  // Naipes desenhados em SVG (caixa 100 × 100). Vieram do protótipo do baralho (#15).
+  const SUIT_PATH = {
+    copas: 'M50 92C22 70 4 52 4 31 4 15 16 5 29 5c10 0 17 6 21 14C54 11 61 5 71 5c13 0 25 10 25 26 0 21-18 39-46 61z',
+    ouros: 'M50 3C61 20 74 36 90 50 74 64 61 80 50 97 39 80 26 64 10 50 26 36 39 20 50 3z',
+    espadas: 'M50 3C70 24 95 40 95 61c0 13-10 22-22 22-9 0-16-5-19-11 1 11 5 18 13 24H33c8-6 12-13 13-24-3 6-10 11-19 11-12 0-22-9-22-22C5 40 30 24 50 3z',
+    paus: 'M50 5a21 21 0 0 1 17 33 21 21 0 1 1-2 39c-5 0-9-2-12-5 1 10 5 18 13 24H34c8-6 12-14 13-24-3 3-7 5-12 5a21 21 0 1 1-2-39A21 21 0 0 1 50 5z',
   };
   const FACE = { Q: true, J: true, K: true };
+  const suitSVG = (s, cls) => `<svg class="${cls}" viewBox="0 0 100 100" aria-hidden="true"><path d="${SUIT_PATH[s]}"/></svg>`;
 
   // HTML de uma carta. Funciona no navegador (o servidor não usa).
+  // Número: número grande em cima à esquerda, naipe grande embaixo à direita.
+  // Figura (Q, J, K): letra e naipe pequeno em cima, cabeça colorida embaixo.
   function cardHTML(c, manilha, extra) {
-    if (!c || c.hidden) return `<div class="card back ${extra || ''}"><div class="back-art">🃏</div></div>`;
+    if (!c || c.hidden) return `<div class="card back ${extra || ''}"><div class="back-art"></div></div>`;
     const red = c.s === 'ouros' || c.s === 'copas';
     const isMan = c.r === manilha;
-    const sym = SUIT_SYMBOL[c.s];
     const label = isMan ? `<div class="man-tag">${MANILHA_NAME[c.s]}</div>` : '';
-    let mid;
-    if (FACE[c.r]) {
-      const src = `/cards/${c.r}-${c.s}.jpg`;
-      mid = `<div class="c-face"><img src="${src}" alt=""><img class="flip" src="${src}" alt=""></div>`;
-    } else if (PIPS[c.r]) {
-      mid = `<div class="c-pips">${PIPS[c.r].map(([x, y]) => `<span style="left:${x}%;top:${y}%"${y > 50 ? ' class="flip"' : ''}>${sym}</span>`).join('')}</div>`;
-    } else {
-      mid = `<span class="c-big">${sym}</span>`;
-    }
-    return `<div class="card ${red ? 'red' : 'black'} ${isMan ? 'manilha' : ''} ${c.s === 'paus' && isMan ? 'zap' : ''} ${extra || ''}" data-id="${c.r}${c.s}">
-      <span class="c-idx"><b>${c.r}</b>${sym}</span>${mid}<span class="c-idx c-idx2"><b>${c.r}</b>${sym}</span>${label}</div>`;
+    const body = FACE[c.r]
+      ? `<span class="c-num c-letter">${c.r}</span>${suitSVG(c.s, 'c-suit-s')}<span class="c-head${c.r === 'Q' ? ' c-queen' : ''}"><img src="/cards/cabeca-${c.r}-${c.s}.jpg" alt=""></span>`
+      : `<span class="c-num">${c.r}</span>${suitSVG(c.s, 'c-suit-l')}`;
+    return `<div class="card ${red ? 'red' : 'black'} ${isMan ? 'manilha' : ''} ${c.s === 'paus' && isMan ? 'zap' : ''} ${extra || ''}" data-id="${c.r}${c.s}" role="img" aria-label="${cardName(c)}">${body}${label}</div>`;
   }
 
   // Personagens com foto (public/avatars/<id>/). name = nome padrão quando joga como parceiro.
