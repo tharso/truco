@@ -1,0 +1,140 @@
+<!doctype html>
+<!-- PROTÓTIPO (#12): cópia de hand.html com a Mesa pequena em cima. Não é tela oficial. -->
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#2a1608">
+  <title>Truco — Mesa e mão juntas</title>
+  <link rel="stylesheet" href="/common.css">
+  <link rel="stylesheet" href="/hand.css">
+  <link rel="stylesheet" href="/junto.css">
+  <!-- Google Analytics (só no site publicado, não em localhost nem no Wi-Fi de casa) -->
+  <script>
+    (function (h) {
+      if (h === 'localhost' || h.endsWith('.localhost') || /^[\d.]+$/.test(h) || h.includes(':')) return;
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-KV6LD0W0KF';
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { dataLayer.push(arguments); };
+      gtag('js', new Date());
+      gtag('config', 'G-KV6LD0W0KF');
+    })(location.hostname);
+  </script>
+</head>
+<body>
+  <form id="room" class="hidden">
+    <h1 class="shout">TRUCO <small>do Bar do Zé</small></h1>
+    <label class="name-label">Código da Sala
+      <input id="room-code" maxlength="6" placeholder="Ex.: KF4P" autocomplete="off" autocapitalize="characters" spellcheck="false">
+    </label>
+    <p>O código está na Mesa, embaixo do QR Code.</p>
+    <button class="seat-btn t0" type="submit"><b class="shout">ENTRAR</b></button>
+  </form>
+
+  <div id="pick" class="hidden">
+    <h1 class="shout">TRUCO <small>do Bar do Zé</small></h1>
+    <label class="name-label">Seu nome
+      <input id="name" maxlength="16" placeholder="Ex.: Tharso" autocomplete="off">
+    </label>
+    <p>Quem é você?</p>
+    <button class="seat-btn t0" data-seat="0"><b class="shout">JOGADOR 1</b><span>Dupla Azul</span></button>
+    <button class="seat-btn t1" data-seat="1"><b class="shout">JOGADOR 2</b><span>Dupla Vermelha</span></button>
+  </div>
+
+  <div id="choose" class="hidden">
+    <h2 id="ch-title" class="shout">QUEM É VOCÊ?</h2>
+    <p id="ch-hint">Escolha o seu personagem.</p>
+    <div id="ch-grid" class="av-grid"></div>
+    <label id="ch-name" class="name-label hidden">Nome do parceiro
+      <input id="partner-name" maxlength="16" autocomplete="off">
+    </label>
+    <div id="ch-bars" class="hidden">
+      <label class="bar">Quanto blefa <b id="bluff-val"></b>
+        <input id="bluff" type="range" min="0" max="10" step="1">
+      </label>
+      <label class="bar">Quanta coragem <b id="nerve-val"></b>
+        <input id="nerve" type="range" min="0" max="10" step="1">
+      </label>
+      <p class="tip">Só você vê as barras. Na TV aparece só o nome.</p>
+    </div>
+    <div class="ch-btns">
+      <button id="ch-back" class="b-gray">Voltar</button>
+      <button id="ch-ok" class="b-green shout" disabled>PRONTO!</button>
+    </div>
+  </div>
+
+  <div id="main" class="hidden">
+    <header id="top">
+      <div id="score" class="shout"></div>
+      <div id="team-line"></div>
+    </header>
+
+    <!-- PROTÓTIPO (#12): a Mesa pequena, em cima das Cartas na mão. -->
+    <section id="mesa-mini" aria-label="Mesa"></section>
+
+    <div id="info-row">
+      <div id="vira-mini"></div>
+      <div id="man-mini"></div>
+      <div id="value-mini" class="shout"></div>
+    </div>
+
+    <div id="status" class="shout"></div>
+
+    <div id="hand"></div>
+
+    <button id="closed-btn" class="shout b-gray hidden">🙈 JOGAR FECHADA</button>
+
+    <button id="truco-btn" class="shout" disabled>TRUCO!</button>
+
+    <div id="respond" class="panel hidden">
+      <div id="resp-title" class="shout"></div>
+      <div class="resp-btns">
+        <button data-ans="aceito" class="shout b-green">ACEITO!</button>
+        <button data-ans="corro" class="shout b-gray">CORRO 🐔</button>
+        <button data-ans="aumento" id="btn-raise" class="shout b-red"></button>
+      </div>
+    </div>
+
+    <div id="opine" class="panel hidden">
+      <div id="opine-title" class="shout"></div>
+      <div id="opine-hint"></div>
+      <div class="resp-btns">
+        <button data-opine="aceita" class="shout b-green">😃 ACEITA</button>
+        <button data-opine="corre" class="shout b-gray">😟 CORRE</button>
+      </div>
+    </div>
+
+    <div id="onze" class="panel hidden">
+      <div class="shout onze-title">MÃO DE ONZE!</div>
+      <div>As suas cartas e as do seu parceiro:</div>
+      <div id="onze-cards"></div>
+      <div class="resp-btns">
+        <button data-onze="joga" class="shout b-green">JOGA (vale 3)</button>
+        <button data-onze="corre" class="shout b-gray">CORRE (dá 1)</button>
+      </div>
+    </div>
+
+    <div id="game-btns"></div>
+
+    <details id="signals">
+      <summary>🤫 Cola dos sinais do parceiro</summary>
+      <div id="sig-list"></div>
+      <p class="tip">Olhe a TV no começo de cada mão: o parceiro faz o sinal. O adversário também pode ver!</p>
+      <p class="tip">Toque 😉 embaixo de uma carta: o seu Personagem faz o sinal dela na TV. O parceiro quase sempre vê. O adversário às vezes vê.</p>
+    </details>
+
+    <footer><span id="me-line"></span> · <a href="#" id="change-seat">trocar de lugar</a></footer>
+  </div>
+
+  <div id="toast"></div>
+
+  <script src="/shared.js"></script>
+  <script src="/hand.js"></script>
+  <script src="/mood.js"></script>
+  <script src="/faces.js"></script>
+  <script src="/junto.js"></script>
+</body>
+</html>

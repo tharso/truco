@@ -132,6 +132,7 @@ export default {
       }
       if (rest === '/mesa') return page(env, url, request, '/table.html');
       if (rest === '/mao' || rest === '/m') return page(env, url, request, '/hand.html');
+      if (rest === '/junto') return page(env, url, request, '/junto.html'); // protótipo (#12)
       if (rest === '/') {
         const phone = /Mobi|Android/i.test(request.headers.get('User-Agent') || '');
         return page(env, url, request, phone ? '/hand.html' : '/table.html');

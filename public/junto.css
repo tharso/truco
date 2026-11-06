@@ -1,0 +1,67 @@
+/* PROTÓTIPO (#12): a Mesa pequena dentro da tela do Celular. */
+#mesa-mini {
+  position: relative; height: 280px; margin: 0 -4px;
+}
+.mm-felt {
+  position: absolute; inset: 44px 58px 52px; border-radius: 50% / 40%;
+  background: radial-gradient(ellipse at center, #2e8b4f, #145c30 75%);
+  box-shadow: inset 0 0 0 5px #6b3e1d, inset 0 0 22px #0008, 0 6px 14px #0008;
+}
+.mm-vira { position: absolute; left: 28%; top: 50%; transform: translate(-50%, -50%) rotate(-8deg); }
+.mm-vira .card { --cw: 30px; }
+.mm-value {
+  position: absolute; left: 28%; top: calc(50% + 26px); transform: translateX(-50%); white-space: nowrap;
+  font-size: 12px; color: #ffd400; text-shadow: 1px 1px 0 #000;
+}
+
+.mm-seat { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 2px; --av: 58px; }
+.mm-seat.pos-top { left: 50%; top: 0; transform: translateX(-50%); }
+.mm-seat.pos-bottom { left: 50%; bottom: 0; transform: translateX(-50%); --av: 44px; }
+.mm-seat.pos-left { left: 0; top: 50%; transform: translateY(-62%); }
+.mm-seat.pos-right { right: 0; top: 50%; transform: translateY(-62%); }
+.mm-seat.pos-bottom { flex-direction: column-reverse; }
+.mm-seat.off { opacity: .45; }
+.mm-name { font-size: 11px; font-weight: 800; max-width: 76px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mm-seat.active .mm-name { color: #ffd400; }
+.mm-seat.active .face-photo { box-shadow: 0 0 0 4px #ffd400, 0 4px 10px #000a; }
+
+/* A carta jogada fica entre o Personagem e o centro. */
+.mm-played { position: absolute; }
+.mm-played .card { --cw: 34px; }
+.pos-top .mm-played { top: calc(100% + 4px); }
+.pos-bottom .mm-played { bottom: calc(100% + 4px); }
+.pos-left .mm-played { left: calc(100% + 6px); top: 10px; }
+.pos-right .mm-played { right: calc(100% + 6px); top: 10px; }
+
+.mm-bubble {
+  position: absolute; z-index: 3; top: -6px; white-space: nowrap; pointer-events: none;
+  background: #fff; color: #1a1a1a; font-weight: 900; font-size: 13px; padding: 3px 8px; border-radius: 10px;
+  opacity: 0; transform: scale(.6); transition: opacity .15s, transform .15s;
+}
+.mm-bubble.show { opacity: 1; transform: scale(1); }
+
+/* Rosto com foto (igual à Mesa, menor). */
+.face-photo {
+  position: relative; width: var(--av); height: var(--av); border-radius: 50%; overflow: hidden;
+  border: 3px solid #fff; box-shadow: 0 4px 10px #000a; background: #1c3b6e;
+}
+.t0 .face-photo { border-color: #2f7bff; }
+.t1 .face-photo { border-color: #ff3b3b; }
+.face-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .1s; }
+.face-photo img.on { opacity: 1; }
+.face-photo img[data-x="neutro"] { opacity: 1; transition: none; }
+.avatar svg { width: var(--av); height: var(--av); }
+.avatar.signing .face-photo { animation: mm-signing 2.5s ease-in-out; }
+@keyframes mm-signing {
+  0%, 100% { transform: none; }
+  20% { transform: scale(1.25) rotate(-8deg); }
+  40% { transform: scale(1.25) rotate(8deg); }
+  60% { transform: scale(1.25) rotate(-6deg); }
+  80% { transform: scale(1.15) rotate(4deg); }
+}
+
+/* As Cartas na mão ficam um pouco menores, para caber tudo na tela. */
+#hand { min-height: 140px; padding-top: 12px; }
+#hand .card { --cw: min(24vw, 100px); }
+/* A Vira e o valor já estão na Mesa pequena. Fica só o nome da Manilha. */
+#vira-mini, #value-mini { display: none !important; }
