@@ -64,14 +64,14 @@ window.FACES = (function () {
   }
 
   // ---------- rostos com foto (gerados por IA, em public/avatars/<nome>/) ----------
-  // Cada personagem tem 12 caras. Sem foto, cai no desenho em SVG do robô.
+  // Cada personagem tem 12 caras, em WebP com fundo transparente (o fundo é do porta-retrato, no CSS). Sem foto, cai no desenho em SVG do robô.
   const PHOTOS = ['tonhao', 'cida', 'neide', 'juninho', 'blurp', 'beto', 'roque', 'nina'];
-  const EXPRESSIONS = ['neutro', 'zap', 'copas', 'espadas', 'ouros', 'tres', 'lixo', 'feliz', 'triste', 'susto', 'piscando', 'falando'];
+  const EXPRESSIONS = ['neutro', 'zap', 'copas', 'espadas', 'ouros', 'tres', 'lixo', 'feliz', 'triste', 'truco', 'piscando', 'falando'];
 
   function avatar(name) {
     if (!PHOTOS.includes(name)) return svg('robo');
     const set = name;
-    const imgs = EXPRESSIONS.map((x) => `<img data-x="${x}" src="/avatars/${set}/${x}.jpg" alt=""${x === 'neutro' ? ' class="on"' : ''}>`).join('');
+    const imgs = EXPRESSIONS.map((x) => `<img data-x="${x}" src="/avatars/${set}/${x}.webp" alt=""${x === 'neutro' ? ' class="on"' : ''}>`).join('');
     return `<div class="face-photo" data-set="${set}">${imgs}</div>`;
   }
 
@@ -102,7 +102,7 @@ window.FACES = (function () {
     if (ph) { const x = window.MOOD.moodPhoto(ph._x, m); if (x) show(ph, x, ms); return; }
     const s = el && el.querySelector('svg');
     if (!s) return;
-    s.classList.remove('mood-happy', 'mood-sad', 'mood-shock');
+    s.classList.remove('mood-happy', 'mood-sad', 'mood-truco');
     s.classList.add('mood-' + m);
     setTimeout(() => s.classList.remove('mood-' + m), ms);
   }

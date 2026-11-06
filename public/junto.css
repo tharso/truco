@@ -43,13 +43,12 @@
 /* Rosto com foto (igual à Mesa, menor). */
 .face-photo {
   position: relative; width: var(--av); height: var(--av); border-radius: 50%; overflow: hidden;
-  border: 3px solid #fff; box-shadow: 0 4px 10px #000a; background: #1c3b6e;
+  border: 3px solid #fff; box-shadow: 0 4px 10px #000a; background: radial-gradient(circle at 50% 35%, #3a4a66, #1c2433);
 }
-.t0 .face-photo { border-color: #2f7bff; }
-.t1 .face-photo { border-color: #ff3b3b; }
-.face-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .1s; }
+.t0 .face-photo { border-color: #2f7bff; background: radial-gradient(circle at 50% 35%, #4f8dff, #123a8c); }
+.t1 .face-photo { border-color: #ff3b3b; background: radial-gradient(circle at 50% 35%, #ff6a5c, #8c1a14); }
+.face-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
 .face-photo img.on { opacity: 1; }
-.face-photo img[data-x="neutro"] { opacity: 1; transition: none; }
 .avatar svg { width: var(--av); height: var(--av); }
 .avatar.signing .face-photo { animation: mm-signing 2.5s ease-in-out; }
 @keyframes mm-signing {

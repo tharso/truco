@@ -129,7 +129,7 @@
       const sel = partnerStep ? a.id === chPartner : a.id === chMe;
       const meMark = partnerStep && a.id === chMe ? ' me' : '';
       return `<button class="av${sel ? ' sel' : ''}${meMark}" data-id="${a.id}" ${off ? 'disabled' : ''}>
-        <img src="/avatars/${a.id}/neutro.jpg" alt=""><span>${partnerStep && a.id === chMe ? 'Você' : a.name}</span></button>`;
+        <img src="/avatars/${a.id}/neutro.webp" alt=""><span>${partnerStep && a.id === chMe ? 'Você' : a.name}</span></button>`;
     }).join('');
   }
 

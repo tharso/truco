@@ -8,3 +8,7 @@ com a mesma receita de estilo do Tonhão. A cara `neutro` é a base; as outras f
 - Vida: piscando, falando.
 
 Versões do jogo: `public/avatars/cida/*.jpg` (360 px).
+
+- Truco (alegria brava, provocação, nada de susto): `truco.jpg`. Substitui o `susto` no jogo (nov/2026).
+
+No jogo as caras ficam em WebP com fundo transparente (recorte do macOS Vision); o fundo vem do CSS, na cor do time.

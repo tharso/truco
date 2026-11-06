@@ -247,7 +247,7 @@
         : s.connected ? `✅ <b>${s.name}</b> conectado` : '⏳ Esperando um celular…';
       // Antes de o Jogador escolher, a dupla é dele: o parceiro também fica em aberto.
       const chosen = s.bot || s.picked;
-      const mini = (x) => (chosen && x.avatar ? `<img class="lmini" src="/avatars/${x.avatar}/neutro.jpg" alt="">` : '<span class="lmini q">?</span>');
+      const mini = (x) => (chosen && x.avatar ? `<img class="lmini" src="/avatars/${x.avatar}/neutro.webp" alt="">` : '<span class="lmini q">?</span>');
       const pair = chosen ? `<b>${s.name}</b> com <b>${partner.name}</b>` : '<small>escolhendo no celular…</small>';
       $('lseat' + i).innerHTML = `
         <div class="who ${i ? 't1c' : 't0c'}">Jogador ${i + 1}</div>
@@ -451,7 +451,7 @@
     FX.flash(TEAM_COLOR[team]);
     // Sem Aviso da Mesa: o Truco é uma Fala, só o balão de quem pediu.
     fala(ev.seat, `${word}!`, 2600);
-    if (s.bot) FACES.mood(seatEl(ev.seat), 'shock', 1500);
+    if (s.bot) FACES.mood(seatEl(ev.seat), 'truco', 1500);
     speak(LEVEL_CLIP[ev.level], { urgent: true, seat: s.bot ? ev.seat : undefined });
   }
 

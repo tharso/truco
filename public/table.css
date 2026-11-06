@@ -156,14 +156,14 @@ body { overflow: hidden; }
 /* rosto com foto */
 .face-photo {
   position: relative; width: var(--av); height: var(--av); border-radius: 50%; overflow: hidden;
-  border: 5px solid #fff; box-shadow: 0 6px 14px #000a; background: #1c3b6e;
+  border: 5px solid #fff; box-shadow: 0 6px 14px #000a; background: radial-gradient(circle at 50% 35%, #3a4a66, #1c2433);
 }
-.t0 .face-photo { border-color: #2f7bff; }
-.t1 .face-photo { border-color: #ff3b3b; }
-.face-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .1s; }
+/* As caras têm fundo transparente: o fundo do porta-retrato é a cor do time. */
+.t0 .face-photo { border-color: #2f7bff; background: radial-gradient(circle at 50% 35%, #4f8dff, #123a8c); }
+.t1 .face-photo { border-color: #ff3b3b; background: radial-gradient(circle at 50% 35%, #ff6a5c, #8c1a14); }
+/* Troca de cara seca, sem fade: com fundo transparente, duas caras juntas apareceriam uma atrás da outra. */
+.face-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
 .face-photo img.on { opacity: 1; }
-/* A cara neutra fica sempre por baixo: na troca de cara, o fundo nunca aparece. */
-.face-photo img[data-x="neutro"] { opacity: 1; transition: none; }
 
 /* Sinal: o rosto todo mexe (inclina, cresce e balança) enquanto a cara do Sinal está na tela. */
 .avatar.signing .face-photo { animation: signing 2.5s ease-in-out; }
@@ -220,7 +220,7 @@ body { overflow: hidden; }
 .lpair { display: flex; align-items: center; gap: 8px; }
 .lpair > span { font-weight: 900; opacity: .7; }
 .lpair small { opacity: .75; }
-.lmini { width: 58px; height: 58px; border-radius: 50%; border: 3px solid #fff6; object-fit: cover; flex: none; }
+.lmini { width: 58px; height: 58px; border-radius: 50%; border: 3px solid #fff6; object-fit: cover; background: radial-gradient(circle at 50% 35%, #3a4a66, #1c2433); flex: none; }
 .lmini.q { display: grid; place-items: center; background: #0006; font: 900 26px sans-serif; }
 .lseat label { font-size: 14px; display: flex; gap: 6px; align-items: center; cursor: pointer; }
 .big-btn { border: 0; border-radius: 16px; padding: 14px 22px; font-size: 20px; color: #fff; background: #555; box-shadow: 0 5px 0 #222; }
@@ -294,9 +294,8 @@ body.shake #app { animation: shake .6s; }
 .face.mood-sad .m-sad { opacity: 1; }
 .face.mood-sad .brow-l { transform: rotate(-14deg); }
 .face.mood-sad .brow-r { transform: rotate(14deg); }
-.face.mood-shock .eye { transform: scale(1.35); }
-.face.mood-shock .m-normal { opacity: 0; }
-.face.mood-shock .m-open { opacity: 1; }
+.face.mood-truco .m-normal { opacity: 0; }
+.face.mood-truco .m-happy { opacity: 1; }
 .face.talking .m-normal, .face.talking .m-happy { opacity: 0; }
 .face.talking .m-open { opacity: 1; animation: talk .16s infinite alternate; }
 @keyframes talk { from { transform: scaleY(.25); } to { transform: scaleY(1); } }

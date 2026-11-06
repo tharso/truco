@@ -17,12 +17,12 @@ test('Sinal em curso não é atropelado por humor', () => {
 });
 
 test('Personagem falando para de falar e mostra a foto do humor pedido', () => {
-  assert.strictEqual(moodPhoto('falando', 'shock'), 'susto');
+  assert.strictEqual(moodPhoto('falando', 'truco'), 'truco');
 });
 
 test('Um humor na tela dá lugar a outro humor pedido (estava feliz, fica triste)', () => {
   assert.strictEqual(moodPhoto('feliz', 'sad'), 'triste');
-  assert.strictEqual(moodPhoto('susto', 'happy'), 'feliz');
+  assert.strictEqual(moodPhoto('truco', 'happy'), 'feliz');
 });
 
 test('Humor desconhecido mostra a cara neutra', () => {

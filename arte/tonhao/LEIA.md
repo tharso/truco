@@ -12,3 +12,7 @@ pedindo para manter a mesma pessoa e trocar só a expressão.
 As versões do jogo ficam em `public/avatars/tonhao/*.jpg` (360 px).
 
 No jogo (`public/avatars/tonhao/`) as 12 caras estão espelhadas, para a boca torta ir para o outro lado. Aqui ficam as originais.
+
+- Truco (alegria brava, provocação, nada de susto): `truco.jpg`. Substitui o `susto` no jogo (nov/2026).
+
+No jogo as caras ficam em WebP com fundo transparente (recorte do macOS Vision); o fundo vem do CSS, na cor do time.

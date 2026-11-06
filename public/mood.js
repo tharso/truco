@@ -1,7 +1,7 @@
 // Humor dos Personagens com foto: decide qual foto entra quando um humor é pedido.
 // Arquivo puro, usado pela Mesa (faces.js) e testado no Node (test/navegador/).
 (function (root) {
-  const MOOD_PHOTO = { happy: 'feliz', sad: 'triste', shock: 'susto' };
+  const MOOD_PHOTO = { happy: 'feliz', sad: 'triste', truco: 'truco' };
 
   // current: a foto que o Personagem mostra agora. mood: o humor pedido.
   // Devolve a foto a mostrar, ou null para não trocar.
