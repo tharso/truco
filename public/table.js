@@ -18,6 +18,7 @@
   let lastScore = [0, 0];
   let nudgeTimer = null;
   let nudgeKey = '';
+  let scoreHeldUntil = 0; // Mão decidida: o placar só muda depois da pausa
 
   const seatEl = (i) => $('seat' + i);
   // Quanto tempo a cara do Sinal fica na tela (ms).
@@ -83,7 +84,7 @@
   }
 
   function renderScore() {
-    [0, 1].forEach((t) => {
+    if (Date.now() >= scoreHeldUntil) [0, 1].forEach((t) => {
       const el = $('s' + t);
       el.textContent = state.score[t];
       if (state.score[t] !== lastScore[t]) {
@@ -93,8 +94,8 @@
       }
       $('m' + t).textContent = `${state.seats[t].name} + ${state.seats[t + 2].name}`;
       $('b' + t).style.width = `${(Math.min(12, state.score[t]) / 12) * 100}%`;
+      lastScore[t] = state.score[t];
     });
-    lastScore = [...state.score];
     // valor da mão e rodadas
     const vb = $('value-badge');
     let txt = `Vale ${state.value}`;
@@ -158,6 +159,8 @@
       ? `Manilha: <b>${state.manilha} (${S.RANK_NAME[state.manilha]})</b>` : '';
     // cartas jogadas
     const done = (state.phase === 'roundEnd' || state.phase === 'handEnd') && state.table.length === 4 && state.lastRound;
+    // Mão decidida: a carta que decidiu fica em destaque até a Mão nova.
+    const decisive = state.phase === 'handEnd' && state.lastHand && state.lastHand.decided ? state.lastRound.seat : -1;
     for (let i = 0; i < 4; i++) {
       const slot = $('slot' + i);
       const p = state.table.find((x) => x.seat === i);
@@ -171,6 +174,7 @@
       const c = slot.firstElementChild;
       c.classList.toggle('win', !!done && state.lastRound.result !== 'tie' && state.lastRound.seat === i);
       c.classList.toggle('lose', !!done && state.lastRound.result !== 'tie' && state.lastRound.seat !== i);
+      c.classList.toggle('decisive', decisive === i);
     }
   }
 
@@ -268,6 +272,10 @@
       setTimeout(render, 2350);
       setTimeout(render, 2550);
     }
+    if (ev.t === 'hand' && ev.decided) {
+      scoreHeldUntil = Date.now() + S.DECIDED_PAUSE;
+      setTimeout(render, S.DECIDED_PAUSE + 50);
+    }
   }
 
   function handleEvent(ev) {
@@ -312,11 +320,16 @@
 
       case 'hand': {
         const w = ev.winner;
-        if (w === null) { FX.sfx.sad(); break; }
-        FX.sfx.fanfare();
-        FX.confetti(ev.points >= 3 ? 120 : 30);
-        if (ev.points >= 3) showOverlay(`<div class="big-word small" style="color:${TEAM_COLOR[w]}">+${ev.points}</div><div class="ov-sub">${teamName(w)}</div>`, 1700);
-        for (let i = 0; i < 4; i++) if (s[i].avatar) FACES.mood(seatEl(i), i % 2 === w ? 'happy' : 'sad', 3000);
+        const handFx = () => {
+          if (w === null) { FX.sfx.sad(); return; }
+          FX.sfx.fanfare();
+          FX.confetti(ev.points >= 3 ? 120 : 30);
+          if (ev.points >= 3) showOverlay(`<div class="big-word small" style="color:${TEAM_COLOR[w]}">+${ev.points}</div><div class="ov-sub">${teamName(w)}</div>`, 1700);
+          for (let i = 0; i < 4; i++) if (s[i].avatar) FACES.mood(seatEl(i), i % 2 === w ? 'happy' : 'sad', 3000);
+        };
+        // Mão decidida: pausa com a carta que decidiu em destaque, depois o fim de Mão de sempre.
+        if (ev.decided) setTimeout(handFx, S.DECIDED_PAUSE);
+        else handFx();
         break;
       }
 

@@ -94,8 +94,11 @@
     return code ? `/s/${code}` : '';
   }
 
+  // Mão decidida: quanto tempo (ms) a Mesa pausa com a carta que decidiu, antes do fim de Mão.
+  const DECIDED_PAUSE = 1500;
+
   const SHARED = {
-    AVATARS, RANKS, SUITS, SUIT_SYMBOL, RANK_NAME, MANILHA_NAME, LEVEL_NAME, TEAM_NAME,
+    DECIDED_PAUSE, AVATARS, RANKS, SUITS, SUIT_SYMBOL, RANK_NAME, MANILHA_NAME, LEVEL_NAME, TEAM_NAME,
     SIGNALS, cardName, cardHTML, barsOf,
     newRoomCode, cleanRoomCode, roomCode, roomBase,
   };

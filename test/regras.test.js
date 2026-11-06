@@ -273,8 +273,9 @@ describe('Carta fechada', () => {
   }
 
   // Joga a 2ª Rodada: cada Lugar joga a carta 0, fechada se estiver em `fechadas`. Devolve o evento da Rodada.
+  // Para antes se a Mão ficar decidida.
   function jogarSegunda(g, fechadas) {
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 4 && g.publicView().phase === 'play'; i++) {
       const vez = g.publicView().turn;
       assert.strictEqual(g.play(vez, 0, fechadas.includes(vez)), null);
     }
@@ -740,5 +741,150 @@ describe('Jeito de jogar do Robô', () => {
       [c('J', 'copas'), c('Q', 'espadas'), c('Q', 'ouros')],
     ];
     assert.notStrictEqual(respostaDoRobo2(trucoParaORobo2(maos, { bluff: 0, nerve: 0 })), 'corro');
+  });
+});
+
+describe('Mão decidida', () => {
+  const carta = (r, s) => ({ r, s });
+  const VIRA = carta('4', 'copas'); // Manilha 5: zap = 5 de paus, copas = 5 de copas
+  const ZAP = carta('5', 'paus');
+  const COPAS = carta('5', 'copas');
+
+  // Dá as cartas pela ordem da Mesa: porOrdem[0] é quem começa, porOrdem[1] o seguinte, e assim por diante.
+  // Devolve o Game na vez de quem começa e os Lugares na mesma ordem.
+  function montar(porOrdem) {
+    const g = new Game({ rng: rngFixo() });
+    g.start();
+    const quemComeca = g.publicView().starter;
+    const lugares = [0, 1, 2, 3].map((k) => (quemComeca + k) % 4);
+    const maos = [];
+    lugares.forEach((lugar, k) => { maos[lugar] = porOrdem[k]; });
+    darCartas(g, { vira: VIRA, maos });
+    g.onTimer();
+    g.drain();
+    return { g, lugares };
+  }
+
+  // Quem está na vez joga esta carta (aberta). Passa o tempo do fim da Rodada, se for o caso.
+  function joga(g, c, fechada = false) {
+    if (g.publicView().phase === 'roundEnd') g.onTimer();
+    const vez = g.publicView().turn;
+    const idx = g.seatView(vez).hand.findIndex((x) => x.r === c.r && x.s === c.s);
+    assert.ok(idx >= 0, `Lugar ${vez} não tem ${c.r} de ${c.s}`);
+    assert.strictEqual(g.play(vez, idx, fechada), null);
+    return vez;
+  }
+  const jogaTodas = (g, cartas) => cartas.forEach((c) => joga(g, c));
+  const fimDaMao = (g) => g.drain().find((e) => e.t === 'hand');
+
+  test('zap aberto na 3ª Rodada: a Mão acaba na hora, ninguém joga o resto', () => {
+    const { g, lugares } = montar([
+      [carta('3', 'ouros'), carta('4', 'ouros'), carta('K', 'ouros')],
+      [carta('4', 'espadas'), carta('3', 'espadas'), ZAP],
+      [carta('6', 'ouros'), carta('6', 'espadas'), carta('K', 'espadas')],
+      [carta('7', 'ouros'), carta('7', 'espadas'), carta('K', 'paus')],
+    ]);
+    jogaTodas(g, [carta('3', 'ouros'), carta('4', 'espadas'), carta('6', 'ouros'), carta('7', 'ouros')]);
+    jogaTodas(g, [carta('4', 'ouros'), carta('3', 'espadas'), carta('6', 'espadas'), carta('7', 'espadas')]);
+    g.drain();
+    const quemJogouOZap = joga(g, ZAP);
+    assert.strictEqual(quemJogouOZap, lugares[1]);
+    const fim = fimDaMao(g);
+    assert.ok(fim, 'a Mão não acabou com o zap aberto');
+    assert.strictEqual(fim.winner, duplaDe(lugares[1]));
+    assert.strictEqual(g.publicView().phase, 'handEnd');
+    for (const lugar of [lugares[0], lugares[2], lugares[3]]) {
+      assert.strictEqual(g.publicView().seats[lugar].cards, 1, `Lugar ${lugar} jogou a carta que sobrou`);
+    }
+  });
+
+  // Mãos para a 2ª Rodada: quem começa ganha a 1ª com `primeira` e abre a 2ª com o copas.
+  const comCopas = (primeira, parceiro) => [
+    [primeira, COPAS, carta('K', 'ouros')],
+    [carta('4', 'espadas'), carta('3', 'espadas'), carta('K', 'espadas')],
+    [carta('6', 'ouros'), carta('6', 'espadas'), parceiro],
+    [carta('7', 'ouros'), carta('7', 'espadas'), carta('K', 'paus')],
+  ];
+  const primeiraRodada = (primeira) => [primeira, carta('4', 'espadas'), carta('6', 'ouros'), carta('7', 'ouros')];
+
+  test('zap aberto na 1ª Rodada: a Rodada está decidida, a Mão não, e todos ainda jogam', () => {
+    const { g, lugares } = montar(comCopas(ZAP, carta('K', 'copas')));
+    joga(g, ZAP);
+    assert.strictEqual(fimDaMao(g), undefined);
+    assert.strictEqual(g.publicView().phase, 'play');
+    assert.strictEqual(g.publicView().turn, lugares[1]);
+    jogaTodas(g, primeiraRodada(ZAP).slice(1));
+    assert.strictEqual(g.publicView().table.length, 4);
+  });
+
+  test('copas depois que o zap já saiu nesta Mão: a Mão acaba na hora', () => {
+    const { g, lugares } = montar(comCopas(ZAP, carta('K', 'copas')));
+    jogaTodas(g, primeiraRodada(ZAP));
+    g.drain();
+    joga(g, COPAS);
+    const fim = fimDaMao(g);
+    assert.ok(fim, 'a Mão não acabou com o copas, depois do zap');
+    assert.strictEqual(fim.winner, duplaDe(lugares[0]));
+  });
+
+  test('o zap escondido não conta: com o zap na mão do parceiro, o copas não decide a Mão', () => {
+    const { g } = montar(comCopas(carta('3', 'ouros'), ZAP));
+    jogaTodas(g, primeiraRodada(carta('3', 'ouros')));
+    g.drain();
+    joga(g, COPAS);
+    assert.strictEqual(fimDaMao(g), undefined);
+    assert.strictEqual(g.publicView().phase, 'play');
+  });
+
+  // Quem começa ganha a 1ª Rodada com o 3 de ouros. Na 2ª, o seguinte tem o zap; na 3ª, o copas.
+  const zapNaSegunda = () => montar([
+    [carta('3', 'ouros'), carta('4', 'ouros'), carta('K', 'ouros')],
+    [carta('4', 'espadas'), ZAP, COPAS],
+    [carta('6', 'ouros'), carta('6', 'espadas'), carta('K', 'copas')],
+    [carta('7', 'ouros'), carta('7', 'espadas'), carta('K', 'paus')],
+  ]);
+
+  test('zap aberto na 2ª Rodada, depois de perder a 1ª: a Mão empata em Rodadas, e todos ainda jogam', () => {
+    const { g, lugares } = zapNaSegunda();
+    jogaTodas(g, primeiraRodada(carta('3', 'ouros')));
+    joga(g, carta('4', 'ouros'));
+    g.drain();
+    joga(g, ZAP);
+    assert.strictEqual(fimDaMao(g), undefined);
+    assert.strictEqual(g.publicView().turn, lugares[2]);
+  });
+
+  test('o zap que saiu fechado não conta como visto: o copas não decide a Mão', () => {
+    const { g } = montar([
+      [carta('3', 'ouros'), carta('4', 'ouros'), carta('K', 'ouros')],
+      [carta('4', 'espadas'), carta('3', 'espadas'), COPAS],
+      [carta('6', 'ouros'), ZAP, carta('K', 'copas')],
+      [carta('7', 'ouros'), carta('7', 'espadas'), carta('K', 'paus')],
+    ]);
+    jogaTodas(g, primeiraRodada(carta('3', 'ouros')));
+    joga(g, carta('4', 'ouros'));
+    joga(g, carta('3', 'espadas'));
+    joga(g, ZAP, true);
+    joga(g, carta('7', 'espadas'));
+    g.drain();
+    joga(g, COPAS);
+    assert.strictEqual(fimDaMao(g), undefined);
+    assert.strictEqual(g.publicView().phase, 'play');
+  });
+
+  test('a Mesa fica sabendo qual carta decidiu, e só ela: as cartas não jogadas seguem secretas', () => {
+    const { g, lugares } = montar(comCopas(ZAP, carta('K', 'copas')));
+    jogaTodas(g, primeiraRodada(ZAP));
+    g.drain();
+    joga(g, COPAS);
+    const eventos = g.drain();
+    const rodada = eventos.find((e) => e.t === 'round');
+    assert.deepStrictEqual([rodada.decided, rodada.seat, rodada.card], [true, lugares[0], COPAS]);
+    assert.ok(eventos.find((e) => e.t === 'hand').decided);
+    assert.ok(g.publicView().lastHand.decided);
+    const visto = JSON.stringify([eventos, g.publicView()]);
+    for (const escondida of ['"K","s":"espadas"', '"6","s":"espadas"', '"7","s":"espadas"']) {
+      assert.ok(!visto.includes(`{"r":${escondida}}`), `a carta ${escondida} apareceu para a Mesa`);
+    }
   });
 });

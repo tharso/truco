@@ -92,6 +92,9 @@ body { overflow: hidden; }
 .slot .card { --cw: var(--pc); transition: transform .3s, box-shadow .3s, filter .3s; }
 .slot .card.win { transform: scale(1.15) rotate(-4deg); box-shadow: 0 0 0 4px #fff, 0 0 30px #fff; z-index: 3; }
 .slot .card.lose { filter: brightness(.55) saturate(.6); }
+/* Mão decidida: a carta que decidiu a Mão, em destaque. */
+.slot .card.decisive { transform: scale(1.3) rotate(-4deg); z-index: 4; animation: decisive-glow .5s ease-in-out 3 alternate; box-shadow: 0 0 0 5px #ffd400, 0 0 40px #ffd400; }
+@keyframes decisive-glow { from { box-shadow: 0 0 0 5px #ffd400, 0 0 16px #ffd400; } to { box-shadow: 0 0 0 7px #fff, 0 0 60px #ffd400; } }
 #mid {
   grid-area: mid; display: flex; flex-direction: column; align-items: center; gap: 4px;
   min-width: calc(var(--pc) * 1.8); padding: 6px 10px 8px; border-radius: 18px;

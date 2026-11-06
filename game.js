@@ -1,6 +1,6 @@
 // Motor do truco paulista. Não sabe nada de rede: só regras e estado.
 'use strict';
-const { RANKS, SUITS, barsOf } = require('./public/shared.js');
+const { RANKS, SUITS, barsOf, DECIDED_PAUSE } = require('./public/shared.js');
 
 const LADDER = [1, 3, 6, 9, 12];
 const teamOf = (seat) => seat % 2; // assentos 0 e 2 = Dupla Azul; 1 e 3 = Dupla Vermelha
@@ -140,6 +140,8 @@ class Game {
     // Sinais da Mão: { seat, sig, card, seenBy } (seenBy = Robôs que viram). Some quando a carta é jogada.
     this.signals = [];
     this.signalPlan = [];
+    // Cartas abertas desta Mão: o que todo mundo já viu. A Mão decidida só olha para elas.
+    this.openCards = [];
   }
 
   // ---------- quem age agora ----------
@@ -148,7 +150,8 @@ class Game {
     switch (this.phase) {
       case 'deal': return { who: 'timer', delay: T.deal };
       case 'roundEnd': return { who: 'timer', delay: T.round };
-      case 'handEnd': return { who: 'timer', delay: T.hand };
+      // Mão decidida: a Mesa pausa com a carta que decidiu antes do fim de Mão de sempre.
+      case 'handEnd': return { who: 'timer', delay: T.hand + (this.lastHand && this.lastHand.decided ? DECIDED_PAUSE : 0) };
       case 'play': return this.actor(this.turn, T.bot);
       // Robô que responde espera a Opinião do parceiro Jogador até T.opinion.
       case 'truco': return this.actor(this.pending.responder, this.wantsOpinion(this.pending) ? T.opinion : T.truco);
@@ -290,9 +293,12 @@ class Game {
       this.emit({ t: 'play', seat, closed: true });
     } else {
       this.table.push({ seat, card });
+      this.openCards.push(card);
       this.emit({ t: 'play', seat, card, ferro: this.mode === 'ferro' });
     }
-    if (this.table.length < 4) {
+    if (this.table.length < 4 && this.handIsDecided()) {
+      this.resolveRound(true);
+    } else if (this.table.length < 4) {
       this.turn = (this.turn + 1) % 4;
     } else {
       this.resolveRound();
@@ -300,16 +306,33 @@ class Game {
     return null;
   }
 
-  resolveRound() {
+  // Mão decidida: a carta na mesa não pode mais perder nem empatar a Rodada, e essa Rodada dá a Mão.
+  // Só conta o que todos viram (a Vira e as cartas abertas). Toda carta não vista pode estar com
+  // quem ainda vai jogar, até as que estão com o parceiro ou que saíram fechadas.
+  handIsDecided() {
+    const best = this.currentBest();
+    if (best.tie || best.power < 0) return false;
+    const d = decide([...this.rounds, best.team]);
+    if (!d.done || d.winner !== best.team) return false;
+    const played = new Set(this.table.map((p) => p.seat));
+    const rivalsLeft = [0, 1, 2, 3].some((s) => !played.has(s) && teamOf(s) !== best.team);
+    if (!rivalsLeft) return true;
+    const seen = [this.vira, ...this.openCards];
+    const isSeen = (c) => seen.some((x) => x.r === c.r && x.s === c.s);
+    return newDeck().every((c) => isSeen(c) || this.power(c) < best.power);
+  }
+
+  // decided = a Mão acabou antes de todos jogarem a Rodada (Mão decidida).
+  resolveRound(decided = false) {
     const best = this.currentBest();
     const result = best.tie ? 'tie' : best.team;
     this.rounds.push(result);
     this.lastRound = { result, seat: best.seat };
     const top = this.table.find((p) => p.seat === best.seat);
-    this.emit({ t: 'round', n: this.rounds.length, result, seat: best.seat, card: top.closed ? undefined : top.card });
+    this.emit({ t: 'round', n: this.rounds.length, result, seat: best.seat, card: top.closed ? undefined : top.card, decided: decided || undefined });
     this.turn = -1;
     const d = decide(this.rounds);
-    if (d.done) this.endHand(d.winner, this.value, d.winner === null ? 'empate' : 'jogo');
+    if (d.done) this.endHand(d.winner, this.value, d.winner === null ? 'empate' : 'jogo', decided);
     else this.phase = 'roundEnd';
   }
 
@@ -319,12 +342,13 @@ class Game {
     this.phase = 'play';
   }
 
-  endHand(winner, points, reason) {
+  endHand(winner, points, reason, decided = false) {
     this.turn = -1;
     this.pending = null;
     if (winner !== null) this.score[winner] = Math.min(12, this.score[winner] + points);
     this.lastHand = { winner, points: winner === null ? 0 : points, reason };
-    this.emit({ t: 'hand', winner, points: this.lastHand.points, reason, score: [...this.score] });
+    if (decided) this.lastHand.decided = true;
+    this.emit({ t: 'hand', winner, points: this.lastHand.points, reason, score: [...this.score], decided: decided || undefined });
     this.phase = 'handEnd';
   }
 
