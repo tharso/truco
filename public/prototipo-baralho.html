@@ -89,6 +89,7 @@
   /* cabeça colorida, cortada da arte de arte/cartas/ */
   /* vai até a borda da carta, sem moldura; a carta arredonda os cantos */
   .carta .cabeca { position: absolute; left: 0; right: 0; bottom: 0; height: 67%; }
+  .carta .cabeca.dama { height: 62%; } /* a coroa da Dama é alta: mais espaço até o Q */
   .carta .cabeca img { width: 100%; height: 100%; display: block; object-fit: cover; object-position: center top; mix-blend-mode: multiply; }
 
   /* ---------- versos ---------- */
@@ -219,7 +220,7 @@
     const style = fonteId ? ` style='${estiloFonte(fonteId)}'` : '';
     if (FIGURA.includes(r)) {
       return `<div class="carta ${cor}" role="img" aria-label="${titulo}"${style}>
-        <span class="num letra">${r}</span>${svg(`<path d="${NAIPE[s]}"/>`, 'naipe-p')}<span class="cabeca"><img src="/prototipo-baralho-cabecas/${r}-${s}.jpg" alt=""></span></div>`;
+        <span class="num letra">${r}</span>${svg(`<path d="${NAIPE[s]}"/>`, 'naipe-p')}<span class="cabeca${r === 'Q' ? ' dama' : ''}"><img src="/prototipo-baralho-cabecas/${r}-${s}.jpg" alt=""></span></div>`;
     }
     return `<div class="carta ${cor}" role="img" aria-label="${titulo}"${style}>
       <span class="num">${r}</span>${svg(`<path d="${NAIPE[s]}"/>`, 'naipe-g')}</div>`;
