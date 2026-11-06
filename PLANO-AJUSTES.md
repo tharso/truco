@@ -88,6 +88,23 @@ O nome fica **Truco do Bar do Zé**. Você pensou em trocar, mas decidiu manter.
 
 ---
 
+## Onde paramos (05/11/2026)
+
+Os Blocos 1 a 5 estão feitos e publicados em https://truco.tharso.com (último commit do jogo: `679474f`).
+Depois do Bloco 5 teve uma revisão do código (`/code-review` desde `efd4f91`). O que ela achou de importante foi corrigido.
+
+**Próximo passo:** jogar uma partida com a Nina. Com o que vocês acharem, abrir a rodada 3 com `/grill-with-docs`.
+
+**Sobras da revisão.** Nada disso trava o jogo. Ficam aqui para não se perderem:
+
+1. **Barras do parceiro podem voltar ao padrão.** Em `room.js`, `fixConflicts` troca o Personagem repetido e põe as Barras dele (`barsOf`). Isso pode acontecer com um Jogador que montou o parceiro e depois teve o Lugar trocado entre Robô e Jogador no lobby (`config` destrava a escolha).
+2. **`signal()` e `canSignal()` repetem a mesma conferência** em `game.js`.
+3. **Exports sem uso** em `bots.js` e `game.js`.
+4. **Blefe e coragem andam sempre juntos** (`bluff`, `nerve`) em `room.js`: podiam virar uma coisa só.
+5. **No Celular, a dica "Toque de novo" fica por cima de outra coisa.** Já era assim antes do Bloco 3.
+
+**Para quem mexer nos testes:** a mesma sorte (`rng`) dá as cartas e decide os Robôs. Mudar a lógica de um Robô muda as cartas das Mãos seguintes, e os testes da Sala que dependem de semente quebram. Para achar uma semente nova, use `node scripts/achar-semente.js <alvo>` (os alvos estão no começo do arquivo).
+
 ## Fica para depois (versão futura)
 
 - Jogar online, cada um da sua casa, com avatares para todos.
