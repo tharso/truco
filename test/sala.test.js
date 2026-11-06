@@ -655,6 +655,22 @@ describe('Sala: escolha de Personagem', () => {
     assert.deepStrictEqual(celular0.estado.partner, { bluff: 10, nerve: 0 });
   });
 
+  test('o parceiro montado guarda as barras quando cede o Personagem para o outro Jogador', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    const celular0 = conectarCelular(sala, 0);
+    conectarCelular(sala, 1);
+    sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', partnerName: 'Cleitinho', bluff: 10, nerve: 0 });
+    // Trocar o Lugar 0 para Robô e de volta destrava a escolha do Jogador 0.
+    sala.action({ type: 'config', seat: 0, bot: true });
+    sala.action({ type: 'config', seat: 0, bot: false });
+    // O Jogador 1 pega o Roque, e o parceiro do Jogador 0 troca de rosto.
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 1, avatar: 'roque', partner: 'cida' }), { ok: true });
+    assert.notStrictEqual(mesa.estado.seats[2].avatar, 'roque');
+    assert.strictEqual(mesa.estado.seats[2].name, 'Cleitinho');
+    assert.deepStrictEqual(celular0.estado.partner, { bluff: 10, nerve: 0 });
+  });
+
   test('uma barra fora de 0 a 10 dá erro, e nada muda', () => {
     const sala = new Room();
     const celular0 = conectarCelular(sala, 0);

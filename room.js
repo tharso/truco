@@ -7,6 +7,7 @@ const { AVATARS, barsOf } = require('./public/shared.js');
 
 const AVATAR_IDS = AVATARS.map((a) => a.id);
 const avatarName = (id) => (AVATARS.find((a) => a.id === id) || {}).name || id;
+const sameBars = (a, b) => !!a && a.bluff === b.bluff && a.nerve === b.nerve;
 // Tira os símbolos < > & " e corta em 16 letras. Conta letra como a pessoa vê (grafema), para não
 // partir um emoji ou uma bandeira ao meio, e tira os espaços de novo depois do corte.
 const GRAPHEMES = new Intl.Segmenter('pt-BR', { granularity: 'grapheme' });
@@ -62,8 +63,9 @@ class Room {
         if (!s.avatar || !used.has(s.avatar)) { if (s.avatar) used.add(s.avatar); continue; }
         const old = s.avatar;
         s.avatar = this.freeAvatar(used, i >= 2 ? null : FILL_AVATARS[i]);
+        // O Robô só leva o nome e as Barras do rosto novo se tinha os do rosto antigo. O que o Jogador montou fica.
         if (s.bot && s.name === avatarName(old)) s.name = avatarName(s.avatar);
-        if (s.bot) Object.assign(s, barsOf(s.avatar));
+        if (s.bot && sameBars(s.bars, barsOf(old))) s.bars = barsOf(s.avatar);
         used.add(s.avatar);
       }
     }
@@ -183,10 +185,9 @@ class Room {
           const used = new Set(game.seats.filter((x, i) => i !== seat).map((x) => x.avatar).filter(Boolean));
           s.avatar = this.freeAvatar(used, FILL_AVATARS[seat]);
           s.name = avatarName(s.avatar);
-          Object.assign(s, barsOf(s.avatar));
+          s.bars = barsOf(s.avatar);
         } else {
-          delete s.bluff;
-          delete s.nerve;
+          delete s.bars;
           s.avatar = null;
           s.name = this.humanNames[seat];
         }
@@ -216,7 +217,7 @@ class Room {
         s.picked = true;
         p.avatar = partner;
         p.name = clean(a.partnerName) || avatarName(partner);
-        Object.assign(p, bars);
+        p.bars = bars;
         this.fixConflicts();
         return null;
       }

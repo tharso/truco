@@ -60,7 +60,6 @@ body {
 #hand .card { --cw: min(28vw, 120px); transition: transform .15s, filter .15s; }
 #hand.wait .card { filter: brightness(.75); }
 #hand .card.sel { transform: translateY(-18px) scale(1.06); box-shadow: 0 0 0 4px #ffd400, 0 10px 20px #000a; }
-#hand .card.sel::after { content: "toque de novo"; position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font: 800 11px sans-serif; color: #ffd400; white-space: nowrap; }
 
 #truco-btn {
   font-size: 34px; padding: 16px; border: 0; border-radius: 22px; color: #fff;

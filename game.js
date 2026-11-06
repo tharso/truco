@@ -60,14 +60,14 @@ function signalOfCard(card, manilha) {
 const SIGNAL_PHASES = new Set(['deal', 'play', 'truco', 'roundEnd', 'onze']);
 
 const DEFAULT_SEATS = () => [
-  // avatar = pasta das fotos em public/avatars/. bluff e nerve = barras do Robô (0 a 10), do Personagem dele.
+  // avatar = pasta das fotos em public/avatars/. bars = Barras do Robô ({ bluff, nerve }, de 0 a 10), do Personagem dele.
   { name: 'Jogador 1', bot: false, avatar: null, picked: false, connected: false },
   { name: 'Jogador 2', bot: false, avatar: null, picked: false, connected: false },
-  { name: 'Tonhão', bot: true, avatar: 'tonhao', connected: true, ...barsOf('tonhao') },
-  { name: 'Cida', bot: true, avatar: 'cida', connected: true, ...barsOf('cida') },
+  { name: 'Tonhão', bot: true, avatar: 'tonhao', connected: true, bars: barsOf('tonhao') },
+  { name: 'Cida', bot: true, avatar: 'cida', connected: true, bars: barsOf('cida') },
 ];
 // O que todo mundo vê de um Lugar: tudo, menos as barras do Robô.
-const publicSeat = ({ bluff, nerve, ...rest }) => rest;
+const publicSeat = ({ bars, ...rest }) => rest;
 
 class Game {
   constructor(opts = {}) {
@@ -227,19 +227,23 @@ class Game {
     this.makeSignal(seat, sig, card);
   }
 
-  canSignal(seat, idx) {
-    const card = this.hands[seat][idx];
-    return !!card && this.mode !== 'ferro' && SIGNAL_PHASES.has(this.phase)
-      && !this.signals.some((x) => x.seat === seat && x.card === card);
-  }
-
-  // O Jogador faz o Sinal de uma carta: o Personagem dele faz a cara na Mesa, na hora.
-  signal(seat, idx) {
+  // Por que a carta `idx` do Lugar `seat` não pode fazer Sinal agora. null = pode.
+  signalError(seat, idx) {
     if (this.mode === 'ferro') return 'Na Mão de ferro não tem Sinal.';
     if (!SIGNAL_PHASES.has(this.phase)) return 'Agora não dá pra fazer Sinal.';
     const card = this.hands[seat] && this.hands[seat][idx];
     if (!card) return 'Carta inválida.';
-    if (!this.canSignal(seat, idx)) return 'Essa carta já fez Sinal.';
+    if (this.signals.some((x) => x.seat === seat && x.card === card)) return 'Essa carta já fez Sinal.';
+    return null;
+  }
+
+  canSignal(seat, idx) { return !this.signalError(seat, idx); }
+
+  // O Jogador faz o Sinal de uma carta: o Personagem dele faz a cara na Mesa, na hora.
+  signal(seat, idx) {
+    const err = this.signalError(seat, idx);
+    if (err) return err;
+    const card = this.hands[seat][idx];
     this.makeSignal(seat, signalOfCard(card, this.manilha), card);
     return null;
   }
@@ -458,10 +462,10 @@ class Game {
     v.mustOnze = this.phase === 'onze' && this.voiceOf(this.onzeTeam) === seat;
     // Só o dono vê as barras do parceiro Robô.
     const partner = this.seats[(seat + 2) % 4];
-    if (partner.bot) v.partner = { bluff: partner.bluff, nerve: partner.nerve };
+    if (partner.bot) v.partner = { ...partner.bars };
     if (v.mustOnze) v.partnerHand = this.hands[(seat + 2) % 4];
     return v;
   }
 }
 
-module.exports = { Game, signalOfCard, teamOf, power, decide, nextLevel, manilhaOf, LADDER };
+module.exports = { Game, signalOfCard, power, decide, nextLevel, manilhaOf };

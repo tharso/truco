@@ -31,14 +31,14 @@ function partidaComPlacar(azul, vermelha) {
 function partidaSoDeRobos({ brain } = {}) {
   const g = new Game({ brain });
   g.seats.forEach((s, i) => {
-    if (!s.bot) Object.assign(s, { bot: true }, i === 0 ? { bluff: 10, nerve: 10 } : { bluff: 0, nerve: 0 });
+    if (!s.bot) Object.assign(s, { bot: true, bars: i === 0 ? { bluff: 10, nerve: 10 } : { bluff: 0, nerve: 0 } });
   });
   return g;
 }
 
 // Muda as barras de blefe e de coragem (0 a 10) do Robô do Lugar `lugar`.
 function barras(g, lugar, bluff, nerve) {
-  Object.assign(g.seats[lugar], { bluff, nerve });
+  g.seats[lugar].bars = { bluff, nerve };
 }
 
 // Troca as cartas da Mão que está sendo dada pelas cartas escolhidas.

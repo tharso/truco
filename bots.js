@@ -8,9 +8,9 @@ const { RANKS, SUITS } = require('./public/shared.js');
 const BLUFF_MAX = 0.3;
 const NERVE_MAX = 0.14;
 function temperOf(g, seat) {
-  const s = g.seats[seat];
-  const bluff = Number.isFinite(s.bluff) ? s.bluff : 5;
-  const nerve = Number.isFinite(s.nerve) ? s.nerve : 5;
+  const b = g.seats[seat].bars || {};
+  const bluff = Number.isFinite(b.bluff) ? b.bluff : 5;
+  const nerve = Number.isFinite(b.nerve) ? b.nerve : 5;
   return { bluff: (bluff / 10) * BLUFF_MAX, nerve: ((nerve - 5) / 5) * NERVE_MAX };
 }
 
@@ -171,4 +171,4 @@ function act(g, seat) {
   return 'nada a fazer';
 }
 
-module.exports = { act, signalFor, seesSignal, signalDelay, SIGNAL_SEEN, SIGNAL_WINDOW, SIGNAL_WEIGHT, OPPONENT_SIGNAL, opinionFor, winProb, chooseCard, wantsClosed, BLUFF_MAX, NERVE_MAX, CLOSE_CHANCE, OPINION_WEIGHT };
+module.exports = { act, signalFor, seesSignal, signalDelay, opinionFor };
