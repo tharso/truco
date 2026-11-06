@@ -85,6 +85,19 @@ class Game {
     this.clearHand();
   }
 
+  // ---------- guardar e ler (ADR 0002) ----------
+  // Tudo o que é da Partida, como dados puros. Fica de fora o que vem de quem cria o Game
+  // (sorteio, cérebro dos Robôs, tempos) e os eventos que ainda não saíram.
+  snapshot() {
+    const { rng, brain, timing, events, ...data } = this;
+    return JSON.parse(JSON.stringify(data));
+  }
+
+  restore(data) {
+    Object.assign(this, JSON.parse(JSON.stringify(data)));
+    this.events = [];
+  }
+
   // ---------- utilidades ----------
   emit(ev) { ev.id = ++this.evSeq; this.events.push(ev); }
   drain() { const e = this.events; this.events = []; return e; }

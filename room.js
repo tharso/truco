@@ -31,14 +31,32 @@ const OWNED = [[0, 2], [1, 3]];
 
 class Room {
   // opts.rng: sorteio das cartas (os testes passam um fixo). Sem ele, o Game usa Math.random.
+  // opts.onChange(salva): chamado a cada mudança com o que guardar (o Durable Object guarda).
   constructor(opts = {}) {
     this.game = new Game({ brain, rng: opts.rng });
+    this.onChange = opts.onChange || null;
     this.clients = new Set();
     this.humanNames = ['Jogador 1', 'Jogador 2'];
     // A marca do Celular dono de cada Lugar de Jogador (null = livre). Nunca vai para as telas.
     this.owners = [null, null];
     this.timer = null;
     this.timerKey = '';
+  }
+
+  // ---------- guardar e ler (ADR 0002) ----------
+  // O que guardar: a Partida e os donos dos Lugares. Conexões e relógios não: voltam sozinhos.
+  save() {
+    return { v: 1, game: this.game.snapshot(), humanNames: [...this.humanNames], owners: [...this.owners] };
+  }
+
+  // Uma Sala nova a partir do que `save` devolveu. Ninguém está conectado nela ainda.
+  static load(saved, opts = {}) {
+    const room = new Room(opts);
+    room.game.restore(saved.game);
+    room.humanNames = [...saved.humanNames];
+    room.owners = [...saved.owners];
+    room.refreshConnected();
+    return room;
   }
 
   // ---------- avatares ----------
@@ -140,6 +158,7 @@ class Room {
     }
     this.scheduleSignals();
     this.pump();
+    if (this.onChange) this.onChange(this.save());
   }
 
   // Os Sinais dos Robôs acontecem na hora sorteada pelo Game, não junto com as cartas.

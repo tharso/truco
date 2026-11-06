@@ -1276,3 +1276,50 @@ describe('Sala: Lugar com dono', () => {
     assert.deepStrictEqual(sala.action({ type: 'join', seat: 0, name: 'Bia', marca: MARCA_B }), { ok: true });
   });
 });
+
+// Guardar e ler a Sala (ADR 0002): a Cloudflare tira a Sala da memória quando ninguém está conectado.
+// A Sala guardada passa por JSON, como no armazenamento do Durable Object.
+const guardarELer = (sala, opts) => Room.load(JSON.parse(JSON.stringify(sala.save())), opts);
+
+describe('Sala: guardar e ler', () => {
+  test('no meio de uma Mão, a Sala lida mostra à Mesa e aos Celulares o mesmo que a Sala guardada', (t) => {
+    pararRelogio(t);
+    const { sala, mesa } = partidaComDoisCelulares(3);
+    esperarAte(t, () => mesa.estado.table.length > 0, 'a primeira carta na Mesa');
+    const lida = guardarELer(sala, { rng: sorteioFixo(99) });
+    const telas = (s) => [conectarMesa(s), conectarCelular(s, 0), conectarCelular(s, 1)].map((tela) => tela.estado);
+    assert.deepStrictEqual(telas(lida), telas(sala));
+  });
+
+  test('depois de ler, a Partida continua até o fim', (t) => {
+    pararRelogio(t);
+    const { sala, mesa } = partidaDeRobos(11);
+    esperarAte(t, () => mesa.estado.handNo === 2, 'a 2ª Mão');
+    const placar = mesa.estado.score;
+    const lida = guardarELer(sala, { rng: sorteioFixo(5) });
+    sala.action({ type: 'lobby' }); // a Sala velha some, como na Cloudflare
+    const novaMesa = conectarMesa(lida);
+    assert.deepStrictEqual(novaMesa.estado.score, placar);
+    esperarAte(t, () => novaMesa.estado.phase === 'over', 'o fim da Partida na Sala lida');
+  });
+
+  test('a Sala lida lembra o dono de cada Lugar', () => {
+    const sala = new Room();
+    sala.action({ type: 'join', seat: 0, name: 'Ana', marca: MARCA_A });
+    const lida = guardarELer(sala);
+    const mesa = conectarMesa(lida);
+    assert.strictEqual(mesa.estado.seats[0].name, 'Ana');
+    assert.strictEqual(mesa.estado.seats[0].connected, false);
+    assert.deepStrictEqual(lida.action({ type: 'join', seat: 0, name: 'Bia', marca: MARCA_B }), { error: OUTRO_CELULAR });
+    assert.deepStrictEqual(lida.action({ type: 'join', seat: 0, name: 'Ana', marca: MARCA_A }), { ok: true });
+  });
+
+  test('a Sala avisa quando muda, com o que guardar', () => {
+    const guardadas = [];
+    const sala = new Room({ onChange: (salva) => guardadas.push(salva) });
+    sala.action({ type: 'join', seat: 1, name: 'Rita' });
+    assert.ok(guardadas.length > 0, 'a Sala não avisou');
+    const mesa = conectarMesa(Room.load(JSON.parse(JSON.stringify(guardadas.at(-1)))));
+    assert.strictEqual(mesa.estado.seats[1].name, 'Rita');
+  });
+});

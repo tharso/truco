@@ -15,18 +15,47 @@ const enc = new TextEncoder();
 const SSE_HEADERS = { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no' };
 const JSON_HEADERS = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
 
+// Sala sem ninguém conectado por 6 horas acaba (ADR 0002).
+const EMPTY_MS = 6 * 60 * 60 * 1000;
+
 export class Mesa extends DurableObject {
+  // A Sala fica guardada no armazenamento do Durable Object a cada mudança. A Cloudflare pode tirar
+  // a Sala da memória quando ninguém está conectado; ao acordar, ela é lida de volta.
   constructor(ctx, env) {
     super(ctx, env);
-    this.room = new Room();
     this.beat = null;
+    // EMPTY_MS só para conferir o alarme com tempo curto (wrangler dev --var EMPTY_MS:8000).
+    this.emptyMs = Number(env.EMPTY_MS) || EMPTY_MS;
+    ctx.blockConcurrencyWhile(async () => {
+      const saved = await ctx.storage.get('sala');
+      this.room = saved ? Room.load(saved, this.roomOpts()) : new Room(this.roomOpts());
+    });
+  }
+
+  roomOpts() {
+    return { onChange: (saved) => { this.ctx.storage.put('sala', saved); } };
+  }
+
+  // Sem ninguém conectado, marca a hora de acabar. Com alguém, desmarca.
+  async watchEmpty() {
+    if (this.room.clients.size === 0) await this.ctx.storage.setAlarm(Date.now() + this.emptyMs);
+    else await this.ctx.storage.deleteAlarm();
+  }
+
+  async alarm() {
+    if (this.room.clients.size > 0) return;
+    // A Sala velha pode ter relógio dos Robôs rodando: ela não guarda mais nada.
+    this.room.onChange = null;
+    clearTimeout(this.room.timer);
+    await this.ctx.storage.deleteAll();
+    this.room = new Room(this.roomOpts());
   }
 
   startBeat() {
     if (this.beat) return;
     this.beat = setInterval(() => {
       this.room.heartbeat();
-      if (this.room.clients.size === 0) { clearInterval(this.beat); this.beat = null; }
+      if (this.room.clients.size === 0) { clearInterval(this.beat); this.beat = null; this.watchEmpty(); }
     }, 10000);
   }
 
@@ -41,19 +70,24 @@ export class Mesa extends DurableObject {
       const c = this.room.connect(url.searchParams.get('role'), url.searchParams.get('seat'), (text) => writer.write(enc.encode(text)), url.searchParams.get('marca'));
       if (request.signal) request.signal.addEventListener('abort', () => this.room.disconnect(c));
       this.startBeat();
+      await this.watchEmpty();
       return new Response(readable, { headers: SSE_HEADERS });
     }
 
-    // Sala ocupada: alguém conectado ou Partida começada. Um código novo não pode cair nela.
+    // Sala ocupada: alguém conectado, Partida começada ou Lugar com dono. Um código novo não pode cair nela.
     if (p === '/busy') {
-      return new Response(JSON.stringify({ busy: this.room.clients.size > 0 || this.room.game.phase !== 'lobby' }), { headers: JSON_HEADERS });
+      const r = this.room;
+      const busy = r.clients.size > 0 || r.game.phase !== 'lobby' || r.owners.some(Boolean);
+      return new Response(JSON.stringify({ busy }), { headers: JSON_HEADERS });
     }
 
     if (p === '/api/action' && request.method === 'POST') {
       const body = await request.text();
       let a = {};
       if (body.length <= 5000) { try { a = JSON.parse(body || '{}'); } catch { a = {}; } }
-      return new Response(JSON.stringify(this.room.action(a)), { headers: JSON_HEADERS });
+      const result = this.room.action(a);
+      await this.watchEmpty();
+      return new Response(JSON.stringify(result), { headers: JSON_HEADERS });
     }
 
     return new Response('Não achei.', { status: 404 });
@@ -80,7 +114,9 @@ export default {
     const p = url.pathname;
 
     if (p === '/' || p === '/mesa') {
-      return Response.redirect(`${url.origin}/s/${await freshCode(env)}/mesa`, 302);
+      // HEAD (robôs de busca, quem só confere se o site está no ar) não acorda nenhuma Sala.
+      const code = request.method === 'HEAD' ? newRoomCode() : await freshCode(env);
+      return Response.redirect(`${url.origin}/s/${code}/mesa`, 302);
     }
     if (p === '/mao' || p === '/m') return page(env, url, request, '/hand.html');
     if (p === '/api/info') return json({ online: true, code: null });
