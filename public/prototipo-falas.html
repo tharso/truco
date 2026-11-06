@@ -139,7 +139,7 @@
           <div class="slot slot1" id="slot1"></div>
           <div id="mid">
             <div id="vira-tag" class="shout">VIRA</div>
-            <div id="vira"><div class="card back"><div class="back-art">🃏</div></div></div>
+            <div id="vira"><div class="card back"><div class="back-art"></div></div></div>
           </div>
           <div class="slot slot3" id="slot3"></div>
           <div class="slot slot0" id="slot0"></div>
@@ -209,7 +209,7 @@
       // ---------- monta os 4 Lugares, com o mesmo HTML da Mesa ----------
       LUGARES.forEach((L, i) => {
         const fotos = CARAS.map((c) => `<img data-x="${c}" class="${c === 'neutro' ? 'on' : ''}" src="/avatars/${L.foto}/${c}.jpg" alt="">`).join('');
-        const costas = '<div class="card back"><div class="back-art">🃏</div></div>'.repeat(3);
+        const costas = '<div class="card back"><div class="back-art"></div></div>'.repeat(3);
         const el = seat(i);
         el.className = `seat pos-${L.pos} t${i % 2}`;
         el.innerHTML = `<div class="avatar"><div class="face-photo">${fotos}</div></div>`
