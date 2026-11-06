@@ -1,6 +1,17 @@
 #!/bin/sh
 # Roda os testes antes de cada commit. Se algum falhar, o commit não entra.
 # Ligado por `npm install` (script prepare: git config core.hooksPath .githooks).
+# Na pasta principal, só se faz commit na main. Mudança de código vai num worktree
+# próprio, porque várias sessões usam a pasta principal ao mesmo tempo (ver AGENTS.md).
+if [ "$(git rev-parse --git-dir)" = "$(git rev-parse --git-common-dir)" ]; then
+  ramo=$(git symbolic-ref --quiet --short HEAD) || ramo=""
+  if [ -n "$ramo" ] && [ "$ramo" != "main" ]; then
+    echo "pre-commit: na pasta principal, commit só na main (aqui: $ramo)." >&2
+    echo "Use um worktree: git worktree add ../truco-<assunto> -b <assunto> origin/main" >&2
+    exit 1
+  fi
+fi
+
 npm test --silent || {
   echo "pre-commit: os testes falharam. Commit barrado." >&2
   exit 1

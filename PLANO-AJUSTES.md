@@ -190,3 +190,21 @@ Grilling com Tharso, com um board de "fica / sai" (`docs/board-rodada4.html`).
 - "Mostra!" e "Tô fora!" passam a ter som.
 - O Blurp também é a Voz da Mesa: grava as 17 falas de anúncio.
 - Tharso grava um arquivo por Personagem, com 2 s de silêncio entre as falas. O Claude corta com `ffmpeg` e põe em `public/audio/`.
+
+---
+
+## Rodada 5 — Mesa em perspectiva (06/11/2026) · ✅ feita (commit 5dd1575)
+
+Grilling com Tharso, a partir de uma imagem de referência (só a perspectiva).
+
+**Mesa (TV)**
+- Tampo: a mesa desenhada inclina 35°, fica 3 por 2 e se ajusta à janela, sempre no centro.
+- Cartas jogadas e Vira deitam no Tampo, um pouco tortas, com sombra curta. Textos ficam retos.
+- Personagem de trás do tamanho de antes; os outros três 20% maiores.
+- Cartas na mão em leque, fechado embaixo, 25% maiores.
+- Marca da Rodada: 1ª, 2ª, 3ª embaixo das cartas de quem ganhou (cor da Dupla) ou empatou (cinza).
+- Quem caiu: o Personagem fica apagado, com "caiu" na plaquinha. Sai o aviso do Tampo.
+
+**Mesa e Celular**
+- Nenhuma carta marca Manilha (sem etiqueta, sem brilho). Só "Manilha: 5", ao lado da Vira.
+- Festa do zap só quando o zap ganha a Rodada que dá a Mão.
