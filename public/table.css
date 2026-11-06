@@ -121,8 +121,8 @@ body { overflow: hidden; }
 .pos-top, .pos-bottom { flex-direction: row; gap: 14px; }
 .avatar { width: var(--av); height: calc(var(--av) * 1.15); position: relative; display: grid; place-items: center; transition: transform .35s cubic-bezier(.3, 1.5, .5, 1); }
 /* Quem fala cresce 35% (a Fala). Cada lugar cresce para o lado de dentro, sem cortar na borda da tela. */
-.seat:has(.avatar.falando) { z-index: 6; }
-.avatar.falando { transform: scale(1.35); }
+.seat:has(.avatar.fala-ativa) { z-index: 6; }
+.avatar.fala-ativa { transform: scale(1.35); }
 .pos-top .avatar { transform-origin: right top; }
 .pos-bottom .avatar { transform-origin: right bottom; }
 .pos-left .avatar, .pos-right .avatar { transform-origin: center bottom; }

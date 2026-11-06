@@ -38,7 +38,7 @@
 
   // ---------- falas ----------
   // A Fala sai do Personagem: ele cresce e um balão grande sai dele.
-  // Fica no .avatar, porque o Lugar é redesenhado a cada estado e o .avatar não.
+  // Fica no .avatar, porque a classe do Lugar é reescrita a cada estado.
   const FALA_MS = 2400;
   function fala(seat, text, ms) {
     const av = seatEl(seat).querySelector('.avatar');
@@ -51,9 +51,9 @@
       b.textContent = text;
       av.appendChild(b);
     }
-    av.classList.add('falando');
+    av.classList.add('fala-ativa');
     av._fala = setTimeout(() => {
-      av.classList.remove('falando');
+      av.classList.remove('fala-ativa');
       av.querySelectorAll('.fala-balao').forEach((n) => n.remove());
     }, ms || FALA_MS);
   }
@@ -448,7 +448,7 @@
     FX.sfx.horn();
     FX.shake(2);
     FX.flash(TEAM_COLOR[team]);
-    // Sem Aviso no meio: o Truco é uma Fala, só o balão de quem pediu.
+    // Sem Aviso da Mesa: o Truco é uma Fala, só o balão de quem pediu.
     fala(ev.seat, `${word}!`, 2600);
     if (s.bot) FACES.mood(seatEl(ev.seat), 'shock', 1500);
     speak(LEVEL_CLIP[ev.level], { urgent: true, seat: s.bot ? ev.seat : undefined });
