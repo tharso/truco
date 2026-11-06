@@ -4,7 +4,7 @@ Fonte: 2 conversas com a Nina no Granola, em 05/11/2026.
 - 10:54 — "Truco app feedback and improvements"
 - 11:05 — "Truco game feature ideas"
 
-O nome fica **Truco do Bar do Zé**. Você pensou em trocar, mas decidiu manter.
+O nome era **Truco do Bar do Zé**. Em 06/11/2026 virou **Truco do Bar do Blurp** (ver rodada 3 no fim).
 
 ---
 
@@ -148,3 +148,19 @@ A cada bloco: rodo os testes, jogo uma partida no navegador e publico.
 - Quem está na vez cresce 35%. Placar centralizado.
 - Deploy automático na Cloudflare religado (o app do GitHub não tinha acesso ao repositório).
 
+
+---
+
+## Rodada 3 — interface (06/11/2026) · ✅ feita
+
+Grilling com Tharso. Tudo nas issues #14 a #22, todas fechadas.
+
+- Nome novo: **Truco do Bar do Blurp**. Baralho desenhado em código, minimalista (#15, #22).
+- A Fala sai do Personagem: ele cresce e um balão grande sai dele. A vez é só um anel amarelo; não cresce mais (#14, #19).
+- Truco, aceite e corrida: só balão. No meio ficam só os Avisos da Mesa.
+- Mão decidida: a Mão acaba na hora, usando só o que todos viram (#16).
+- Robôs mais lentos: carta em 2,5–4,5 s, resposta de truco em 3,5–5,5 s (#17).
+- Hall sem Gritômetro, passo 3 com "? + ?", título mais junto (#18).
+- Falas novas e vozes regravadas; a voz do fim diz só "Fim de jogo!" (#21).
+
+Falta: jogar uma Partida de verdade e ajustar o ritmo e os balões, se precisar.
