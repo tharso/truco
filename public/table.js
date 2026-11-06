@@ -18,7 +18,6 @@
   let lastScore = [0, 0];
   let nudgeTimer = null;
   let nudgeKey = '';
-  let record = 0;
 
   const seatEl = (i) => $('seat' + i);
   // Quanto tempo a cara do Sinal fica na tela (ms).
@@ -228,10 +227,13 @@
       const partner = state.seats[i + 2];
       const status = s.bot ? `🤖 ${s.name} joga neste lugar`
         : s.connected ? `✅ <b>${s.name}</b> conectado` : '⏳ Esperando um celular…';
-      const mini = (x) => (x.avatar ? `<img class="lmini" src="/avatars/${x.avatar}/neutro.jpg" alt="">` : '<span class="lmini q">?</span>');
+      // Antes de o Jogador escolher, a dupla é dele: o parceiro também fica em aberto.
+      const chosen = s.bot || s.picked;
+      const mini = (x) => (chosen && x.avatar ? `<img class="lmini" src="/avatars/${x.avatar}/neutro.jpg" alt="">` : '<span class="lmini q">?</span>');
+      const pair = chosen ? `<b>${s.name}</b> com <b>${partner.name}</b>` : '<small>escolhendo no celular…</small>';
       $('lseat' + i).innerHTML = `
         <div class="who ${i ? 't1c' : 't0c'}">Jogador ${i + 1}</div>
-        <div class="lpair">${mini(s)}<span>+</span>${mini(partner)}<div><b>${s.name}</b> com <b>${partner.name}</b>${s.bot || s.picked ? '' : '<br><small>escolhendo no celular…</small>'}</div></div>
+        <div class="lpair">${mini(s)}<span>+</span>${mini(partner)}<div>${pair}</div></div>
         <div>${status}</div>
         <label><input type="checkbox" data-seat="${i}" ${s.bot ? 'checked' : ''}> Ninguém neste lugar? Um personagem joga sozinho</label>`;
     });
@@ -412,7 +414,7 @@
     ], { duration: 450, easing: 'cubic-bezier(.3,.7,.4,1)' }).onfinish = () => el.remove();
   }
 
-  async function trucoFx(ev) {
+  function trucoFx(ev) {
     const word = S.LEVEL_NAME[ev.level];
     const s = state.seats[ev.seat];
     const team = ev.seat % 2;
@@ -422,34 +424,9 @@
     const sub = `${s.name} ${ev.raise ? 'aumentou' : 'pediu'}!`;
     bubble(seatEl(ev.seat).querySelector('.bubble'), `${word}!`, 2600);
 
-    if (s.bot || !FX.micOn) {
-      showOverlay(`<div class="big-word">${word}!</div><div class="ov-sub">${sub}</div>`, 2400);
-      if (s.bot) FACES.mood(seatEl(ev.seat), 'shock', 1500);
-      speak(LEVEL_CLIP[ev.level], { urgent: true, seat: s.bot ? ev.seat : undefined });
-      return;
-    }
-    // Gritômetro: a pessoa grita, o microfone mede.
-    FX.hush();
-    const t = showOverlay(`
-      <div class="big-word" id="ov-word">${word}!</div>
-      <div class="ov-sub">GRITA, ${s.name.toUpperCase()}!</div>
-      <div class="meter"><div class="fill" id="ov-fill"></div><div class="peak" id="ov-peak"></div></div>
-      <div class="meter-label" id="ov-label">🎤 GRITÔMETRO</div>`);
-    const peak = await FX.listen(2600, (l, pk) => {
-      const f = $('ov-fill'), p = $('ov-peak'), w = $('ov-word');
-      if (f) f.style.width = l + '%';
-      if (p) p.style.left = pk + '%';
-      if (w) w.style.transform = `scale(${1 + l / 110}) rotate(${(Math.random() - 0.5) * l / 7}deg)`;
-      if (l > 78 && Math.random() < 0.12) FX.shake(1);
-    });
-    const tier = peak < 30 ? 0 : peak < 55 ? 1 : peak < 80 ? 2 : 3;
-    let extra = '';
-    if (peak > record) { record = peak; extra = ' 🏅 RECORDE DA NOITE!'; }
-    const lab = $('ov-label');
-    if (lab) lab.textContent = `GRITÔMETRO: ${peak}! ${['🥱', '😐', '😮', '🤯'][tier]}${extra}`;
-    if (tier >= 2) FX.confetti(tier === 3 ? 160 : 60);
-    if (tier === 3) { FX.shake(3); FX.flash('#fff'); }
-    setTimeout(() => hideOverlay(t), 2000);
+    showOverlay(`<div class="big-word">${word}!</div><div class="ov-sub">${sub}</div>`, 2400);
+    if (s.bot) FACES.mood(seatEl(ev.seat), 'shock', 1500);
+    speak(LEVEL_CLIP[ev.level], { urgent: true, seat: s.bot ? ev.seat : undefined });
   }
 
   // ---------- vida dos rostos ----------
@@ -471,17 +448,13 @@
     $('btn-sound').textContent = FX.soundOn ? '🔊' : '🔇';
     $('btn-sound').classList.toggle('off', !FX.soundOn);
   }
-  async function unlock() {
+  $('btn-unlock').onclick = () => {
     FX.audio();
     if (!FX.soundOn) { FX.setSound(true); paintSound(); }
     FX.loadClips();
     FX.sfx.ding();
-    const ok = await FX.enableMic();
-    $('unlock-status').textContent = ok ? '✅ Som e Gritômetro ligados!' : '🔇 Som ligado. Microfone bloqueado (o Gritômetro fica de folga).';
-    $('btn-mic').classList.toggle('on', ok);
-  }
-  $('btn-unlock').onclick = unlock;
-  $('btn-mic').onclick = unlock;
+    $('unlock-status').textContent = '✅ Som ligado!';
+  };
   $('btn-sound').onclick = () => {
     FX.audio();
     FX.setSound(!FX.soundOn);

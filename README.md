@@ -11,9 +11,9 @@ Quem dá as cartas muda a cada mão. A voz fala só o básico: a manilha, o truc
    npm start
    ```
 
-2. No notebook, abra `http://localhost:3000` (use `localhost`: o microfone só funciona assim).
+2. No notebook, abra `http://localhost:3000`.
    Ligue o notebook na TV, se quiser.
-3. Clique em **Ligar som e microfone**.
+3. Clique em **Ligar o som**.
 4. Cada pessoa aponta a câmera do celular para o QR Code da TV (mesmo Wi-Fi).
    Ou abre o endereço que aparece embaixo dele. Escolhe nome e lugar.
 5. Clique em **COMEÇAR!**
@@ -46,7 +46,6 @@ npx wrangler dev
 
 ## O que tem de divertido
 
-- **Gritômetro:** pediu truco no celular? Grite "TRUCO!". O microfone mede o berro.
 - **Sinais:** os robôs fazem sinais com o rosto no começo da mão, cada um num momento sorteado. A cola está no celular.
   O adversário também pode ver! Você também faz sinal: toque 😉 embaixo de uma carta.
   O robô parceiro vê o sinal 8 em 10 vezes, e o robô adversário 2 em 10 (`SIGNAL_SEEN` em `bots.js`).

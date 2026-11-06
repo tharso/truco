@@ -1,4 +1,4 @@
-// Efeitos: som sintetizado, falas gravadas (public/audio), confete, tremor e o Gritômetro.
+// Efeitos: som sintetizado, falas gravadas (public/audio), confete e tremor.
 window.FX = (function () {
   let ctx = null;
   const audio = () => {
@@ -147,53 +147,9 @@ window.FX = (function () {
     setTimeout(() => el.remove(), 500);
   }
 
-  // ---------- Gritômetro ----------
-  let analyser = null;
-  let micOn = false;
-  async function enableMic() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
-      const a = audio();
-      analyser = a.createAnalyser();
-      analyser.fftSize = 1024;
-      a.createMediaStreamSource(stream).connect(analyser);
-      micOn = true;
-    } catch (e) {
-      micOn = false;
-    }
-    return micOn;
-  }
-  function level() {
-    if (!analyser) return 0;
-    const d = new Float32Array(analyser.fftSize);
-    analyser.getFloatTimeDomainData(d);
-    let sum = 0;
-    for (const x of d) sum += x * x;
-    const rms = Math.sqrt(sum / d.length);
-    // rms de ~0.01 (silêncio) a ~0.5 (berro) → 0..100
-    const db = 20 * Math.log10(rms + 1e-6);
-    return Math.max(0, Math.min(100, ((db + 50) / 44) * 100));
-  }
-  // Mede por `ms` e chama onTick(nível atual) e devolve o pico.
-  function listen(ms, onTick) {
-    return new Promise((resolve) => {
-      if (!micOn) return resolve(-1);
-      const t0 = performance.now();
-      let peak = 0;
-      (function loop() {
-        const l = level();
-        peak = Math.max(peak, l);
-        onTick && onTick(l, peak);
-        if (performance.now() - t0 < ms) requestAnimationFrame(loop);
-        else resolve(Math.round(peak));
-      })();
-    });
-  }
-
   return {
-    sfx, speak, hush, loadClips, confetti, shake, flash, enableMic, listen, audio,
+    sfx, speak, hush, loadClips, confetti, shake, flash, audio,
     get soundOn() { return enabled; },
-    get micOn() { return micOn; },
     setSound(on) { enabled = on; localStorage.setItem('truco-som', on ? 'on' : 'off'); if (!on) hush(); },
   };
 })();
