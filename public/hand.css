@@ -7,20 +7,21 @@ body {
 .hidden { display: none !important; }
 
 /* escolher lugar */
-#pick { padding: 24px 18px; display: flex; flex-direction: column; gap: 14px; }
-#pick h1 { font-size: 46px; color: #ffd400; margin: 0; text-shadow: 3px 3px 0 #b3221d, 6px 6px 0 #000; text-align: center; }
-#pick h1 small { display: block; font-size: 18px; color: #fff; text-shadow: none; }
+#pick, #room { padding: 24px 18px; display: flex; flex-direction: column; gap: 14px; }
+#pick h1, #room h1 { font-size: 46px; color: #ffd400; margin: 0; text-shadow: 3px 3px 0 #b3221d, 6px 6px 0 #000; text-align: center; }
+#pick h1 small, #room h1 small { display: block; font-size: 18px; color: #fff; text-shadow: none; }
 .name-label { display: flex; flex-direction: column; gap: 6px; font-weight: 700; }
 /* os dois campos de nome: grandes para o dedo e com 16px ou mais, para o iPhone não dar zoom */
-#name, #partner-name {
+#name, #partner-name, #room-code {
   font: 700 26px "Avenir Next", "Segoe UI", system-ui, sans-serif; color: #1a1a1a;
   padding: 16px; border-radius: 16px; border: 3px solid transparent; background: #fffef8;
   box-shadow: 0 4px 0 #0006; outline: none; width: 100%;
 }
-#name:focus, #partner-name:focus { border-color: #ffd400; }
+#name:focus, #partner-name:focus, #room-code:focus { border-color: #ffd400; }
 #ch-name { margin-top: 10px; font-size: 17px; letter-spacing: .04em; text-transform: uppercase; color: #fffc; }
 #partner-name { text-align: center; }
-#pick p { margin: 6px 0 0; font-weight: 700; }
+#room-code { text-align: center; text-transform: uppercase; letter-spacing: .2em; }
+#pick p, #room p { margin: 6px 0 0; font-weight: 700; }
 .seat-btn { border: 0; border-radius: 16px; padding: 18px; color: #fff; text-align: left; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 5px 0 #0007; }
 .seat-btn b { font-size: 26px; }
 .seat-btn.t0 { background: #2f7bff; }

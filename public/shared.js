@@ -70,9 +70,34 @@
     return { bluff: a.bluff, nerve: a.nerve };
   }
 
+  // Código da Sala (ADR 0002): 4 letras, sem as que se confundem (O e 0, I, 1 e L).
+  const CODE_LETTERS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  const CODE_RE = new RegExp(`^[${CODE_LETTERS}]{4}$`);
+  function newRoomCode(rand = Math.random) {
+    let c = '';
+    for (let i = 0; i < 4; i++) c += CODE_LETTERS[Math.floor(rand() * CODE_LETTERS.length)];
+    return c;
+  }
+  function cleanRoomCode(text) {
+    const c = String(text || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    return CODE_RE.test(c) ? c : null;
+  }
+  // '/s/KF4P', '/s/kf4p/mao' → 'KF4P'. Outro endereço → null.
+  function roomCode(pathname) {
+    const m = /^\/s\/([^/]+)(\/|$)/.exec(pathname || '');
+    if (!m) return null;
+    const c = m[1].toUpperCase();
+    return CODE_RE.test(c) ? c : null;
+  }
+  // Onde as telas falam com a Sala. Sem código (notebook), é a Sala única de sempre.
+  function roomBase(code) {
+    return code ? `/s/${code}` : '';
+  }
+
   const SHARED = {
     AVATARS, RANKS, SUITS, SUIT_SYMBOL, RANK_NAME, MANILHA_NAME, LEVEL_NAME, TEAM_NAME,
     SIGNALS, cardName, cardHTML, barsOf,
+    newRoomCode, cleanRoomCode, roomCode, roomBase,
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = SHARED;
   else root.SHARED = SHARED;

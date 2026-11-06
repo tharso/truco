@@ -7,6 +7,8 @@
   const TEAM_COLOR = ['#2f7bff', '#ff3b3b'];
   const LEVEL_CLIP = { 3: 'truco', 6: 'seis', 9: 'nove', 12: 'doze' };
   const NUDGE_MS = 20000;
+  // A Sala vem do endereço (/s/KF4P/mesa). Sem código, é a Sala única do notebook.
+  const BASE = S.roomBase(S.roomCode(location.pathname));
 
   let state = null;
   let dealingUntil = 0;
@@ -31,7 +33,7 @@
   };
 
   function post(a) {
-    return fetch('/api/action', { method: 'POST', body: JSON.stringify(a) }).then((r) => r.json()).catch(() => ({ error: 'Sem conexão com o servidor.' }));
+    return fetch(`${BASE}/api/action`, { method: 'POST', body: JSON.stringify(a) }).then((r) => r.json()).catch(() => ({ error: 'Sem conexão com o servidor.' }));
   }
 
   // ---------- falas ----------
@@ -501,14 +503,14 @@
   // ---------- início ----------
   paintSound();
   FX.loadClips();
-  fetch('/api/info').then((r) => r.json()).then((info) => {
+  fetch(`${BASE}/api/info`).then((r) => r.json()).then((info) => {
     if (info.online) {
-      $('url-hint').textContent = 'Aponte a câmera do celular para o QR Code.';
-      showLink([`${location.origin}/mao`]);
+      $('url-hint').innerHTML = `Aponte a câmera do celular para o QR Code. Jogando de longe? Mande este link para o outro Jogador. Código da Sala: <b>${info.code}</b>`;
+      showLink([`${location.origin}/s/${info.code}`]);
     } else showLink(info.urls);
   });
 
-  const es = new EventSource('/events?role=table');
+  const es = new EventSource(`${BASE}/events?role=table`);
   es.onmessage = (e) => {
     const m = JSON.parse(e.data);
     if (m.type !== 'state') return;

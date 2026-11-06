@@ -23,6 +23,15 @@
   </script>
 </head>
 <body>
+  <form id="room" class="hidden">
+    <h1 class="shout">TRUCO <small>do Bar do Zé</small></h1>
+    <label class="name-label">Código da Sala
+      <input id="room-code" maxlength="6" placeholder="Ex.: KF4P" autocomplete="off" autocapitalize="characters" spellcheck="false">
+    </label>
+    <p>O código está na Mesa, embaixo do QR Code.</p>
+    <button class="seat-btn t0" type="submit"><b class="shout">ENTRAR</b></button>
+  </form>
+
   <div id="pick" class="hidden">
     <h1 class="shout">TRUCO <small>do Bar do Zé</small></h1>
     <label class="name-label">Seu nome

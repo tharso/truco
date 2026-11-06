@@ -3,7 +3,12 @@
   const S = window.SHARED;
   const $ = (id) => document.getElementById(id);
 
-  let seat = localStorage.getItem('truco-seat');
+  // A Sala vem do endereço (/s/KF4P/mao). Sem código, é a Sala única do notebook.
+  const CODE = S.roomCode(location.pathname);
+  const BASE = S.roomBase(CODE);
+  // Cada Sala lembra o seu Lugar: o Celular pode ter jogado em outra Sala antes.
+  const SEAT_KEY = CODE ? `truco-seat:${CODE}` : 'truco-seat';
+  let seat = localStorage.getItem(SEAT_KEY);
   seat = seat === null ? null : Number(seat);
   let state = null;
   let es = null;
@@ -27,7 +32,7 @@
 
   async function post(a) {
     try {
-      const r = await fetch('/api/action', { method: 'POST', body: JSON.stringify(Object.assign({ seat }, a)) });
+      const r = await fetch(`${BASE}/api/action`, { method: 'POST', body: JSON.stringify(Object.assign({ seat }, a)) });
       const j = await r.json();
       if (j.error) toast(j.error);
       return j;
@@ -51,7 +56,7 @@
       const i = Number(b.dataset.seat);
       const name = $('name').value.trim() || `Jogador ${i + 1}`;
       localStorage.setItem('truco-name', name);
-      localStorage.setItem('truco-seat', String(i));
+      localStorage.setItem(SEAT_KEY, String(i));
       seat = i;
       await post({ type: 'join', name });
       connect();
@@ -61,7 +66,7 @@
     e.preventDefault();
     if (es) es.close();
     es = null;
-    localStorage.removeItem('truco-seat');
+    localStorage.removeItem(SEAT_KEY);
     seat = null;
     showPick();
   };
@@ -169,7 +174,7 @@
     $('pick').classList.add('hidden');
     showScreen();
     if (es) es.close();
-    es = new EventSource(`/events?role=seat&seat=${seat}`);
+    es = new EventSource(`${BASE}/events?role=seat&seat=${seat}`);
     es.onopen = () => post({ type: 'join', name: localStorage.getItem('truco-name') || '' });
     es.onmessage = (e) => {
       const m = JSON.parse(e.data);
@@ -343,7 +348,25 @@
   // cola de sinais
   $('sig-list').innerHTML = Object.values(S.SIGNALS).map((s) => `<div class="sig"><span>${s.label}</span><b>${s.how}</b></div>`).join('');
 
+  // ---------- Código da Sala (só na internet) ----------
+  function showRoom() {
+    $('room').classList.remove('hidden');
+    $('room-code').focus();
+  }
+  $('room').onsubmit = (e) => {
+    e.preventDefault();
+    const c = S.cleanRoomCode($('room-code').value);
+    if (!c) return toast('O código tem 4 letras. Confira na Mesa.');
+    location.href = `/s/${c}/mao`;
+  };
+
   // início
-  if (seat === 0 || seat === 1) connect();
-  else showPick();
+  function start() {
+    if (seat === 0 || seat === 1) connect();
+    else showPick();
+  }
+  if (CODE) start();
+  else {
+    fetch('/api/info').then((r) => r.json()).then((info) => (info.online ? showRoom() : start())).catch(start);
+  }
 })();

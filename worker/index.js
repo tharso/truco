@@ -1,10 +1,16 @@
 // Truco do Bar do Zé na Cloudflare.
-// O Worker entrega as telas. A partida mora num Durable Object ("Mesa"), que fica ligado
-// enquanto a TV ou um celular está conectado. A lógica da sala é a mesma do servidor local: room.js.
+// O Worker entrega as telas. Cada Sala mora no seu Durable Object ("Mesa"), achado pelo Código da Sala
+// (ADR 0002). A lógica da sala é a mesma do servidor local: room.js.
+//   /             cria uma Sala nova e leva para a Mesa dela (/s/KF4P/mesa)
+//   /s/KF4P       Celular no celular, Mesa no resto
+//   /s/KF4P/mesa  /s/KF4P/mao  a tela pedida
+//   /mao          o Celular pede o Código da Sala
 import { DurableObject } from 'cloudflare:workers';
 import roomModule from '../room.js';
+import sharedModule from '../public/shared.js';
 
 const { Room } = roomModule;
+const { newRoomCode, roomCode } = sharedModule;
 const enc = new TextEncoder();
 const SSE_HEADERS = { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no' };
 const JSON_HEADERS = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
@@ -38,8 +44,9 @@ export class Mesa extends DurableObject {
       return new Response(readable, { headers: SSE_HEADERS });
     }
 
-    if (p === '/api/info') {
-      return new Response(JSON.stringify({ urls: [`${url.origin}/mao`], online: true }), { headers: JSON_HEADERS });
+    // Sala ocupada: alguém conectado ou Partida começada. Um código novo não pode cair nela.
+    if (p === '/busy') {
+      return new Response(JSON.stringify({ busy: this.room.clients.size > 0 || this.room.game.phase !== 'lobby' }), { headers: JSON_HEADERS });
     }
 
     if (p === '/api/action' && request.method === 'POST') {
@@ -53,18 +60,48 @@ export class Mesa extends DurableObject {
   }
 }
 
+const json = (obj, status = 200) => new Response(JSON.stringify(obj), { status, headers: JSON_HEADERS });
+const mesaOf = (env, code) => env.MESA.get(env.MESA.idFromName(code));
+const page = (env, url, request, file) => env.ASSETS.fetch(new Request(new URL(file, url.origin), request));
+
+async function freshCode(env) {
+  let code = newRoomCode();
+  for (let i = 0; i < 5; i++) {
+    const r = await mesaOf(env, code).fetch('https://mesa/busy');
+    if (!(await r.json()).busy) return code;
+    code = newRoomCode();
+  }
+  return code;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const p = url.pathname;
 
-    if (p === '/events' || p.startsWith('/api/')) {
-      const stub = env.MESA.get(env.MESA.idFromName('mesa'));
-      return stub.fetch(request);
+    if (p === '/' || p === '/mesa') {
+      return Response.redirect(`${url.origin}/s/${await freshCode(env)}/mesa`, 302);
     }
+    if (p === '/mao' || p === '/m') return page(env, url, request, '/hand.html');
+    if (p === '/api/info') return json({ online: true, code: null });
+    if (p === '/events' || p.startsWith('/api/')) return json({ error: 'Falta o Código da Sala.' }, 400);
 
-    const page = p === '/' || p === '/mesa' ? '/table.html' : p === '/mao' || p === '/m' ? '/hand.html' : null;
-    if (page) return env.ASSETS.fetch(new Request(new URL(page, url.origin), request));
+    if (p.startsWith('/s/')) {
+      const code = roomCode(p);
+      if (!code) return Response.redirect(`${url.origin}/mao`, 302);
+      const rest = p.replace(/^\/s\/[^/]+/, '') || '/';
+      if (rest === '/api/info') return json({ online: true, code });
+      if (rest === '/events' || rest.startsWith('/api/')) {
+        return mesaOf(env, code).fetch(new Request(new URL(rest + url.search, url.origin), request));
+      }
+      if (rest === '/mesa') return page(env, url, request, '/table.html');
+      if (rest === '/mao' || rest === '/m') return page(env, url, request, '/hand.html');
+      if (rest === '/') {
+        const phone = /Mobi|Android/i.test(request.headers.get('User-Agent') || '');
+        return page(env, url, request, phone ? '/hand.html' : '/table.html');
+      }
+      return new Response('Não achei.', { status: 404 });
+    }
 
     return env.ASSETS.fetch(request);
   },
