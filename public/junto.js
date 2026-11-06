@@ -61,8 +61,8 @@
     const s = state.seats;
     switch (ev.t) {
       case 'truco': bubble(ev.seat, `${S.LEVEL_NAME[ev.level]}!`); break;
-      case 'aceito': bubble(ev.seat, 'Aceito!'); break;
-      case 'corro': bubble(ev.seat, 'Corro! 🐔'); break;
+      case 'aceito': bubble(ev.seat, 'Mostra!'); break;
+      case 'corro': bubble(ev.seat, 'Tô fora!'); break;
       case 'opiniao': {
         const face = () => FACES.mood(seatEl(ev.seat), ev.ans === 'aceita' ? 'happy' : 'sad', OPINION_MS);
         if (s[ev.seat].bot) setTimeout(face, 1000); else face();

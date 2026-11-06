@@ -64,7 +64,7 @@ window.FX = (function () {
 
   // ---------- falas gravadas ----------
   // Cada fala é um arquivo em /audio/<chave>.m4a (gravado por scripts/gravar-vozes.sh).
-  const CLIPS = ['truco', 'seis', 'nove', 'doze', 'onze', 'ferro', 'vez', 'responde', 'onze-decide', 'comeca', 'fim-0', 'fim-1']
+  const CLIPS = ['truco', 'seis', 'nove', 'doze', 'onze', 'ferro', 'vez', 'responde', 'onze-decide', 'comeca', 'fim']
     .concat(['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3'].map((r) => 'man-' + r));
   const buffers = {};
   let loading = null;

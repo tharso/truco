@@ -25,13 +25,12 @@ FRASES=(
   "nove|Nove!"
   "doze|Doze!"
   "onze|Mão de onze!"
-  "ferro|Mão de ferro! Todo mundo no escuro."
-  "vez|Sua vez de jogar!"
-  "responde|E aí? Aceita ou corre?"
-  "onze-decide|Joga ou corre?"
+  "ferro|Mão de ferro! Eu adoro mão de ferro!"
+  "vez|Joga aê!!"
+  "responde|E aí? Aceita ou foge?"
+  "onze-decide|Vai ou não vai?"
   "comeca|Vamos começar!"
-  "fim-0|Fim de jogo! A Dupla Azul venceu!"
-  "fim-1|Fim de jogo! A Dupla Vermelha venceu!"
+  "fim|Fim de jogo!"
 )
 
 for item in "${FRASES[@]}"; do

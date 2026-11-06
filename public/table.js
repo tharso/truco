@@ -24,7 +24,8 @@
   // Quanto tempo a cara do Sinal fica na tela (ms).
   const SIGNAL_MS = 2500;
   const OPINION_FACE_MS = 9000;
-  const teamName = (t) => S.TEAM_NAME[t];
+  // Os nomes dos dois da Dupla, para os Avisos da Mesa e o fim.
+  const duoNames = (t) => `${state.seats[t].name} e ${state.seats[t + 2].name}`;
   const avatarOf = (i) => state.seats[i].avatar || 'robo';
   const voiceOf = (team) => {
     if (!state.seats[team].bot) return team;
@@ -233,7 +234,7 @@
     if (who < 0 || state.seats[who].bot || !state.seats[who].connected) return;
     nudgeTimer = setTimeout(() => {
       speak(clip);
-      fala(who, 'Sua vez! ⏰', 3000);
+      fala(who, 'Joga!', 3000);
     }, NUDGE_MS);
   }
 
@@ -258,7 +259,7 @@
 
   function renderEnd() {
     const w = state.winner;
-    $('end-title').textContent = `${teamName(w).toUpperCase()} VENCEU!`;
+    $('end-title').textContent = `${duoNames(w).toUpperCase()} VENCERAM!`;
     $('end-title').style.color = TEAM_COLOR[w];
     $('end-score').innerHTML = `<span class="t0c">${state.score[0]}</span> x <span class="t1c">${state.score[1]}</span>`;
   }
@@ -337,7 +338,7 @@
           if (w === null) { FX.sfx.sad(); return; }
           FX.sfx.fanfare();
           FX.confetti(ev.points >= 3 ? 120 : 30);
-          if (ev.points >= 3) showOverlay(`<div class="big-word small" style="color:${TEAM_COLOR[w]}">+${ev.points}</div><div class="ov-sub">${teamName(w)}</div>`, 1700);
+          if (ev.points >= 3) showOverlay(`<div class="big-word small" style="color:${TEAM_COLOR[w]}">+${ev.points}</div><div class="ov-sub">${duoNames(w)}</div>`, 1700);
           for (let i = 0; i < 4; i++) if (s[i].avatar) FACES.mood(seatEl(i), i % 2 === w ? 'happy' : 'sad', 3000);
         };
         // Mão decidida: pausa com a carta que decidiu em destaque, depois o fim de Mão de sempre.
@@ -351,7 +352,7 @@
         setTimeout(() => FX.sfx.fanfare(), 700);
         FX.confetti(320);
         setTimeout(() => FX.confetti(200), 1200);
-        speak('fim-' + ev.winner, { urgent: true });
+        speak('fim', { urgent: true });
         break;
 
       case 'truco':
@@ -371,17 +372,17 @@
 
       case 'aceito':
         FX.sfx.ding();
-        fala(ev.seat, 'Aceito!');
+        fala(ev.seat, 'Mostra!');
         break;
 
       case 'corro':
         FX.sfx.chicken();
-        fala(ev.seat, 'Corro! 🐔');
+        fala(ev.seat, 'Tô fora!');
         break;
 
       case 'onze':
         FX.sfx.drumroll();
-        showOverlay(`<div class="big-word small">MÃO DE ONZE!</div><div class="ov-sub">${teamName(ev.team)} decide</div>`, 2600);
+        showOverlay(`<div class="big-word small">MÃO DE ONZE!</div><div class="ov-sub">${duoNames(ev.team)} decidem</div>`, 2600);
         speak('onze');
         break;
 
@@ -396,7 +397,7 @@
       case 'ferro':
         FX.sfx.horn();
         FX.shake(2);
-        showOverlay(`<div class="big-word small">MÃO DE FERRO!</div><div class="ov-sub">Todo mundo no escuro!</div>`, 2800);
+        showOverlay(`<div class="big-word small">MÃO DE FERRO!</div><div class="ov-sub">Adoro!</div>`, 2800);
         speak('ferro');
         break;
 

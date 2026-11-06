@@ -44,7 +44,7 @@
       if (j.error) toast(j.error);
       return j;
     } catch {
-      toast('Sem conexão com a mesa. Confira a internet.');
+      toast('Xiiiii... a internet caiu.');
       return { error: 'rede' };
     }
   }
@@ -194,7 +194,7 @@
         localStorage.removeItem(SEAT_KEY);
         seat = null;
         showPick();
-        toast('Esse Lugar já tem outro Celular. Escolha outro.');
+        toast('Esse lugar tá ocupado. Escolha outro.');
         return;
       }
       if (m.type !== 'state') return;
@@ -337,7 +337,7 @@
   async function signalCard(i) {
     if (!state || !(state.canSignal || [])[i]) return;
     const r = await post({ type: 'sinal', idx: i });
-    if (r && r.ok) toast('😉 Seu Personagem fez o sinal na TV!');
+    if (r && r.ok) toast('Sinal enviado');
   }
 
   $('closed-btn').onclick = async () => {
