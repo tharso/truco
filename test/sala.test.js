@@ -687,6 +687,7 @@ const PAUSAS = { cartas: 3200, robo: 1400, rodada: 1900, mao: 4500, truco: 3200 
 // Pare o relógio antes. Sementes usadas: 8 (a 1ª Mão começa pelo Lugar 0), 3 (começa pelo Tonhão, no Lugar 2, que joga uma carta;
 // também chega à 2ª Rodada na vez de um Jogador, e um Robô faz Sinal), 4 (com robos [0, 1], tem Truco e depois Mão de onze)
 // e 17 (Mão de onze da Vermelha). As sementes mudaram quando o Sinal do Robô passou a acontecer na hora marcada. `robos` = Lugares de Jogador marcados como "falta uma pessoa".
+// Regra nova mudou as Partidas? Ache sementes novas com `node scripts/achar-semente.js <alvo>`.
 function partidaComDoisCelulares(semente, { robos = [] } = {}) {
   const sala = new Room({ rng: sorteioFixo(semente) });
   const mesa = conectarMesa(sala);

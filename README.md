@@ -57,6 +57,18 @@ npx wrangler dev
 - Mão de onze, mão de ferro, galinha quando alguém corre, confete, tremor.
 - Botão 🔊 no topo da TV liga e desliga o som. Botão ↺ começa uma partida nova.
 
+## Testar no navegador
+
+Abra a Mesa pelo preview "truco" (`.claude/launch.json`) e monte a Partida no endereço que o preview mostrar (a porta pode não ser 3000):
+
+```bash
+scripts/montar-partida.sh http://localhost:3000
+```
+
+Mande as jogadas seguintes do mesmo jeito: POST em `/api/action`, com `curl` ou `fetch`.
+A Mesa já tem a conexão de eventos dela. O navegador aceita só 6 conexões por site:
+com mais `EventSource` abertos, os POST ficam parados esperando.
+
 ## Falas gravadas
 
 As falas ficam em `public/audio/`. Elas são gravadas com uma voz do Mac:
@@ -85,7 +97,8 @@ e rode o script com o nome dela. Para mudar uma frase, edite a lista no próprio
 npm test
 ```
 
-Roda pela `node:test` todos os `test/*.test.js` e `test/navegador/*.test.js`:
+Roda pela `node:test` todos os `test/*.test.js` e `test/navegador/*.test.js`. A saída é curta:
+um ponto por teste, e os detalhes só dos que falham.
 
 - 500 partidas só com robôs (`PARTIDAS=2000 npm test` para mais);
 - a Sala, vista de fora como a Mesa e os Celulares a veem (`test/sala.test.js`, com as telas falsas de `test/telas.js`);
