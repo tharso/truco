@@ -87,9 +87,9 @@
   .carta .letra { font-size: calc(var(--cw) * .44 * var(--fs)); }
   .carta .naipe-p { width: 26%; aspect-ratio: 1; height: auto; top: 9%; right: 9%; }
   /* cabeça colorida, cortada da arte de arte/cartas/ */
-  .carta .cabeca { position: absolute; width: 78%; aspect-ratio: 1; left: 11%; bottom: 5%;
-    border-radius: calc(var(--cw) * .05); overflow: hidden; box-shadow: 0 0 0 max(1px, calc(var(--cw) * .012)) currentColor; }
-  .carta .cabeca img { width: 100%; height: 100%; display: block; mix-blend-mode: multiply; }
+  /* vai até a borda da carta, sem moldura; a carta arredonda os cantos */
+  .carta .cabeca { position: absolute; left: 0; right: 0; bottom: 0; height: 67%; }
+  .carta .cabeca img { width: 100%; height: 100%; display: block; object-fit: cover; object-position: center top; mix-blend-mode: multiply; }
 
   /* ---------- versos ---------- */
   .carta.verso { padding: calc(var(--cw) * .06); background: var(--papel); }
