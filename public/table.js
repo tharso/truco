@@ -1,6 +1,7 @@
 // Tela da MESA (TV/notebook): mostra tudo. A voz fala só o básico: manilha, truco, mão de onze/ferro.
 (function () {
   const S = window.SHARED;
+  const T = window.TABLE_TEXT;
   const $ = (id) => document.getElementById(id);
   const POS = ['bottom', 'left', 'top', 'right'];
   const HUMAN_EMOJI = ['🤠', '😎'];
@@ -22,16 +23,12 @@
 
   const seatEl = (i) => $('seat' + i);
   // Quanto tempo a cara do Sinal fica na tela (ms).
-  const SIGNAL_MS = 2500;
+  const SIGNAL_MS = 1200;
   const OPINION_FACE_MS = 9000;
   // Os nomes dos dois da Dupla, para os Avisos da Mesa e o fim.
   const duoNames = (t) => `${state.seats[t].name} e ${state.seats[t + 2].name}`;
   const avatarOf = (i) => state.seats[i].avatar || 'robo';
-  const voiceOf = (team) => {
-    if (!state.seats[team].bot) return team;
-    if (!state.seats[team + 2].bot) return team + 2;
-    return team;
-  };
+  const voiceOf = (team) => T.voiceOf(state, team);
 
   function post(a) {
     return fetch(`${BASE}/api/action`, { method: 'POST', body: JSON.stringify(a) }).then((r) => r.json()).catch(() => ({ error: 'Sem conexão com o servidor.' }));
@@ -135,8 +132,9 @@
     const el = seatEl(i);
     // Pessoa de verdade: o personagem que ela escolheu (ou um emoji, se ainda não escolheu) + selo de celular.
     const face = s.avatar || s.bot ? FACES.avatar(avatarOf(i)) : `<div class="human-av">${HUMAN_EMOJI[i]}</div>`;
-    const av = `<div class="avatar">${face}${s.bot ? '' : '<div class="phone-badge">📱</div>'}</div>`;
-    el.innerHTML = `${av}<div class="seat-info"><div class="nameplate"></div><div class="backs"></div><div class="dealer-chip">🃏 dá as cartas</div></div>`;
+    // Pensando: três pontinhos piscando ao lado do rosto de quem está na vez.
+    const av = `<div class="avatar">${face}${s.bot ? '' : '<div class="phone-badge">📱</div>'}<div class="pensando" aria-hidden="true"><i></i><i></i><i></i></div></div>`;
+    el.innerHTML = `${av}<div class="seat-info"><div class="nameplate"></div><div class="backs"></div></div>`;
   }
 
   function renderSeat(i) {
@@ -145,16 +143,13 @@
     const el = seatEl(i);
     const dealing = state.phase === 'deal' && state.dealer === i && Date.now() < dealingUntil;
     // Na vez: quem joga, quem responde ao truco ou quem decide a mão de onze.
-    const onTurn = (state.phase === 'play' && state.turn === i)
-      || (state.phase === 'truco' && state.pending && state.pending.responder === i)
-      || (state.phase === 'onze' && voiceOf(state.onzeTeam) === i);
+    const onTurn = T.seatOnTurn(state) === i;
     el.className = `seat pos-${POS[i]} t${i % 2}${onTurn ? ' vez' : ''}${dealing ? ' dealing' : ''}`;
     const np = el.querySelector('.nameplate');
     const npHtml = s.name;
     if (np.innerHTML !== npHtml) np.innerHTML = npHtml;
     const badge = el.querySelector('.phone-badge');
     if (badge) badge.classList.toggle('off', !s.connected);
-    el.querySelector('.dealer-chip').style.display = state.dealer === i && state.phase !== 'lobby' && state.phase !== 'over' ? '' : 'none';
     const n = Date.now() < dealingUntil ? 0 : s.cards;
     const backs = el.querySelector('.backs');
     if (backs.childElementCount !== n) backs.innerHTML = Array.from({ length: n }, () => S.cardHTML({ hidden: true })).join('');
@@ -169,8 +164,7 @@
       viraShownFor = vkey;
       vira.innerHTML = showVira ? S.cardHTML(state.vira, null, 'flip') : '';
     }
-    $('man-label').innerHTML = state.manilha && showVira
-      ? `Manilha: <b>${state.manilha} (${S.RANK_NAME[state.manilha]})</b>` : '';
+    $('man-label').textContent = state.manilha && showVira ? T.manilhaText(state.manilha) : '';
     // cartas jogadas
     const done = (state.phase === 'roundEnd' || state.phase === 'handEnd') && state.table.length === 4 && state.lastRound;
     // Mão decidida: a carta que decidiu fica em destaque até a Mão nova.
@@ -204,20 +198,7 @@
   }
 
   function renderStatus() {
-    let t = '';
-    const s = state.seats;
-    if (state.phase === 'deal' && state.dealer >= 0) t = `${s[state.dealer].name} está dando as cartas…`;
-    // Quem caiu (ADR 0002): a Partida espera ele voltar.
-    const fallen = state.phase !== 'lobby' && state.phase !== 'over' ? [0, 1].filter((i) => !s[i].bot && !s[i].connected) : [];
-    if (fallen.length) t = `📵 ${fallen.map((i) => s[i].name).join(' e ')} ${fallen.length > 1 ? 'caíram' : 'caiu'}. Esperando voltar…`;
-    else if (state.phase === 'play' && state.turn >= 0) {
-      t = s[state.turn].bot ? `${s[state.turn].name} está pensando…` : `Vez de ${s[state.turn].name} · jogue pelo celular 📱`;
-    } else if (state.phase === 'truco' && state.pending) {
-      t = `${s[state.pending.responder].name}: aceita, corre ou aumenta?`;
-    } else if (state.phase === 'onze') {
-      t = `${s[voiceOf(state.onzeTeam)].name}: joga ou corre?`;
-    }
-    $('status').textContent = t;
+    $('status').textContent = T.statusText(state);
   }
 
   // Se uma pessoa demora mais de 20 segundos, a voz dá um toque (uma vez só).
@@ -402,20 +383,11 @@
         break;
 
       case 'signal': {
-        // Sinal lento e exagerado: a cara fica SIGNAL_MS na tela e o rosto todo mexe.
+        // Sinal discreto: só a cara troca, por SIGNAL_MS. O rosto não cresce nem balança.
         const hand = state.handNo;
         setTimeout(() => {
           if (state.handNo !== hand) return;
-          const el = seatEl(ev.seat);
-          FACES.signal(el, ev.sig, SIGNAL_MS);
-          // A marca fica no .avatar: o Lugar é redesenhado a cada estado, o .avatar não.
-          const av = el.querySelector('.avatar');
-          if (!av) return;
-          av.classList.remove('signing');
-          void av.offsetWidth; // recomeça a animação
-          av.classList.add('signing');
-          clearTimeout(av._signing);
-          av._signing = setTimeout(() => av.classList.remove('signing'), SIGNAL_MS);
+          FACES.signal(seatEl(ev.seat), ev.sig, SIGNAL_MS);
         }, ev.delay || 0);
         break;
       }

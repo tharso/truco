@@ -100,15 +100,13 @@ body { overflow: hidden; }
   min-width: calc(var(--pc) * 1.8); padding: 6px 10px 8px; border-radius: 18px;
   background: #00000038; border: 2px dashed #ffffff40;
 }
-#vira-tag { font-size: clamp(11px, 1.6vh, 15px); letter-spacing: .18em; color: #ffd400; }
 #vira { min-height: calc(var(--pc) * 1.2); display: grid; place-items: center; }
 #vira .card { --cw: calc(var(--pc) * .8); transform: rotate(-90deg); margin: calc(var(--pc) * -.12) 0; }
 #status { z-index: 4; }
 #vira .card.flip { animation: flip .6s; }
 @keyframes flip { from { transform: rotate(-90deg) rotateY(90deg) scale(1.4); } }
-#man-label { font-size: clamp(13px, 1.9vh, 18px); background: #000a; padding: 3px 12px; border-radius: 10px; white-space: nowrap; }
+#man-label { font-size: clamp(13px, 1.9vh, 18px); color: #ffd400; background: #000a; padding: 3px 12px; border-radius: 10px; white-space: nowrap; }
 #man-label:empty { display: none; }
-#man-label b { color: #ffd400; }
 #status {
   position: absolute; left: 50%; top: 4%; transform: translateX(-50%);
   max-width: 70%; text-align: center; font-size: clamp(15px, 2.2vh, 22px); line-height: 1.2;
@@ -139,7 +137,6 @@ body { overflow: hidden; }
 .backs .card { --cw: 32px; margin-left: -13px; }
 .backs .card:first-child { margin-left: 0; }
 .seat-info { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.dealer-chip { font-size: 13px; font-weight: 800; background: #ffd400; color: #000; padding: 1px 9px; border-radius: 9px; }
 .seat.dealing .avatar { animation: wobble .25s infinite alternate; }
 @keyframes wobble { from { transform: rotate(-4deg); } to { transform: rotate(4deg) translateY(-4px); } }
 /* A vez: só o anel amarelo pulsando, sem crescer (crescer é da Fala). */
@@ -150,8 +147,14 @@ body { overflow: hidden; }
   to   { box-shadow: 0 0 0 11px #ffd400, 0 0 40px 16px #ffd40099, 0 6px 14px #000a; }
 }
 .seat.vez .nameplate { outline: 3px solid #ffd400; }
-/* Sinal na vez: o rosto mexe e o anel continua pulsando. */
-.seat.vez .avatar.signing .face-photo { animation: signing 2.5s ease-in-out, vez-anel 1s ease-in-out infinite alternate; }
+/* Pensando: três pontinhos piscando ao lado do rosto de quem está na vez. Sem palavra. */
+.pensando { position: absolute; top: 4%; right: -6%; z-index: 5; display: none; gap: 5px; padding: 6px 9px; border-radius: 16px; background: #fffbea; border: 3px solid #1a0e05; box-shadow: 3px 3px 0 #0008; pointer-events: none; }
+.pos-right .pensando { right: auto; left: -6%; }
+.seat.vez .pensando { display: flex; }
+.pensando i { width: 9px; height: 9px; border-radius: 50%; background: #1a0e05; animation: pensando 1.2s ease-in-out infinite; }
+.pensando i:nth-child(2) { animation-delay: .2s; }
+.pensando i:nth-child(3) { animation-delay: .4s; }
+@keyframes pensando { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
 
 /* rosto com foto */
 .face-photo {
@@ -164,17 +167,6 @@ body { overflow: hidden; }
 /* Troca de cara seca, sem fade: com fundo transparente, duas caras juntas apareceriam uma atrás da outra. */
 .face-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
 .face-photo img.on { opacity: 1; }
-
-/* Sinal: o rosto todo mexe (inclina, cresce e balança) enquanto a cara do Sinal está na tela. */
-.avatar.signing .face-photo { animation: signing 2.5s ease-in-out; }
-@keyframes signing {
-  0% { transform: none; }
-  15% { transform: scale(1.18) rotate(-7deg); }
-  35% { transform: scale(1.18) rotate(6deg); }
-  55% { transform: scale(1.18) rotate(-5deg); }
-  80% { transform: scale(1.12) rotate(3deg); }
-  100% { transform: none; }
-}
 
 /* A Fala: balão grande saindo do Personagem, com o rabinho apontando para quem fala. */
 .fala-balao {
