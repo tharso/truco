@@ -86,8 +86,10 @@
   /* figura: letra + naipe pequeno em cima; símbolo grande embaixo */
   .carta .letra { font-size: calc(var(--cw) * .44 * var(--fs)); }
   .carta .naipe-p { width: 26%; aspect-ratio: 1; height: auto; top: 9%; right: 9%; }
-  .carta .simbolo { width: 76%; aspect-ratio: 1; height: auto; left: 12%; bottom: 3%; }
-  .carta .simbolo.dama { width: 66%; left: 17%; bottom: 5%; } /* tiara pequena */
+  /* cabeça colorida, cortada da arte de arte/cartas/ */
+  .carta .cabeca { position: absolute; width: 78%; aspect-ratio: 1; left: 11%; bottom: 5%;
+    border-radius: calc(var(--cw) * .05); overflow: hidden; box-shadow: 0 0 0 max(1px, calc(var(--cw) * .012)) currentColor; }
+  .carta .cabeca img { width: 100%; height: 100%; display: block; mix-blend-mode: multiply; }
 
   /* ---------- versos ---------- */
   .carta.verso { padding: calc(var(--cw) * .06); background: var(--papel); }
@@ -142,7 +144,7 @@
 <main>
   <div class="halls">
     <div class="hall"><h1>TRUCO <span>do Bar do Zé</span></h1><small>Nome A</small></div>
-    <div class="hall"><h1>TRUCO <span>do Bar do Blurp</span></h1><small>Nome B</small></div>
+    <div class="hall"><h1>TRUCO <span>do Bar do Blurp</span></h1><small>Nome B · escolhido</small></div>
   </div>
 
   <form class="controles" id="controles" onsubmit="return false">
@@ -183,16 +185,9 @@
     espadas: 'M50 3C70 24 95 40 95 61c0 13-10 22-22 22-9 0-16-5-19-11 1 11 5 18 13 24H33c8-6 12-13 13-24-3 6-10 11-19 11-12 0-22-9-22-22C5 40 30 24 50 3z',
     paus: 'M50 5a21 21 0 0 1 17 33 21 21 0 1 1-2 39c-5 0-9-2-12-5 1 10 5 18 13 24H34c8-6 12-14 13-24-3 3-7 5-12 5a21 21 0 1 1-2-39A21 21 0 0 1 50 5z',
   };
-  const SIMBOLO = {
-    // Rei: coroa
-    K: '<path d="M12 78 8 30l22 22 20-34 20 34 22-22-4 48z"/><rect x="12" y="81" width="76" height="10" rx="3"/><circle cx="8" cy="27" r="6"/><circle cx="50" cy="15" r="7"/><circle cx="92" cy="27" r="6"/>',
-    // Dama: tiara pequena
-    Q: '<path d="M10 82Q50 64 90 82V93Q50 75 10 93z"/><path d="M41 75L50 22L59 75z"/><circle cx="50" cy="22" r="8"/><path d="M22 77L31 40L40 77z"/><circle cx="31" cy="40" r="7"/><path d="M60 77L69 40L78 77z"/><circle cx="69" cy="40" r="7"/><path d="M7 82L16 60L25 82z"/><circle cx="16" cy="60" r="6"/><path d="M75 82L84 60L93 82z"/><circle cx="84" cy="60" r="6"/>',
-    // Valete: chapéu com pena
-    J: '<path d="M26 70c0-22 6-36 24-36s24 14 24 36z"/><ellipse cx="50" cy="73" rx="44" ry="9"/><path d="M64 46c10-16 20-26 32-32-6 12-14 26-26 38z"/><rect x="26" y="62" width="48" height="5" fill="var(--papel)"/>',
-  };
   const svg = (inner, cls) => `<svg class="${cls}" viewBox="0 0 100 100" aria-hidden="true">${inner}</svg>`;
 
+  const FIGURA = ['K', 'Q', 'J'];
   const RANKS = ['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3'];
   const SUITS = ['copas', 'ouros', 'espadas', 'paus'];
   const NOME_RANK = { Q: 'Dama', J: 'Valete', K: 'Rei', A: 'Ás' };
@@ -208,7 +203,8 @@
   const VERSOS = { A: 'Losangos', B: 'Naipes', C: 'Toalha de boteco', D: 'Emblema do bar', E: 'Blurp' };
   const NOMES = { ze: 'Bar do Zé', blurp: 'Bar do Blurp' };
 
-  const estado = { fonte: 'A', verso: 'A', nome: 'ze' };
+  // já abre com o que Tharso escolheu em 06/11/2026: fonte B, verso A, nome Blurp
+  const estado = { fonte: 'B', verso: 'A', nome: 'blurp' };
   const VALIDOS = { fonte: FONTES, verso: VERSOS, nome: NOMES };
   for (const [k, v] of new URLSearchParams(location.hash.slice(1))) if (VALIDOS[k] && v in VALIDOS[k]) estado[k] = v;
 
@@ -221,9 +217,9 @@
     const cor = s === 'copas' || s === 'ouros' ? 'vermelha' : 'preta';
     const titulo = `${NOME_RANK[r] || r} de ${s}`;
     const style = fonteId ? ` style='${estiloFonte(fonteId)}'` : '';
-    if (SIMBOLO[r]) {
+    if (FIGURA.includes(r)) {
       return `<div class="carta ${cor}" role="img" aria-label="${titulo}"${style}>
-        <span class="num letra">${r}</span>${svg(`<path d="${NAIPE[s]}"/>`, 'naipe-p')}${svg(SIMBOLO[r], r === 'Q' ? 'simbolo dama' : 'simbolo')}</div>`;
+        <span class="num letra">${r}</span>${svg(`<path d="${NAIPE[s]}"/>`, 'naipe-p')}<span class="cabeca"><img src="/prototipo-baralho-cabecas/${r}-${s}.jpg" alt=""></span></div>`;
     }
     return `<div class="carta ${cor}" role="img" aria-label="${titulo}"${style}>
       <span class="num">${r}</span>${svg(`<path d="${NAIPE[s]}"/>`, 'naipe-g')}</div>`;
