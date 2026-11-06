@@ -37,12 +37,25 @@
   }
 
   // ---------- falas ----------
-  function bubble(el, text, ms) {
-    if (!el) return;
-    el.textContent = text;
-    el.classList.add('show');
-    clearTimeout(el._t);
-    el._t = setTimeout(() => el.classList.remove('show'), ms || 2200);
+  // A Fala sai do Personagem: ele cresce e um balão grande sai dele.
+  // Fica no .avatar, porque o Lugar é redesenhado a cada estado e o .avatar não.
+  const FALA_MS = 2400;
+  function fala(seat, text, ms) {
+    const av = seatEl(seat).querySelector('.avatar');
+    if (!av) return;
+    clearTimeout(av._fala);
+    av.querySelectorAll('.fala-balao').forEach((n) => n.remove());
+    if (text) {
+      const b = document.createElement('div');
+      b.className = 'fala-balao';
+      b.textContent = text;
+      av.appendChild(b);
+    }
+    av.classList.add('falando');
+    av._fala = setTimeout(() => {
+      av.classList.remove('falando');
+      av.querySelectorAll('.fala-balao').forEach((n) => n.remove());
+    }, ms || FALA_MS);
   }
 
   // Toca uma fala gravada. Se for um robô falando, a boca dele mexe.
@@ -122,7 +135,7 @@
     // Pessoa de verdade: o personagem que ela escolheu (ou um emoji, se ainda não escolheu) + selo de celular.
     const face = s.avatar || s.bot ? FACES.avatar(avatarOf(i)) : `<div class="human-av">${HUMAN_EMOJI[i]}</div>`;
     const av = `<div class="avatar">${face}${s.bot ? '' : '<div class="phone-badge">📱</div>'}</div>`;
-    el.innerHTML = `<div class="bubble"></div>${av}<div class="seat-info"><div class="nameplate"></div><div class="backs"></div><div class="dealer-chip">🃏 dá as cartas</div></div>`;
+    el.innerHTML = `${av}<div class="seat-info"><div class="nameplate"></div><div class="backs"></div><div class="dealer-chip">🃏 dá as cartas</div></div>`;
   }
 
   function renderSeat(i) {
@@ -134,7 +147,7 @@
     const onTurn = (state.phase === 'play' && state.turn === i)
       || (state.phase === 'truco' && state.pending && state.pending.responder === i)
       || (state.phase === 'onze' && voiceOf(state.onzeTeam) === i);
-    el.className = `seat pos-${POS[i]} t${i % 2}${onTurn ? ' active' : ''}${dealing ? ' dealing' : ''}`;
+    el.className = `seat pos-${POS[i]} t${i % 2}${onTurn ? ' vez' : ''}${dealing ? ' dealing' : ''}`;
     const np = el.querySelector('.nameplate');
     const npHtml = s.name;
     if (np.innerHTML !== npHtml) np.innerHTML = npHtml;
@@ -220,7 +233,7 @@
     if (who < 0 || state.seats[who].bot || !state.seats[who].connected) return;
     nudgeTimer = setTimeout(() => {
       speak(clip);
-      bubble(seatEl(who).querySelector('.bubble'), 'Sua vez! ⏰', 3000);
+      fala(who, 'Sua vez! ⏰', 3000);
     }, NUDGE_MS);
   }
 
@@ -348,21 +361,22 @@
       // Opinião do parceiro de quem responde: a cara fica até a resposta chegar.
       // A do Robô vem um segundo depois do grito, como quem pensa.
       case 'opiniao': {
-        const face = () => FACES.mood(seatEl(ev.seat), ev.ans === 'aceita' ? 'happy' : 'sad', OPINION_FACE_MS);
+        const face = () => {
+          FACES.mood(seatEl(ev.seat), ev.ans === 'aceita' ? 'happy' : 'sad', OPINION_FACE_MS);
+          fala(ev.seat); // sem balão: a cara é a Opinião, e o Personagem cresce para todos verem quem opinou
+        };
         if (s[ev.seat].bot) setTimeout(face, 1000); else face();
         break;
       }
 
       case 'aceito':
         FX.sfx.ding();
-        showOverlay(`<div class="stamp">ACEITO!</div>`, 1300);
-        bubble(seatEl(ev.seat).querySelector('.bubble'), 'Aceito!');
+        fala(ev.seat, 'Aceito!');
         break;
 
       case 'corro':
         FX.sfx.chicken();
-        showOverlay(`<div class="big-emoji">🐔</div><div class="ov-sub">${s[ev.seat].name} CORREU!</div>`, 1800);
-        bubble(seatEl(ev.seat).querySelector('.bubble'), 'Corro! 🐔');
+        fala(ev.seat, 'Corro! 🐔');
         break;
 
       case 'onze':
@@ -434,10 +448,8 @@
     FX.sfx.horn();
     FX.shake(2);
     FX.flash(TEAM_COLOR[team]);
-    const sub = `${s.name} ${ev.raise ? 'aumentou' : 'pediu'}!`;
-    bubble(seatEl(ev.seat).querySelector('.bubble'), `${word}!`, 2600);
-
-    showOverlay(`<div class="big-word">${word}!</div><div class="ov-sub">${sub}</div>`, 2400);
+    // Sem Aviso no meio: o Truco é uma Fala, só o balão de quem pediu.
+    fala(ev.seat, `${word}!`, 2600);
     if (s.bot) FACES.mood(seatEl(ev.seat), 'shock', 1500);
     speak(LEVEL_CLIP[ev.level], { urgent: true, seat: s.bot ? ev.seat : undefined });
   }
