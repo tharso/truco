@@ -150,6 +150,8 @@ body { overflow: hidden; }
   to   { box-shadow: 0 0 0 11px #ffd400, 0 0 40px 16px #ffd40099, 0 6px 14px #000a; }
 }
 .seat.vez .nameplate { outline: 3px solid #ffd400; }
+/* Sinal na vez: o rosto mexe e o anel continua pulsando. */
+.seat.vez .avatar.signing .face-photo { animation: signing 2.5s ease-in-out, vez-anel 1s ease-in-out infinite alternate; }
 
 /* rosto com foto */
 .face-photo {
