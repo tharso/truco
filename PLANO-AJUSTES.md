@@ -88,6 +88,19 @@ O nome fica **Truco do Bar do Zé**. Você pensou em trocar, mas decidiu manter.
 
 ---
 
+## Onde paramos (06/11/2026): jogar online
+
+O online para 2 pessoas está feito e publicado (spec #8, ADR 0002):
+- #9 Salas por código: `truco.tharso.com` cria uma Sala nova (`/s/KF4P`).
+- #10 Lugar com dono: o primeiro Celular fica com o Lugar. Quem cai volta, e a Partida espera.
+- #11 A Sala fica guardada na Cloudflare e some depois de 6 horas vazia.
+
+**Parado de propósito: protótipo da tela juntada (#12).** Mesa pequena em cima do Celular, em `truco.tharso.com/s/CODIGO/junto` (arquivos `public/junto.*`).
+O Tharso tem várias observações sobre ele, mas outras prioridades vieram antes.
+**Para retomar:** abrir o protótipo no celular, ouvir as observações do Tharso, e decidir na #12: vira feature, muda ou sai.
+
+Depois: jogar com 2, 3 ou 4 pessoas (#13, faltam perguntas para o Tharso).
+
 ## Onde paramos (05/11/2026)
 
 Os Blocos 1 a 5 estão feitos e publicados em https://truco.tharso.com (último commit do jogo: `679474f`).
