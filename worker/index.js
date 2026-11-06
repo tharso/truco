@@ -1,4 +1,4 @@
-// Truco do Bar do Zé na Cloudflare.
+// Truco do Bar do Blurp na Cloudflare.
 // O Worker entrega as telas. Cada Sala mora no seu Durable Object ("Mesa"), achado pelo Código da Sala
 // (ADR 0002). A lógica da sala é a mesma do servidor local: room.js.
 //   /             cria uma Sala nova e leva para a Mesa dela (/s/KF4P/mesa)

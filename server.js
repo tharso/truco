@@ -1,4 +1,4 @@
-// Servidor local do Truco do Bar do Zé. Sem dependências: só Node.
+// Servidor local do Truco do Bar do Blurp. Sem dependências: só Node.
 // Mesa (TV/notebook): http://localhost:3000   Celulares: http://IP-DO-NOTEBOOK:3000/mao
 // Na internet, o jogo roda na Cloudflare (worker/index.js). A lógica da sala é a mesma: room.js.
 'use strict';
@@ -72,7 +72,7 @@ const server = http.createServer((req, res) => {
 setInterval(() => room.heartbeat(), 15000);
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log('\n🃏  TRUCO DO BAR DO ZÉ está no ar!\n');
+  console.log('\n🃏  TRUCO DO BAR DO BLURP está no ar!\n');
   console.log(`   Mesa (abra neste computador): http://localhost:${PORT}`);
   for (const u of lanUrls()) console.log(`   Celulares (mesmo Wi-Fi):      ${u}`);
   console.log('\n   Para parar: Ctrl+C\n');
