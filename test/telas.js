@@ -9,7 +9,8 @@
 'use strict';
 
 // Liga uma tela na Sala. `papel` e `lugar` vão como chegam do servidor ('table' | 'seat', '0' | '1' | ...).
-function conectarTela(sala, papel, lugar) {
+// `marca`: a marca que o Celular guarda (ADR 0002). Sem ela, é um Celular antigo.
+function conectarTela(sala, papel, lugar, marca) {
   const tela = {
     linhas: [],     // tudo o que a Sala escreveu, como texto cru (inclui o sinal de vida)
     mensagens: [],  // cada linha `data: {...}` já lida: { type, state, events }
@@ -20,12 +21,12 @@ function conectarTela(sala, papel, lugar) {
   tela.conexao = sala.connect(papel, lugar, (texto) => {
     tela.linhas.push(texto);
     if (texto.startsWith('data: ')) tela.mensagens.push(JSON.parse(texto.slice('data: '.length)));
-  });
+  }, marca);
   return tela;
 }
 
 const conectarMesa = (sala) => conectarTela(sala, 'table', null);
-const conectarCelular = (sala, lugar) => conectarTela(sala, 'seat', String(lugar));
+const conectarCelular = (sala, lugar, marca) => conectarTela(sala, 'seat', String(lugar), marca);
 
 // Sorteio que dá sempre a mesma sequência para a mesma semente (mulberry32).
 function sorteioFixo(semente) {

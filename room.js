@@ -22,6 +22,10 @@ const seatOf = (v) => (typeof v === 'number' || (typeof v === 'string' && /^\d+$
 const FILL_AVATARS = ['neide', 'juninho'];
 // As ações que são jogadas na Mão.
 const PLAYS = new Set(['play', 'truco', 'respond', 'opiniao', 'onze', 'sinal']);
+// As ações que só o Celular dono do Lugar faz (ADR 0002). As da Mesa (config, start, lobby) ficam de fora.
+const OWNER_ONLY = new Set([...PLAYS, 'join', 'pick', 'leave']);
+// A marca que o Celular guarda: um texto aleatório. Outra coisa vira null (Celular sem marca).
+const markOf = (v) => (typeof v === 'string' && /^[\w-]{8,64}$/.test(v) ? v : null);
 // Os lugares de cada jogador: o dele e o do parceiro.
 const OWNED = [[0, 2], [1, 3]];
 
@@ -31,6 +35,8 @@ class Room {
     this.game = new Game({ brain, rng: opts.rng });
     this.clients = new Set();
     this.humanNames = ['Jogador 1', 'Jogador 2'];
+    // A marca do Celular dono de cada Lugar de Jogador (null = livre). Nunca vai para as telas.
+    this.owners = [null, null];
     this.timer = null;
     this.timerKey = '';
   }
@@ -71,10 +77,23 @@ class Room {
     }
   }
 
-  // c = { kind: 'table'|'seat', seat, write(texto) }
-  connect(kind, seat, write) {
+  // O Lugar fica com o primeiro Celular que chega com marca. Devolve false se o Lugar é de outro Celular.
+  // Celular sem marca age só em Lugar livre (Celular antigo, e os testes de antes do ADR 0002).
+  claim(seat, mark) {
+    const owner = this.owners[seat];
+    if (owner === null) { if (mark) this.owners[seat] = mark; return true; }
+    return owner === mark;
+  }
+
+  // c = { kind: 'table'|'seat', seat, write(texto) }. `mark`: a marca do Celular.
+  // Celular num Lugar de outro Celular ouve { type: 'taken' } e não entra na Sala (devolve null).
+  connect(kind, seat, write, mark) {
     const c = { kind: kind === 'seat' ? 'seat' : 'table', seat: seatOf(seat), write };
     if (c.kind === 'seat' && c.seat !== 0 && c.seat !== 1) c.kind = 'table';
+    if (c.kind === 'seat' && !this.game.seats[c.seat].bot && !this.claim(c.seat, markOf(mark))) {
+      this.write(c, `data: ${JSON.stringify({ type: 'taken' })}\n\n`);
+      return null;
+    }
     this.clients.add(c);
     if (c.kind === 'seat' && !this.game.seats[c.seat].bot) this.game.seats[c.seat].name = this.humanNames[c.seat];
     this.broadcast();
@@ -167,11 +186,20 @@ class Room {
     const seat = seatOf(a.seat);
     // Os Robôs jogam pelo relógio (pump), direto no Game. Um Celular nunca joga pelo Lugar de um Robô.
     if (PLAYS.has(a.type) && game.seats[seat] && game.seats[seat].bot) return 'Esse Lugar é de um Robô.';
+    if (OWNER_ONLY.has(a.type) && (seat === 0 || seat === 1) && !game.seats[seat].bot && !this.claim(seat, markOf(a.marca))) {
+      return 'Esse Lugar é de outro Celular.';
+    }
     switch (a.type) {
       case 'join': {
         if (seat !== 0 && seat !== 1) return 'Lugar inválido.';
         const name = clean(a.name);
         if (name) { this.humanNames[seat] = name; if (!game.seats[seat].bot) game.seats[seat].name = name; }
+        return null;
+      }
+      case 'leave': {
+        // O Celular troca de Lugar: solta este.
+        if (seat !== 0 && seat !== 1) return 'Lugar inválido.';
+        this.owners[seat] = null;
         return null;
       }
       case 'config': {
@@ -180,6 +208,7 @@ class Room {
         const s = game.seats[seat];
         s.bot = !!a.bot;
         s.connected = s.bot;
+        this.owners[seat] = null;
         s.picked = false;
         if (s.bot) {
           const used = new Set(game.seats.filter((x, i) => i !== seat).map((x) => x.avatar).filter(Boolean));
@@ -229,7 +258,7 @@ class Room {
         game.seats.forEach((x) => { if (!x.avatar) { x.avatar = this.freeAvatar(used); used.add(x.avatar); } });
         return game.start();
       }
-      case 'lobby': game.toLobby(); return null;
+      case 'lobby': game.toLobby(); this.owners = [null, null]; return null;
       case 'play': return game.play(seat, Number(a.idx), a.fechada === true);
       case 'truco': return game.truco(seat);
       case 'respond': return game.respond(seat, a.ans);

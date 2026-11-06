@@ -41,7 +41,7 @@ const server = http.createServer((req, res) => {
   if (p === '/events') {
     res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
     res.write('retry: 1500\n\n');
-    const c = room.connect(url.searchParams.get('role'), url.searchParams.get('seat'), (text) => { res.write(text); });
+    const c = room.connect(url.searchParams.get('role'), url.searchParams.get('seat'), (text) => { res.write(text); }, url.searchParams.get('marca'));
     req.on('close', () => room.disconnect(c));
     return;
   }

@@ -1180,3 +1180,99 @@ describe('Sala: Sinais', () => {
     assert.deepStrictEqual(sala.action({ type: 'sinal', seat: 1, idx: 0 }), { error: 'Esse Lugar é de um Robô.' });
   });
 });
+
+// O Lugar com dono (ADR 0002): o primeiro Celular que pega o Lugar fica com ele.
+const MARCA_A = 'celular-a-1234567890';
+const MARCA_B = 'celular-b-1234567890';
+const OUTRO_CELULAR = 'Esse Lugar é de outro Celular.';
+
+describe('Sala: Lugar com dono', () => {
+  test('o primeiro Celular que entra fica com o Lugar, e outro Celular não age por ele', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    conectarCelular(sala, 0, MARCA_A);
+    assert.deepStrictEqual(sala.action({ type: 'join', seat: 0, name: 'Ana', marca: MARCA_A }), { ok: true });
+    assert.deepStrictEqual(sala.action({ type: 'join', seat: 0, name: 'Intruso', marca: MARCA_B }), { error: OUTRO_CELULAR });
+    assert.deepStrictEqual(sala.action({ type: 'join', seat: 0, name: 'Sem marca' }), { error: OUTRO_CELULAR });
+    const [eu, parceiro] = AVATARS.map((a) => a.id);
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: eu, partner: parceiro, marca: MARCA_B }), { error: OUTRO_CELULAR });
+    assert.strictEqual(mesa.estado.seats[0].name, 'Ana');
+    assert.strictEqual(mesa.estado.seats[0].picked, false);
+  });
+
+  test('outro Celular que conecta no Lugar tomado ouve que o Lugar está tomado e não conta como conectado', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    const dono = conectarCelular(sala, 0, MARCA_A);
+    const intruso = conectarCelular(sala, 0, MARCA_B);
+    assert.deepStrictEqual(intruso.linhas.map((l) => JSON.parse(l.slice('data: '.length))), [{ type: 'taken' }]);
+    assert.strictEqual(intruso.estado, undefined, 'o intruso recebeu o estado da Sala');
+    dono.sair();
+    assert.strictEqual(mesa.estado.seats[0].connected, false);
+  });
+
+  test('a marca não aparece para nenhuma tela', () => {
+    const sala = new Room();
+    const mesa = conectarMesa(sala);
+    const celular = conectarCelular(sala, 0, MARCA_A);
+    sala.action({ type: 'join', seat: 0, name: 'Ana', marca: MARCA_A });
+    for (const tela of [mesa, celular]) assert.ok(!tela.linhas.some((l) => l.includes(MARCA_A)), 'a marca vazou');
+  });
+
+  test('o mesmo Celular volta para o Lugar depois de cair e continua jogando', (t) => {
+    pararRelogio(t);
+    const sala = new Room({ rng: sorteioFixo(8) });
+    const mesa = conectarMesa(sala);
+    const primeiro = conectarCelular(sala, 0, MARCA_A);
+    conectarCelular(sala, 1, MARCA_B);
+    comecarPartida(sala);
+    esperarAte(t, () => primeiro.estado.canPlay, 'a vez do Lugar 0');
+    primeiro.sair();
+    assert.strictEqual(mesa.estado.seats[0].connected, false);
+    const devolta = conectarCelular(sala, 0, MARCA_A);
+    assert.strictEqual(mesa.estado.seats[0].connected, true);
+    assert.strictEqual(devolta.estado.canPlay, true);
+    assert.deepStrictEqual(sala.action({ type: 'play', seat: 0, idx: 0, marca: MARCA_A }), { ok: true });
+  });
+
+  test('com o Jogador caído na vez dele, a Partida espera e o Robô não joga por ele', (t) => {
+    pararRelogio(t);
+    const sala = new Room({ rng: sorteioFixo(8) });
+    const mesa = conectarMesa(sala);
+    const celular = conectarCelular(sala, 0, MARCA_A);
+    conectarCelular(sala, 1, MARCA_B);
+    comecarPartida(sala);
+    esperarAte(t, () => celular.estado.canPlay, 'a vez do Lugar 0');
+    celular.sair();
+    const mesaAntes = mesa.estado.table;
+    t.mock.timers.tick(5 * 60 * 1000);
+    assert.deepStrictEqual(mesa.estado.table, mesaAntes);
+    assert.strictEqual(mesa.estado.turn, 0);
+    assert.strictEqual(mesa.estado.seats[0].connected, false);
+    assert.ok(!mesa.eventos.some((ev) => ev.t === 'play' && ev.seat === 0), 'alguém jogou pelo Lugar 0');
+  });
+
+  test('trocar de Lugar solta o Lugar, e outro Celular pode pegar', () => {
+    const sala = new Room();
+    conectarCelular(sala, 0, MARCA_A);
+    sala.action({ type: 'join', seat: 0, name: 'Ana', marca: MARCA_A });
+    assert.deepStrictEqual(sala.action({ type: 'leave', seat: 0, marca: MARCA_B }), { error: OUTRO_CELULAR });
+    assert.deepStrictEqual(sala.action({ type: 'leave', seat: 0, marca: MARCA_A }), { ok: true });
+    assert.deepStrictEqual(sala.action({ type: 'join', seat: 0, name: 'Bia', marca: MARCA_B }), { ok: true });
+  });
+
+  test('pôr um Robô no Lugar solta o Lugar', () => {
+    const sala = new Room();
+    sala.action({ type: 'join', seat: 1, name: 'Ana', marca: MARCA_A });
+    sala.action({ type: 'config', seat: 1, bot: true });
+    sala.action({ type: 'config', seat: 1, bot: false });
+    assert.deepStrictEqual(sala.action({ type: 'join', seat: 1, name: 'Bia', marca: MARCA_B }), { ok: true });
+  });
+
+  test('Nova partida solta os Lugares', () => {
+    const sala = new Room();
+    sala.action({ type: 'join', seat: 0, name: 'Ana', marca: MARCA_A });
+    sala.action({ type: 'lobby' });
+    assert.deepStrictEqual(sala.action({ type: 'join', seat: 0, name: 'Bia', marca: MARCA_B }), { ok: true });
+  });
+});

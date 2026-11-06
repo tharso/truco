@@ -38,7 +38,7 @@ export class Mesa extends DurableObject {
       const { readable, writable } = new TransformStream();
       const writer = writable.getWriter();
       writer.write(enc.encode('retry: 1500\n\n')).catch(() => {});
-      const c = this.room.connect(url.searchParams.get('role'), url.searchParams.get('seat'), (text) => writer.write(enc.encode(text)));
+      const c = this.room.connect(url.searchParams.get('role'), url.searchParams.get('seat'), (text) => writer.write(enc.encode(text)), url.searchParams.get('marca'));
       if (request.signal) request.signal.addEventListener('abort', () => this.room.disconnect(c));
       this.startBeat();
       return new Response(readable, { headers: SSE_HEADERS });

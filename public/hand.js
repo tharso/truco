@@ -9,6 +9,13 @@
   // Cada Sala lembra o seu Lugar: o Celular pode ter jogado em outra Sala antes.
   const SEAT_KEY = CODE ? `truco-seat:${CODE}` : 'truco-seat';
   let seat = localStorage.getItem(SEAT_KEY);
+  // A marca deste Celular (ADR 0002): o Lugar fica com o primeiro Celular que o pega.
+  // getRandomValues funciona também no Wi-Fi de casa (http), onde randomUUID não existe.
+  let marca = localStorage.getItem('truco-marca');
+  if (!/^[\w-]{8,64}$/.test(marca || '')) {
+    marca = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+    localStorage.setItem('truco-marca', marca);
+  }
   seat = seat === null ? null : Number(seat);
   let state = null;
   let es = null;
@@ -32,7 +39,7 @@
 
   async function post(a) {
     try {
-      const r = await fetch(`${BASE}/api/action`, { method: 'POST', body: JSON.stringify(Object.assign({ seat }, a)) });
+      const r = await fetch(`${BASE}/api/action`, { method: 'POST', body: JSON.stringify(Object.assign({ seat, marca }, a)) });
       const j = await r.json();
       if (j.error) toast(j.error);
       return j;
@@ -56,9 +63,10 @@
       const i = Number(b.dataset.seat);
       const name = $('name').value.trim() || `Jogador ${i + 1}`;
       localStorage.setItem('truco-name', name);
-      localStorage.setItem(SEAT_KEY, String(i));
       seat = i;
-      await post({ type: 'join', name });
+      const r = await post({ type: 'join', name });
+      if (r.error) { seat = null; return; }
+      localStorage.setItem(SEAT_KEY, String(i));
       connect();
     };
   });
@@ -66,6 +74,7 @@
     e.preventDefault();
     if (es) es.close();
     es = null;
+    if (seat === 0 || seat === 1) post({ type: 'leave' });
     localStorage.removeItem(SEAT_KEY);
     seat = null;
     showPick();
@@ -174,10 +183,20 @@
     $('pick').classList.add('hidden');
     showScreen();
     if (es) es.close();
-    es = new EventSource(`${BASE}/events?role=seat&seat=${seat}`);
+    es = new EventSource(`${BASE}/events?role=seat&seat=${seat}&marca=${marca}`);
     es.onopen = () => post({ type: 'join', name: localStorage.getItem('truco-name') || '' });
     es.onmessage = (e) => {
       const m = JSON.parse(e.data);
+      if (m.type === 'taken') {
+        // Outro Celular pegou este Lugar antes.
+        es.close();
+        es = null;
+        localStorage.removeItem(SEAT_KEY);
+        seat = null;
+        showPick();
+        toast('Esse Lugar já tem outro Celular. Escolha outro.');
+        return;
+      }
       if (m.type !== 'state') return;
       state = m.state;
       const s = state.seats[state.me];

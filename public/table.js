@@ -190,6 +190,9 @@
     let t = '';
     const s = state.seats;
     if (state.phase === 'deal' && state.dealer >= 0) t = `${s[state.dealer].name} está dando as cartas…`;
+    // Quem caiu (ADR 0002): a Partida espera ele voltar.
+    const fallen = state.phase !== 'lobby' && state.phase !== 'over' ? [0, 1].filter((i) => !s[i].bot && !s[i].connected) : [];
+    if (fallen.length) t = `📵 ${fallen.map((i) => s[i].name).join(' e ')} ${fallen.length > 1 ? 'caíram' : 'caiu'}. Esperando voltar…`;
     else if (state.phase === 'play' && state.turn >= 0) {
       t = s[state.turn].bot ? `${s[state.turn].name} está pensando…` : `Vez de ${s[state.turn].name} · jogue pelo celular 📱`;
     } else if (state.phase === 'truco' && state.pending) {
@@ -211,7 +214,7 @@
     if (state.phase === 'play') who = state.turn;
     else if (state.phase === 'truco') { who = state.pending.responder; clip = 'responde'; }
     else if (state.phase === 'onze') { who = voiceOf(state.onzeTeam); clip = 'onze-decide'; }
-    if (who < 0 || state.seats[who].bot) return;
+    if (who < 0 || state.seats[who].bot || !state.seats[who].connected) return;
     nudgeTimer = setTimeout(() => {
       speak(clip);
       bubble(seatEl(who).querySelector('.bubble'), 'Sua vez! ⏰', 3000);
