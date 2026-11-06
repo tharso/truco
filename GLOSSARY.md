@@ -60,6 +60,10 @@ _Evitar_: rodada (para a mão inteira)
 Uma volta em que cada Lugar joga uma carta. A carta mais forte ganha a Rodada.
 _Evitar_: vaza, turno
 
+**Mão decidida**:
+A Mão em que a carta na mesa não pode mais perder nem empatar, e isso já dá a Mão a uma Dupla. Conta só o que todos já viram, nunca as cartas escondidas. Aí a Mão acaba na hora e ninguém joga o resto. Exemplo: o zap aberto na 3ª Rodada.
+_Evitar_: mão ganha, mão morta
+
 **Cartas na mão**:
 As cartas que um Lugar ainda não jogou na Mão atual.
 _Evitar_: mão (sozinho, para as cartas)
@@ -105,6 +109,14 @@ Um Robô pegar o Sinal de outro Lugar. O parceiro vê 8 em 10 vezes, o adversár
 **Barras**:
 O jeito de jogar de um Robô: quanto ele blefa e quanta coragem tem, de 0 a 10. Cada Personagem tem as dele, e o Jogador muda as do parceiro ao montá-lo. Só o dono vê.
 _Evitar_: persona, perfil, Blefador, Medroso
+
+**Fala**:
+Tudo que um Personagem diz ou faz na Mesa: pedir Truco, aumentar, aceitar, correr, a Opinião, "sua vez". A Fala sai do Personagem, e todos veem quem falou.
+_Evitar_: aviso, mensagem (para o que sai do Personagem)
+
+**Aviso da Mesa**:
+O que a própria Mesa anuncia, no meio da tela, sem ser de ninguém: Mão de onze, Mão de ferro, pontos ganhos, "Vale 3".
+_Evitar_: fala, overlay (em texto para pessoas)
 
 **Cola**:
 A lista, no Celular, que explica o que cada Sinal quer dizer.
