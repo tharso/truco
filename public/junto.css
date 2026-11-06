@@ -62,5 +62,3 @@
 /* As Cartas na mão ficam um pouco menores, para caber tudo na tela. */
 #hand { min-height: 140px; padding-top: 12px; }
 #hand .card { --cw: min(24vw, 100px); }
-/* A Vira e o valor já estão na Mesa pequena. Fica só o nome da Manilha. */
-#vira-mini, #value-mini { display: none !important; }

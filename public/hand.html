@@ -65,17 +65,6 @@
   </div>
 
   <div id="main" class="hidden">
-    <header id="top">
-      <div id="score" class="shout"></div>
-      <div id="team-line"></div>
-    </header>
-
-    <div id="info-row">
-      <div id="vira-mini"></div>
-      <div id="man-mini"></div>
-      <div id="value-mini" class="shout"></div>
-    </div>
-
     <div id="status" class="shout"></div>
 
     <div id="hand"></div>
@@ -85,7 +74,6 @@
     <button id="truco-btn" class="shout" disabled>TRUCO!</button>
 
     <div id="respond" class="panel hidden">
-      <div id="resp-title" class="shout"></div>
       <div class="resp-btns">
         <button data-ans="aceito" class="shout b-green">ACEITO!</button>
         <button data-ans="corro" class="shout b-gray">CORRO 🐔</button>
@@ -94,8 +82,6 @@
     </div>
 
     <div id="opine" class="panel hidden">
-      <div id="opine-title" class="shout"></div>
-      <div id="opine-hint"></div>
       <div class="resp-btns">
         <button data-opine="aceita" class="shout b-green">😃 ACEITA</button>
         <button data-opine="corre" class="shout b-gray">😟 CORRE</button>
@@ -104,7 +90,6 @@
 
     <div id="onze" class="panel hidden">
       <div class="shout onze-title">MÃO DE ONZE!</div>
-      <div>As suas cartas e as do seu parceiro:</div>
       <div id="onze-cards"></div>
       <div class="resp-btns">
         <button data-onze="joga" class="shout b-green">JOGA (vale 3)</button>
@@ -127,6 +112,7 @@
   <div id="toast"></div>
 
   <script src="/shared.js"></script>
+  <script src="/hand-view.js"></script>
   <script src="/hand.js"></script>
 </body>
 </html>

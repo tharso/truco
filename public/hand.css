@@ -48,15 +48,6 @@ body {
 
 /* principal */
 #main { padding: 10px 12px 20px; display: flex; flex-direction: column; gap: 10px; }
-#top { background: #0007; border-radius: 14px; padding: 8px 12px; text-align: center; }
-#score { font-size: 24px; }
-#team-line { font-size: 13px; opacity: .85; }
-#info-row { display: flex; align-items: center; gap: 10px; justify-content: center; }
-#vira-mini .card { --cw: 44px; }
-#man-mini { font-size: 14px; }
-#man-mini b { color: #ffd400; }
-#value-mini { background: #ffd400; color: #000; padding: 4px 10px; border-radius: 14px; font-size: 14px; }
-#value-mini.hot { background: #ff3b3b; color: #fff; }
 #status { text-align: center; font-size: 22px; min-height: 1.3em; text-shadow: 0 2px 0 #000; }
 #status.myturn { color: #ffd400; animation: pulse .6s infinite alternate; }
 @keyframes pulse { to { transform: scale(1.06); } }
@@ -84,16 +75,22 @@ body {
 #truco-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 3px 0 #6d0b07; }
 
 .panel { background: #000c; border: 3px solid #ffd400; border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; text-align: center; }
-#resp-title, #opine-title, .onze-title { font-size: 26px; color: #ffd400; }
+.onze-title { font-size: 26px; color: #ffd400; }
 #closed-btn { border: 0; border-radius: 16px; padding: 12px; font-size: 20px; color: #fff; box-shadow: 0 5px 0 #0008; }
 .resp-btns { display: flex; flex-direction: column; gap: 8px; }
 .resp-btns button { border: 0; border-radius: 14px; padding: 14px; font-size: 22px; color: #fff; box-shadow: 0 5px 0 #0008; }
 .b-green { background: #1fae5b; }
 .b-gray { background: #666; }
 .b-red { background: #e3261f; }
-#onze-cards { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
-#onze-cards .card { --cw: 52px; }
-#onze-cards .sep { width: 2px; background: #fff5; margin: 0 4px; }
+/* Mão de onze: 2 faixas de 3. Em cima as suas; embaixo as do parceiro, na cor da Dupla. */
+#onze-cards { display: flex; flex-direction: column; gap: 10px; }
+.onze-row { border-radius: 14px; padding: 8px 8px 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.onze-row.partner.t0 { background: #2f7bff; box-shadow: 0 4px 0 #0008; }
+.onze-row.partner.t1 { background: #e3261f; box-shadow: 0 4px 0 #0008; }
+.onze-who { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 18px; }
+.onze-face { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; background: #0004; }
+.onze-cards { display: flex; gap: 8px; justify-content: center; }
+.onze-cards .card { --cw: min(22vw, 84px); }
 
 #game-btns button { width: 100%; border: 0; border-radius: 16px; padding: 16px; font-size: 24px; color: #fff; background: #e3261f; box-shadow: 0 5px 0 #6d0b07; }
 
