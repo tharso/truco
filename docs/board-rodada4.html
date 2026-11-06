@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Board — rodada 4 (o que fica e o que sai)</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--line:#0002;--txt:#1a1a1a;--mut:#777;--acc:#185fa5;--accbg:#e6f1fb}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1b1a;--card:#262624;--line:#fff2;--txt:#eee;--mut:#999;--acc:#85b7eb;--accbg:#0c447c}}
+*{box-sizing:border-box}
+body{margin:0;padding:20px;background:var(--bg);color:var(--txt);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;max-width:1100px;margin:auto}
+h1{font-size:20px;font-weight:500;margin:0 0 4px}
+h3{font-size:15px;font-weight:500;margin:22px 0 4px}
+.wrap{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;margin:16px 0}
+@media (max-width:760px){.wrap{grid-template-columns:1fr}}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.n{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 5px;border-radius:10px;background:var(--accbg);color:var(--acc);font-size:11px;font-weight:600;margin-right:4px}
+.mk{border:1px solid var(--line);border-radius:8px;padding:4px 6px;font-size:12px;color:var(--mut);background:var(--bg)}
+.felt{background:#1f8a4c22}
+.row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
+.row .t{flex:1;min-width:0}
+.row .t small{display:block;color:var(--mut);font-size:12px}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:8px;padding:4px 10px}
+button:hover{border-color:var(--mut)}
+.pb.on.f{background:#eaf3de;color:#27500a;border-color:#639922}
+.pb.on.s{background:#fcebeb;color:#791f1f;border-color:#e24b4a}
+.pb.on.m{background:#faeeda;color:#633806;border-color:#ba7517}
+textarea{width:100%;min-height:70px;font:inherit;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--txt)}
+#out{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:10px;display:none}
+.mut{color:var(--mut);font-size:13px}
+.sticky{position:sticky;bottom:0;background:var(--bg);padding:10px 0;display:flex;gap:10px;align-items:center;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<h1>Truco — o que fica e o que sai</h1>
+<div class="mut">Marque cada linha: <b>Fica</b>, <b>Sai</b> ou <b>Menor</b> (fica, mas mais curto ou discreto). Linha sem marca: o Claude decide e te mostra. As marcas ficam salvas neste navegador. Quando acabar, diga "pronto" no chat.</div>
+
+<div class="wrap">
+<div class="box">
+<div style="font-weight:500;margin-bottom:8px">Mesa (TV) — durante a Mão</div>
+<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">
+<div class="mk" style="flex:1"><span class="n">1</span>DUPLA AZUL<br><span class="n">2</span>Tharso + Cleitinho<br><span class="n">3</span>barra até 12</div>
+<div class="mk" style="font-size:16px"><span class="n">4</span>3</div>
+<div class="mk" style="text-align:center"><span class="n">5</span>Vale 1<br><span class="n">6</span>o o o</div>
+<div class="mk" style="font-size:16px">5</div>
+<div class="mk" style="flex:1">DUPLA VERMELHA<br>Nina + Cida<br>barra</div>
+<div class="mk"><span class="n">7</span>som ↺</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 2fr 1fr;gap:6px;align-items:center">
+<div></div><div class="mk" style="text-align:center">Cida (rosto)<br><span class="n">8</span>nome · <span class="n">9</span>cartas de costas</div><div></div>
+<div class="mk" style="text-align:center">Tonhão<br><span class="n">10</span>"dá as cartas"</div>
+<div class="mk felt" style="text-align:center;min-height:110px"><span class="n">11</span>VIRA<br><span class="n">12</span>Manilha: 5 (Cinco)<br>cartas jogadas<br><br><span class="n">13</span>linha de estado embaixo</div>
+<div class="mk" style="text-align:center">Cleitinho</div>
+<div></div><div class="mk" style="text-align:center">Tharso <span class="n">14</span>selo celular</div><div></div>
+</div>
+<div class="mk" style="margin-top:8px;text-align:center"><span class="n">15</span>Aviso no meio da tela (por cima de tudo)</div>
+<div class="mk" style="margin-top:6px;text-align:center"><span class="n">16</span>Balão da Fala, saindo do rosto</div>
+</div>
+<div class="box">
+<div style="font-weight:500;margin-bottom:8px">Celular — sua vez</div>
+<div style="border:1px solid var(--line);border-radius:16px;padding:8px;display:flex;flex-direction:column;gap:6px">
+<div class="mk" style="text-align:center"><span class="n">C1</span>AZUL 3 × 5 VERMELHA<br><span class="n">C2</span>Você: Tharso · Azul com Cleitinho</div>
+<div class="mk" style="text-align:center"><span class="n">C3</span>vira · <span class="n">C4</span>Manilha: 5 · <span class="n">C5</span>Vale 1</div>
+<div class="mk" style="text-align:center"><span class="n">C6</span>SUA VEZ! Escolha uma carta</div>
+<div class="mk" style="text-align:center;min-height:50px">[carta] [carta] [carta]<br><span class="n">C7</span>😉 embaixo de cada carta</div>
+<div class="mk" style="text-align:center"><span class="n">C8</span>JOGAR FECHADA</div>
+<div class="mk" style="text-align:center"><span class="n">C9</span>TRUCO!</div>
+<div class="mk"><span class="n">C10</span>Cola dos sinais + 2 dicas</div>
+<div class="mk" style="text-align:center"><span class="n">C11</span>Jogador 1 · trocar de lugar</div>
+</div>
+</div>
+</div>
+
+<div id="lists"></div>
+<h3>Algo mais?</h3>
+<textarea id="obs" placeholder="Opcional"></textarea>
+<div class="sticky"><button id="send"><b>Pronto — gerar resumo</b></button><button id="copy">Copiar resumo</button><span id="cnt" class="mut"></span></div>
+<div id="out"></div>
+
+<script>
+const G=[
+["Mesa — placar e controles",[
+["1","Nome da Dupla (DUPLA AZUL / VERMELHA)"],
+["2","Nomes da Dupla embaixo (Tharso + Cleitinho)"],
+["3","Barra que enche até 12"],
+["4","Número grande dos pontos"],
+["5","Selo do valor","Vale 1 · TRUCO? Vale 3! · SEIS · Vale 6 · MÃO DE ONZE · Vale 3 · MÃO DE FERRO · no escuro"],
+["6","Bolinhas das 3 Rodadas"],
+["7","Botões de som e nova partida"]]],
+["Mesa — Lugares e centro",[
+["8","Nome embaixo de cada rosto"],
+["9","Cartas de costas de cada Lugar"],
+["10","Plaquinha \"🃏 dá as cartas\""],
+["11","Etiqueta VIRA"],
+["12","Texto \"Manilha: 5 (Cinco)\""],
+["14","Selo 📱 de celular conectado"]]],
+["Mesa — linha de estado (13)",[
+["13a","Fulano está dando as cartas…"],
+["13b","Fulano está pensando… (vez do Robô)"],
+["13c","Vez de Fulano · jogue pelo celular 📱"],
+["13d","Fulano: aceita, corre ou aumenta?"],
+["13e","Fulano: joga ou corre? (Mão de onze)"],
+["13f","📵 Fulano caiu. Esperando voltar…"]]],
+["Mesa — Avisos da Mesa no meio (15)",[
+["15a","MÃO DE ONZE! + \"Fulano e Sicrano decidem\"","2,6 s"],
+["15b","VALE 3! quando aceitam a Mão de onze","1,5 s"],
+["15c","MÃO DE FERRO! + \"Adoro!\"","2,8 s"],
+["15d","+3 / +6… com o nome da Dupla","1,7 s, só Mão de 3 ou mais"]]],
+["Mesa — Falas em balão (16)",[
+["16a","TRUCO! / SEIS! / NOVE! / DOZE!"],
+["16b","Mostra! (aceitou)"],
+["16c","Tô fora! (correu)"],
+["16d","Joga! (lembrete depois de 20 s)"]]],
+["Celular — tela do jogo",[
+["C1","Placar AZUL 3 × 5 VERMELHA"],
+["C2","Linha \"Você: Tharso · Dupla Azul com Cleitinho\""],
+["C3","Vira pequena"],
+["C4","Texto \"Manilha: 5\""],
+["C5","Selo \"Vale 1\" / MÃO DE FERRO"],
+["C7","Botão 😉 embaixo de cada carta"],
+["C8","Botão JOGAR FECHADA (só quando pode)"],
+["C9","Botão TRUCO! (sempre na tela, apagado fora da vez)"],
+["C10","Cola dos sinais (abre e fecha) + 2 dicas"],
+["C11","Rodapé \"Jogador 1 · trocar de lugar\""],
+["C12","Aviso rápido \"Sinal enviado\""]]],
+["Celular — linha de estado (C6)",[
+["C6a","SUA VEZ! Escolha uma carta / Toque de novo pra jogar!"],
+["C6b","Vez de Fulano… / Fulano está pensando…"],
+["C6c","Fulano está dando as cartas…"],
+["C6d","Rodada sua! 💪 / Perdeu a rodada… / Cangou! Empate!"],
+["C6e","+3 pra vocês! 🎉 / +3 pra eles… 😬 / Ninguém marcou."],
+["C6f","E aí? Vai encarar? / Dê a sua opinião!"],
+["C6g","Decida a mão de onze! / Mão de onze: esperando os outros…"]]],
+["Celular — painéis que aparecem",[
+["C13","Painel de resposta: \"Fulano pediu TRUCO!\" + ACEITO / CORRO / SEIS"],
+["C14","Painel de Opinião: título + \"Quem responde é X. O que você acha?\" + ACEITA / CORRE"],
+["C15","Painel Mão de onze: suas cartas e as do parceiro + JOGA / CORRE"]]],
+["Outras telas (fora da Mão)",[
+["O1","Mesa: hall com QR, 3 passos e COMEÇAR"],
+["O2","Mesa: fim com troféu, JOGAR DE NOVO e Trocar jogadores"],
+["O3","Celular: Código da Sala"],
+["O4","Celular: Seu nome + Jogador 1 / Jogador 2"],
+["O5","Celular: escolher Personagem, parceiro e Barras"],
+["O6","Celular: COMEÇAR! / JOGAR DE NOVO! no próprio Celular"]]]
+];
+const KEY='truco-board-rodada4';
+const st=JSON.parse(localStorage.getItem(KEY)||'{}');
+const obs=document.getElementById('obs');
+obs.value=st._obs||'';
+const L=document.getElementById('lists');
+L.innerHTML=G.map(([h,items])=>'<h3>'+h+'</h3>'+items.map(([k,t,sub])=>'<div class="row" data-k="'+k+'"><span class="n">'+k+'</span><span class="t">'+t+(sub?'<small>'+sub+'</small>':'')+'</span><button class="pb f" data-v="Fica">Fica</button><button class="pb s" data-v="Sai">Sai</button><button class="pb m" data-v="Menor">Menor</button></div>').join('')).join('');
+function paint(){L.querySelectorAll('.row').forEach(r=>r.querySelectorAll('.pb').forEach(x=>x.classList.toggle('on',st[r.dataset.k]===x.dataset.v)));document.getElementById('cnt').textContent=Object.keys(st).filter(k=>k!=='_obs').length+' de '+L.querySelectorAll('.row').length+' marcadas';}
+function save(){localStorage.setItem(KEY,JSON.stringify(st));}
+paint();
+L.addEventListener('click',e=>{const b=e.target.closest('.pb');if(!b)return;const k=b.closest('.row').dataset.k;const v=b.dataset.v;if(st[k]===v)delete st[k];else st[k]=v;save();paint();});
+obs.addEventListener('input',()=>{st._obs=obs.value;save();});
+function resumo(){const by={Fica:[],Sai:[],Menor:[]};Object.entries(st).forEach(([k,v])=>{if(k!=='_obs')by[v].push(k)});const o=obs.value.trim();return 'Board — Sai: '+(by.Sai.join(', ')||'nada')+'\nMenor: '+(by.Menor.join(', ')||'nada')+'\nFica: '+(by.Fica.join(', ')||'nada')+(o?'\nObs: '+o:'');}
+window.boardResumo=resumo;
+document.getElementById('send').onclick=()=>{const out=document.getElementById('out');out.style.display='block';out.textContent=resumo()+'\n\nAgora diga "pronto" no chat. O Claude lê as marcas direto daqui.';};
+document.getElementById('copy').onclick=async()=>{try{await navigator.clipboard.writeText(resumo());document.getElementById('cnt').textContent='Copiado!';}catch(e){document.getElementById('send').click();}};
+</script>
+</body>
+</html>

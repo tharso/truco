@@ -111,12 +111,20 @@ O jeito de jogar de um Robô: quanto ele blefa e quanta coragem tem, de 0 a 10. 
 _Evitar_: persona, perfil, Blefador, Medroso
 
 **Fala**:
-Tudo que um Personagem diz ou faz na Mesa: pedir Truco, aumentar, aceitar, correr, a Opinião, "sua vez". A Fala sai do Personagem, e todos veem quem falou.
+Tudo que um Personagem diz ou faz na Mesa: pedir Truco, aumentar, aceitar, correr, a Opinião, "sua vez". A Fala sai do Personagem, e todos veem quem falou. Cada Personagem fala com a própria voz, seja Robô ou Jogador.
 _Evitar_: aviso, mensagem (para o que sai do Personagem)
 
 **Aviso da Mesa**:
 O que a própria Mesa anuncia, no meio da tela, sem ser de ninguém: Mão de onze, Mão de ferro, pontos ganhos, "Vale 3".
 _Evitar_: fala, overlay (em texto para pessoas)
+
+**Voz da Mesa**:
+A voz que anuncia o jogo para todos: a Manilha, Mão de onze, Mão de ferro, o começo, o fim e o lembrete de quem demora. É a voz do Blurp, dono do bar.
+_Evitar_: narrador, locutor
+
+**Pensando**:
+A marca na Mesa de que é a vez de alguém e ele ainda não jogou: três pontinhos ao lado do rosto na Mesa. Vale para Robô e Jogador. Não tem palavra.
+_Evitar_: carregando, esperando
 
 **Cola**:
 A lista, no Celular, que explica o que cada Sinal quer dizer.

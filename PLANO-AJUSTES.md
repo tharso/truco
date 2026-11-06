@@ -164,3 +164,29 @@ Grilling com Tharso. Tudo nas issues #14 a #22, todas fechadas.
 - Falas novas e vozes regravadas; a voz do fim diz só "Fim de jogo!" (#21).
 
 Falta: jogar uma Partida de verdade e ajustar o ritmo e os balões, se precisar.
+
+---
+
+## Rodada 4 — Mesa e Celular mais limpos, vozes dos Personagens (06/11/2026) · decidida, falta fazer (#23 Mesa, #24 Celular, #25 vozes)
+
+Grilling com Tharso, com um board de "fica / sai" (`docs/board-rodada4.html`).
+
+**Mesa (TV)**
+- Saem: a plaquinha "🃏 dá as cartas" e a etiqueta "VIRA".
+- Manilha: só "Manilha: 5". Figuras e ás por extenso: "Manilha: Valete", "Dama", "Rei", "Ás".
+- Linha de estado: saem "Fulano está pensando…" e "Vez de Fulano · jogue pelo celular". Ficam "dando as cartas", "aceita, corre ou aumenta?", "joga ou corre?" e "caiu".
+- Pensando: três pontinhos (•••) piscando ao lado do rosto de quem está na vez, Robô ou Jogador. Sem palavra. O anel amarelo continua.
+- Sinal: o rosto não cresce nem balança. Só a cara troca, por 1,2 s (era 2,5 s).
+- Avisos da Mesa e balões da Fala ficam iguais.
+
+**Celular**
+- Saem: placar, linha "Você: … com …", vira pequena, "Manilha: 5" e o selo "Vale". A manilha continua marcada na carta.
+- Linha de estado: só o que é para você fazer (sua vez, encarar, opinião, mão de onze). Saem "Vez de Fulano…", "dando as cartas", "Rodada sua / Perdeu", "+3 pra vocês".
+- Painéis de truco e de Opinião: sai o texto de cima. Ficam os botões.
+- Mão de onze: 2 faixas de 3 cartas. Em cima, "Suas cartas", no fundo normal. Embaixo, as do parceiro, numa faixa com a cor da Dupla, com rosto e nome dele.
+
+**Vozes** (roteiro em `docs/vozes-para-gravar.md`)
+- Cada Personagem grava 6 falas: Truco, Seis, Nove, Doze, Mostra, Tô fora. Vale para Robô e para o Personagem do Jogador.
+- "Mostra!" e "Tô fora!" passam a ter som.
+- O Blurp também é a Voz da Mesa: grava as 17 falas de anúncio.
+- Tharso grava um arquivo por Personagem, com 2 s de silêncio entre as falas. O Claude corta com `ffmpeg` e põe em `public/audio/`.
