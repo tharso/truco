@@ -209,3 +209,13 @@ Grilling com Tharso, a partir de uma imagem de referência (só a perspectiva).
 - Nenhuma carta marca Manilha (sem etiqueta, sem brilho). Só "Manilha: 5", ao lado da Vira.
 - Festa do zap só quando o zap ganha a Rodada que dá a Mão.
 - Janela estreita (mais alta que 3:2): rostos limitados pela largura e Tampo sem cartas flutuando. Tela cheia 16:9 e 16:10 não muda. (07/11/2026)
+
+---
+
+## Rodada 6 — Robô sempre faz Sinal (07/11/2026) · ✅ feita
+
+Tharso notou Robôs sem Sinal. Laço com 30 Partidas só de Robôs: 25% das vezes um Robô ficava calado.
+
+- Causa 1 (95%): com a mão só de lixo, o Robô calava 4 em 10 Mãos (sorteio no `bots.js` desde o 1º commit). Agora ele sempre faz "lixo".
+- Causa 2 (5%): o Robô que começa a Mão joga a carta do Sinal antes da hora sorteada do Sinal. Fica assim: carta jogada não precisa de Sinal. Regra: o Robô nunca escolhe a carta para fugir do Sinal.
+- Testes da Mão de onze: semente 25 virou 52 (mesmo placar 8 a 11).

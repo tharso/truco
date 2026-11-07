@@ -108,7 +108,7 @@ A Mão em que uma Dupla tem 11 pontos. Essa Dupla vê as cartas do parceiro e de
 A Mão em que as duas Duplas têm 11 pontos. Todos jogam sem ver as próprias cartas.
 
 **Sinal**:
-Uma careta que o Personagem faz na Mesa para contar ao parceiro que carta tem. Os Robôs fazem no começo da Mão; o Jogador faz pelo 😉 de uma carta, uma vez por carta. Os Sinais são os mesmos para as duas Duplas, e só a Mesa recebe o Sinal.
+Uma careta que o Personagem faz na Mesa para contar ao parceiro que carta tem. Os Robôs fazem um Sinal no começo de toda Mão, até com a mão só de lixo (se a carta do Sinal já foi jogada, o Sinal não sai, e o Robô nunca escolhe a carta para fugir do Sinal); o Jogador faz pelo 😉 de uma carta, uma vez por carta. Os Sinais são os mesmos para as duas Duplas, e só a Mesa recebe o Sinal.
 _Evitar_: dica, gesto
 
 **Ver o Sinal**:

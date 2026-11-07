@@ -599,6 +599,24 @@ describe('Opinião', () => {
 });
 
 describe('Sinais', () => {
+  test('todo Robô marca um Sinal no começo da Mão, até com a mão só de lixo', () => {
+    let maosDeLixo = 0;
+    for (let semente = 1; semente <= 200; semente++) {
+      const g = new Game({ rng: rngFixo(semente), brain });
+      g.seats.forEach((s) => { s.bot = true; });
+      g.start();
+      g.onTimer();
+      const marcados = new Map(g.takeSignalPlan().map((m) => [m.seat, m.sig]));
+      for (const lugar of [0, 1, 2, 3]) {
+        const lixo = g.hands[lugar].every((c) => signalOfCard(c, g.manilha) === 'lixo');
+        if (lixo) maosDeLixo++;
+        assert.ok(marcados.has(lugar), `semente ${semente}: o Robô ${lugar} ficou sem Sinal`);
+        if (lixo) assert.strictEqual(marcados.get(lugar), 'lixo');
+      }
+    }
+    assert.ok(maosDeLixo > 100, `só ${maosDeLixo} mãos de lixo`);
+  });
+
   test('na Mão de ferro ninguém faz Sinal', () => {
     const g = partidaComPlacar(11, 11);
     g.onTimer();

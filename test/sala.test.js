@@ -704,7 +704,7 @@ const PENSAR = { carta: [2500, 4500], responder: [3500, 5500] };
 // Uma Sala com os dois Celulares conectados e a Partida começada, com o sorteio dado.
 // Pare o relógio antes. Sementes usadas: 8 (a 1ª Mão começa pelo Lugar 0), 3 (começa pelo Tonhão, no Lugar 2, que joga uma carta;
 // também chega à 2ª Rodada na vez de um Jogador, e um Robô faz Sinal), 2 (com robos [0, 1], tem Truco e depois Mão de onze)
-// e 25 (Mão de onze da Vermelha, 8 a 11). As sementes mudaram quando o Sinal do Robô passou a acontecer na hora marcada e quando o Robô passou a pensar um tempo sorteado. `robos` = Lugares de Jogador marcados como "falta uma pessoa".
+// e 52 (Mão de onze da Vermelha, 8 a 11). As sementes mudaram quando o Sinal do Robô passou a acontecer na hora marcada, quando o Robô passou a pensar um tempo sorteado e quando a mão de lixo passou a sempre fazer Sinal. `robos` = Lugares de Jogador marcados como "falta uma pessoa".
 // Regra nova mudou as Partidas? Ache sementes novas com `node scripts/achar-semente.js <alvo>`.
 function partidaComDoisCelulares(semente, { robos = [] } = {}) {
   const sala = new Room({ rng: sorteioFixo(semente) });
@@ -1086,9 +1086,9 @@ describe('Sala: jogo, relógio e eventos', () => {
   });
 
   // Joga com os dois Celulares (primeira carta, aceita todo Truco) até a Mão de onze.
-  // Com o sorteio 25, a Dupla Vermelha chega a 11 (placar 8 a 11), e quem decide é o Jogador do Lugar 1.
+  // Com o sorteio 52, a Dupla Vermelha chega a 11 (placar 8 a 11), e quem decide é o Jogador do Lugar 1.
   function chegarNaMaoDeOnze(t) {
-    const partida = partidaComDoisCelulares(25);
+    const partida = partidaComDoisCelulares(52);
     const { sala, mesa, celulares } = partida;
     for (let passo = 0; !celulares.some((c) => c.estado.mustOnze); passo++) {
       assert.ok(passo < 5000 && mesa.estado.phase !== 'over', 'a Partida não chegou na Mão de onze');

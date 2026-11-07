@@ -156,8 +156,7 @@ function signalFor(g, seat) {
   const mans = hand.filter((c) => c.r === g.manilha).map((c) => SUITS.indexOf(c.s));
   if (mans.length) return ['ouros', 'espadas', 'copas', 'zap'][Math.max(...mans)];
   if (hand.some((c) => c.r === '3')) return 'tres';
-  if (g.rng() < 0.6) return 'lixo';
-  return null;
+  return 'lixo'; // mão fraca também avisa: o Robô nunca fica calado
 }
 
 function act(g, seat) {
