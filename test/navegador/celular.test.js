@@ -80,3 +80,24 @@ test('Mão de onze: a faixa do parceiro tem o rosto, o nome e a cor da Dupla', (
   assert.match(parceiroVermelho, /src="\/avatars\/cida\/neutro\.webp"/);
   assert.match(parceiroVermelho, /Zeca/);
 });
+
+// Cola (07/11/2026): o rosto do parceiro fazendo cada Sinal, com o nome da carta embaixo.
+const { colaHTML } = require('../../public/hand-view.js');
+const { SIGNALS } = require('../../public/shared.js');
+const fotos = (html) => [...html.matchAll(/src="\/avatars\/(\w+)\/(\w+)\.webp"/g)].map((m) => `${m[1]}/${m[2]}`);
+const legendas = (html) => [...html.matchAll(/<figcaption>([^<]+)<\/figcaption>/g)].map((m) => m[1]);
+const mesa = (avatares, me = 0) => ({ me, seats: avatares.map((avatar) => ({ avatar })) });
+
+test('a Cola mostra o rosto do parceiro fazendo os 6 Sinais', () => {
+  const html = colaHTML(mesa(['nina', 'beto', 'roque', 'cida'], 1), SIGNALS);
+  assert.deepStrictEqual(fotos(html), ['cida/zap', 'cida/copas', 'cida/espadas', 'cida/ouros', 'cida/tres', 'cida/lixo']);
+  assert.deepStrictEqual(legendas(html), ['Zap', 'Copão', 'Espadilha', 'Pica-fumo', 'Tem um três', 'Mão ruim']);
+});
+
+test('sem parceiro, a Cola usa o seu rosto; sem rosto nenhum, a lista de texto', () => {
+  assert.deepStrictEqual(fotos(colaHTML(mesa(['nina', null, null, null]), SIGNALS)).slice(0, 1), ['nina/zap']);
+  const texto = colaHTML(mesa([null, null, null, null]), SIGNALS);
+  assert.deepStrictEqual(fotos(texto), []);
+  assert.match(texto, /Pisca um olho/);
+  assert.match(colaHTML(null, SIGNALS), /Pisca um olho/);
+});

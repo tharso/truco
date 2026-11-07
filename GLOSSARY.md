@@ -135,4 +135,4 @@ A marca na Mesa de que é a vez de alguém e ele ainda não jogou: três pontinh
 _Evitar_: carregando, esperando
 
 **Cola**:
-A lista, no Celular, que explica o que cada Sinal quer dizer.
+As fotos, no Celular, do Personagem parceiro fazendo cada Sinal, com o nome da carta embaixo.

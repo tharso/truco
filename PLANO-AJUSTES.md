@@ -219,3 +219,15 @@ Tharso notou Robôs sem Sinal. Laço com 30 Partidas só de Robôs: 25% das veze
 - Causa 1 (95%): com a mão só de lixo, o Robô calava 4 em 10 Mãos (sorteio no `bots.js` desde o 1º commit). Agora ele sempre faz "lixo".
 - Causa 2 (5%): o Robô que começa a Mão joga a carta do Sinal antes da hora sorteada do Sinal. Fica assim: carta jogada não precisa de Sinal. Regra: o Robô nunca escolhe a carta para fugir do Sinal.
 - Testes da Mão de onze: semente 25 virou 52 (mesmo placar 8 a 11).
+
+---
+
+## Rodada 7 — Cola com fotos (07/11/2026) · ✅ feita (PR #27)
+
+Grilling com Tharso.
+
+**Celular (e Junto)**
+- A Cola dos sinais do parceiro vira uma grade de 6 fotos (3 × 2), na própria tela.
+- Cada foto é o rosto do Personagem parceiro fazendo um Sinal. Embaixo, só o nome da carta (Zap, Copão, Espadilha, Pica-fumo, Tem um três, Mão ruim).
+- Sem parceiro, o seu rosto. Sem nenhum rosto, a lista de texto de antes.
+- Trocou o parceiro, as fotos trocam junto.

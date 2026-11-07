@@ -200,6 +200,7 @@
       }
       if (m.type !== 'state') return;
       state = m.state;
+      renderCola();
       const s = state.seats[state.me];
       const canChoose = (state.phase === 'lobby' || state.phase === 'over') && !s.bot;
       if (!choosing && canChoose && !s.picked && !chSkipped) openChoose();
@@ -312,8 +313,13 @@
     if (e.target.dataset.act === 'choose') openChoose();
   };
 
-  // cola de sinais
-  $('sig-list').innerHTML = Object.values(S.SIGNALS).map((s) => `<div class="sig"><span>${s.label}</span><b>${s.how}</b></div>`).join('');
+  // Cola: refeita só quando o rosto muda.
+  let colaWas = null;
+  function renderCola() {
+    const html = V.colaHTML(state, S.SIGNALS);
+    if (html !== colaWas) $('sig-list').innerHTML = colaWas = html;
+  }
+  renderCola();
 
   // ---------- Código da Sala (só na internet) ----------
   function showRoom() {
