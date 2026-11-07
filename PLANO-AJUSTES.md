@@ -222,7 +222,7 @@ Tharso notou Robôs sem Sinal. Laço com 30 Partidas só de Robôs: 25% das veze
 
 ---
 
-## Rodada 7 — Cola com fotos (07/11/2026) · em aberto
+## Rodada 7 — Cola com fotos (07/11/2026) · ✅ feita (PR #27)
 
 Grilling com Tharso.
 
