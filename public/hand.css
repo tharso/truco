@@ -99,6 +99,10 @@ body {
 #signals summary { font-weight: 800; cursor: pointer; }
 .sig { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid #fff2; }
 .sig b { color: #ffd400; }
+.sig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
+.sig-photo { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.sig-photo img { width: 100%; aspect-ratio: 1; object-fit: contain; background: #0005; border-radius: 10px; }
+.sig-photo figcaption { font-weight: 800; color: #ffd400; text-align: center; font-size: 13px; }
 .tip { opacity: .8; font-size: 15px; }
 footer { text-align: center; font-size: 12px; opacity: .7; }
 footer a { color: #fff; }

@@ -13,12 +13,12 @@
 
 
   const SIGNALS = {
-    zap: { label: 'Zap (manilha de paus)', how: 'Pisca um olho' },
-    copas: { label: 'Copão (manilha de copas)', how: 'Levanta as sobrancelhas' },
-    espadas: { label: 'Espadilha (manilha de espadas)', how: 'Olha de lado' },
-    ouros: { label: 'Pica-fumo (manilha de ouros)', how: 'Enche as bochechas' },
-    tres: { label: 'Tem um três', how: 'Aperta os olhos' },
-    lixo: { label: 'Mão ruim', how: 'Olha pro céu' },
+    zap: { short: 'Zap', label: 'Zap (manilha de paus)', how: 'Pisca um olho' },
+    copas: { short: 'Copão', label: 'Copão (manilha de copas)', how: 'Levanta as sobrancelhas' },
+    espadas: { short: 'Espadilha', label: 'Espadilha (manilha de espadas)', how: 'Olha de lado' },
+    ouros: { short: 'Pica-fumo', label: 'Pica-fumo (manilha de ouros)', how: 'Enche as bochechas' },
+    tres: { short: 'Tem um três', label: 'Tem um três', how: 'Aperta os olhos' },
+    lixo: { short: 'Mão ruim', label: 'Mão ruim', how: 'Olha pro céu' },
   };
 
   function cardName(c) {

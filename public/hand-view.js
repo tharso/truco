@@ -1,4 +1,4 @@
-// O que o Celular escreve: a linha de estado e a Mão de onze.
+// O que o Celular escreve: a linha de estado, a Mão de onze e a Cola.
 // Arquivo puro, usado pelo Celular (hand.js) e testado no Node (test/navegador/).
 (function (root) {
   // Linha de estado. Durante a Mão, só o que é para o Jogador fazer (Rodada 4, 06/11/2026).
@@ -37,7 +37,19 @@
       + `${cards(st.partnerHand)}</div>`;
   }
 
-  const HAND_VIEW = { statusText, onzeHTML };
+  // Cola: o rosto do parceiro fazendo cada Sinal, com o nome da carta embaixo.
+  // Sem parceiro, o seu rosto. Sem nenhum rosto, a lista de texto.
+  // signals: SHARED.SIGNALS.
+  function colaHTML(st, signals) {
+    const s = st && st.seats;
+    const face = s && ((s[st.me + 2] && s[st.me + 2].avatar) || (s[st.me] && s[st.me].avatar));
+    const list = Object.entries(signals);
+    if (!face) return list.map(([, x]) => `<div class="sig"><span>${x.label}</span><b>${x.how}</b></div>`).join('');
+    return `<div class="sig-grid">${list.map(([k, x]) => `<figure class="sig-photo">`
+      + `<img src="/avatars/${esc(face)}/${k}.webp" alt="${esc(x.how)}"><figcaption>${x.short}</figcaption></figure>`).join('')}</div>`;
+  }
+
+  const HAND_VIEW = { statusText, onzeHTML, colaHTML };
   if (typeof module !== 'undefined' && module.exports) module.exports = HAND_VIEW;
   else root.HAND_VIEW = HAND_VIEW;
 })(typeof window !== 'undefined' ? window : globalThis);
