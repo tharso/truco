@@ -6,7 +6,7 @@ body { overflow: hidden; }
   background:
     radial-gradient(circle at 20% 10%, #ffb34722, transparent 40%),
     repeating-linear-gradient(90deg, #4a2a12 0 60px, #43250f 60px 120px);
-  --av: clamp(100px, 19vh, 210px);    /* tamanho dos rostos (o Personagem de trás) */
+  --av: clamp(100px, min(19vh, 12vw), 210px); /* tamanho dos rostos (o Personagem de trás); 12vw só pesa em janela estreita */
   --av-perto: calc(var(--av) * 1.2);  /* os três da frente e dos lados: 20% maiores */
   --pc: clamp(52px, 8.2vh, 100px);    /* tamanho das cartas na mesa */
   --pts: clamp(60px, 10vh, 110px);    /* altura dos pontos no placar (e dos botões do canto) */
@@ -340,3 +340,9 @@ body.shake #app { animation: shake .6s; }
 @keyframes bulb { to { fill: #ffd400; } }
 .face-medroso .sweat { animation: sweat 1.4s infinite; }
 @keyframes sweat { from { transform: translateY(-4px); opacity: 1; } to { transform: translateY(14px); opacity: 0; } }
+
+/* Janela estreita (mais alta que 3:2): o Tampo fica pequeno no meio de muito espaço.
+   O olho da perspectiva tem de ficar perto dele, senão as cartas de trás flutuam. */
+@media (max-aspect-ratio: 3/2) {
+  #tampo-wrap { align-self: center; height: auto; }
+}

@@ -208,3 +208,4 @@ Grilling com Tharso, a partir de uma imagem de referência (só a perspectiva).
 **Mesa e Celular**
 - Nenhuma carta marca Manilha (sem etiqueta, sem brilho). Só "Manilha: 5", ao lado da Vira.
 - Festa do zap só quando o zap ganha a Rodada que dá a Mão.
+- Janela estreita (mais alta que 3:2): rostos limitados pela largura e Tampo sem cartas flutuando. Tela cheia 16:9 e 16:10 não muda. (07/11/2026)
