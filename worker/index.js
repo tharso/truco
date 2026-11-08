@@ -5,6 +5,7 @@
 //   /s/KF4P       Celular no celular, Mesa no resto
 //   /s/KF4P/mesa  /s/KF4P/mao  a tela pedida
 //   /mao          o Celular pede o Código da Sala
+//   /elenco       todas as caras e Falas dos Personagens, para ver e testar
 import { DurableObject } from 'cloudflare:workers';
 import roomModule from '../room.js';
 import sharedModule from '../public/shared.js';
@@ -119,6 +120,7 @@ export default {
       return Response.redirect(`${url.origin}/s/${code}/mesa`, 302);
     }
     if (p === '/mao' || p === '/m') return page(env, url, request, '/hand.html');
+    if (p === '/elenco') return page(env, url, request, '/elenco.html'); // todas as caras e Falas
     if (p === '/api/info') return json({ online: true, code: null });
     if (p === '/events' || p.startsWith('/api/')) return json({ error: 'Falta o Código da Sala.' }, 400);
 

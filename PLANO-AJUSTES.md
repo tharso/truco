@@ -276,3 +276,15 @@ Tharso gravou os três (Clara em `.opus`). Cada um tem Truco, Seis, Nove, Doze, 
 - O script agora pula quem não tem gravação na pasta: dá para cortar só as gravações novas.
 - Falta: Juninho e as falas do Blurp como Voz da Mesa.
 
+---
+
+## Rodada 11 — Página do Elenco (08/11/2026) · ✅ feita
+
+Pedido de Tharso: uma página para ver e testar todas as caras e Falas de todos os Personagens.
+
+- Endereço: `/elenco` (servidor local e Cloudflare). Não entra em Sala nenhuma.
+- Um cartão por Personagem: retrato grande, Barras, se tem voz própria, as 6 Falas e as 12 caras.
+- Tocar numa cara mostra ela grande. Tocar numa Fala toca o som, mostra o balão e mexe a boca como na Mesa. "▶ Todas" toca as 6 em seguida.
+- Quem não tem voz própria (Juninho) fica com Mostra e Tô fora apagados, como no jogo.
+- Arquivos: `public/elenco.html`, `elenco.js`, `elenco.css`.
+
