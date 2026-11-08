@@ -1,5 +1,7 @@
 #!/bin/bash
-# Grava as falas do jogo com uma voz do Mac e salva em public/audio/*.m4a.
+# Grava a Voz da Mesa (anúncios e pedido de truco de quem não tem voz própria)
+# com uma voz do Mac e salva em public/audio/*.m4a.
+# A voz de cada Personagem é gravada por gente: scripts/cortar-vozes.sh.
 # Uso: scripts/gravar-vozes.sh [voz]   (padrão: Luciana)
 # Dica: baixe uma voz "Premium" em Ajustes do Sistema → Acessibilidade → Conteúdo Falado
 # e rode de novo com o nome dela.

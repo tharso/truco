@@ -51,7 +51,18 @@
     return !!(c && fimDaMao && fimDaMao.reason === 'jogo' && c.r === manilha && c.s === 'paus' && rodada.result === fimDaMao.winner);
   }
 
-  const TABLE_TEXT = { manilhaText, seatOnTurn, statusText, voiceOf, fellSeat, roundMarksOf, zapDecidiu };
+  // Vozes gravadas (issue #25): cada Personagem fala com a própria voz, em public/audio/<id>/<fala>.m4a.
+  // O Juninho ainda não gravou. Gravações novas: scripts/cortar-vozes.sh.
+  const VOZES = ['tonhao', 'cida', 'neide', 'blurp', 'beto', 'roque', 'nina'];
+  const FALAS = ['truco', 'seis', 'nove', 'doze', 'mostra', 'fora'];
+  // Qual áudio toca quando o Personagem fala. Sem voz própria: o pedido de truco
+  // usa a voz antiga (public/audio/<fala>.m4a); Mostra e Tô fora ficam mudos (null).
+  function falaDe(avatar, fala) {
+    if (VOZES.includes(avatar)) return `${avatar}/${fala}`;
+    return fala === 'mostra' || fala === 'fora' ? null : fala;
+  }
+
+  const TABLE_TEXT = { manilhaText, seatOnTurn, statusText, voiceOf, fellSeat, roundMarksOf, zapDecidiu, VOZES, FALAS, falaDe };
   if (typeof module !== 'undefined' && module.exports) module.exports = TABLE_TEXT;
   else root.TABLE_TEXT = TABLE_TEXT;
 })(typeof window !== 'undefined' ? window : globalThis);

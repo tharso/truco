@@ -231,3 +231,14 @@ Grilling com Tharso.
 - Cada foto é o rosto do Personagem parceiro fazendo um Sinal. Embaixo, só o nome da carta (Zap, Copão, Espadilha, Pica-fumo, Tem um três, Mão ruim).
 - Sem parceiro, o seu rosto. Sem nenhum rosto, a lista de texto de antes.
 - Trocou o parceiro, as fotos trocam junto.
+
+---
+
+## Rodada 8 — Vozes gravadas dos Personagens (07/11/2026) · ✅ feita em parte (PR #__) · issue #25
+
+Tharso gravou 7 Personagens. Não seguiu o texto à risca: vale como ficou ("Tô dentro, pode vir pra cima", "Catapimbas, tô fora!").
+
+- Cada Personagem pede Truco, Seis, Nove e Doze com a própria voz, Robô ou Jogador.
+- "Mostra!" e "Tô fora!" passam a ter som.
+- Cortes em `public/audio/<personagem>/<fala>.m4a`, feitos por `scripts/cortar-vozes.sh` (tempos do silêncio; o nome falado no começo fica de fora).
+- Falta: Juninho (usa a voz antiga no truco; Mostra e Tô fora mudos) e as 17 falas do Blurp como Voz da Mesa (segue a voz Luciana).

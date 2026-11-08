@@ -368,11 +368,13 @@
       case 'aceito':
         FX.sfx.ding();
         fala(ev.seat, 'Mostra!');
+        voz(ev.seat, 'mostra');
         break;
 
       case 'corro':
         FX.sfx.chicken();
         fala(ev.seat, 'Tô fora!');
+        voz(ev.seat, 'fora');
         break;
 
       case 'onze':
@@ -438,7 +440,14 @@
     // Sem Aviso da Mesa: o Truco é uma Fala, só o balão de quem pediu.
     fala(ev.seat, `${word}!`, 2600);
     if (s.bot) FACES.mood(seatEl(ev.seat), 'truco', 1500);
-    speak(LEVEL_CLIP[ev.level], { urgent: true, seat: s.bot ? ev.seat : undefined });
+    voz(ev.seat, LEVEL_CLIP[ev.level], { urgent: true });
+  }
+
+  // O Personagem do Lugar fala com a própria voz (Robô ou Jogador). Quem tem rosto mexe a boca.
+  function voz(seat, falaId, opts = {}) {
+    const s = state.seats[seat];
+    const key = T.falaDe(s.avatar, falaId);
+    if (key) speak(key, { urgent: opts.urgent, seat: s.avatar || s.bot ? seat : undefined });
   }
 
   // ---------- vida dos rostos ----------
