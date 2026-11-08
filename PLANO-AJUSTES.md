@@ -245,7 +245,7 @@ Tharso gravou 7 Personagens. Não seguiu o texto à risca: vale como ficou ("Tô
 
 ---
 
-## Rodada 9 — Mila, Theo e Clara (08/11/2026) · ✅ feita
+## Rodada 9 — Mila, Theo e Clara (08/11/2026) · ✅ feita (PR #29)
 
 Grilling com Tharso. Três Personagens novos, feitos a partir de fotos de pessoas reais (as fotos ficam fora do git).
 
