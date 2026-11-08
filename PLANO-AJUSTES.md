@@ -234,7 +234,7 @@ Grilling com Tharso.
 
 ---
 
-## Rodada 8 — Vozes gravadas dos Personagens (07/11/2026) · ✅ feita em parte (PR #__) · issue #25
+## Rodada 8 — Vozes gravadas dos Personagens (07/11/2026) · ✅ feita em parte (PR #28) · issue #25
 
 Tharso gravou 7 Personagens. Não seguiu o texto à risca: vale como ficou ("Tô dentro, pode vir pra cima", "Catapimbas, tô fora!").
 
