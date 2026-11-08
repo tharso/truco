@@ -5,7 +5,7 @@ const { describe, test } = require('node:test');
 const assert = require('node:assert');
 const { Room } = require('../room.js');
 const { AVATARS } = require('../public/shared.js');
-const { conectarTela, conectarMesa, conectarCelular, sorteioFixo, cartasEm } = require('./telas.js');
+const { conectarTela, conectarMesa, conectarCelular, sorteioFixo, elencoFixo, cartasEm } = require('./telas.js');
 
 // Para o relógio da Sala (o setTimeout dos Robôs e das pausas). Assim nenhum teste deixa
 // timer vivo, e o relógio só anda com t.mock.timers.tick(ms). Chame no começo do teste.
@@ -21,7 +21,7 @@ describe('Sala: sorteio controlado', () => {
   test('duas Salas com o mesmo sorteio dão as mesmas Cartas na mão e a mesma Vira', (t) => {
     pararRelogio(t);
     const cartasDoLugar0 = () => {
-      const sala = new Room({ rng: sorteioFixo(42) });
+      const sala = new Room({ rng: sorteioFixo(42), escolha: elencoFixo });
       const celular = conectarCelular(sala, 0);
       comecarPartida(sala);
       return { mao: celular.estado.hand, vira: celular.estado.vira };
@@ -34,7 +34,7 @@ describe('Sala: sorteio controlado', () => {
 
 describe('Sala: conexão e o que cada tela vê', () => {
   test('a Mesa recebe o estado da Sala assim que conecta', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     assert.strictEqual(mesa.mensagens.length, 1);
     assert.strictEqual(mesa.estado.phase, 'lobby');
@@ -42,7 +42,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
   });
 
   test('o Celular recebe o estado assim que conecta no Lugar dele', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const celular = conectarCelular(sala, 1);
     assert.strictEqual(celular.mensagens.length, 1);
     assert.strictEqual(celular.estado.me, 1);
@@ -50,7 +50,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
   });
 
   test('quando o Celular conecta e entra, a Mesa mostra o nome do Jogador no Lugar dele', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     // Como o Celular de verdade: conecta e, assim que abre, manda o nome (public/hand.js).
     conectarCelular(sala, 0);
@@ -60,7 +60,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
   });
 
   test('um Celular que conecta num Lugar de Robô não troca o nome do Robô', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'join', seat: 1, name: 'Rita' });
     sala.action({ type: 'config', seat: 1, bot: true });
@@ -71,7 +71,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
   });
 
   test('a Mesa vê quando um Celular conecta e quando ele sai', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     assert.strictEqual(mesa.estado.seats[0].connected, false);
     const celular = conectarCelular(sala, 0);
@@ -82,7 +82,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
   });
 
   test('o Lugar continua conectado enquanto houver um Celular nele', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     const primeiro = conectarCelular(sala, 0);
     conectarCelular(sala, 0);
@@ -92,7 +92,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
 
   test('a Mesa só vê a Vira e quantas cartas cada Lugar tem, nunca as Cartas na mão', (t) => {
     pararRelogio(t);
-    const sala = new Room({ rng: sorteioFixo(7) });
+    const sala = new Room({ rng: sorteioFixo(7), escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     conectarCelular(sala, 0);
     conectarCelular(sala, 1);
@@ -103,7 +103,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
 
   test('numa Partida inteira de Robôs, a Mesa só vê a Vira e as cartas já jogadas', (t) => {
     pararRelogio(t);
-    const sala = new Room({ rng: sorteioFixo(11) });
+    const sala = new Room({ rng: sorteioFixo(11), escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'config', seat: 0, bot: true });
     sala.action({ type: 'config', seat: 1, bot: true });
@@ -126,7 +126,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
 
   test('cada Celular recebe só as próprias Cartas na mão', (t) => {
     pararRelogio(t);
-    const sala = new Room({ rng: sorteioFixo(3) });
+    const sala = new Room({ rng: sorteioFixo(3), escolha: elencoFixo });
     const celulares = [conectarCelular(sala, 0), conectarCelular(sala, 1)];
     comecarPartida(sala);
     const cartasNaMao = celulares.map((c) => cartasEm(c.estado.hand));
@@ -140,7 +140,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
 
   test('as Cartas na mão que o Celular recebe são as do Lugar dele: é delas que sai a jogada que a Mesa vê', (t) => {
     pararRelogio(t);
-    const sala = new Room({ rng: sorteioFixo(6) });
+    const sala = new Room({ rng: sorteioFixo(6), escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     const celulares = [conectarCelular(sala, 0), conectarCelular(sala, 1)];
     comecarPartida(sala);
@@ -170,7 +170,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
   test('um pedido de conexão num Lugar que não é de Jogador vira conexão de Mesa', () => {
     const pedidos = [['seat', '2'], ['seat', '3'], ['seat', '7'], ['seat', 'abc'], ['seat', null], ['xyz', '0'], [null, null]];
     for (const [papel, lugar] of pedidos) {
-      const sala = new Room();
+      const sala = new Room({ escolha: elencoFixo });
       const mesa = conectarMesa(sala);
       const tela = conectarTela(sala, papel, lugar);
       const quem = `papel ${papel}, Lugar ${lugar}`;
@@ -184,7 +184,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
   test('um pedido de conexão com Lugar vazio vira conexão de Mesa, e não o Celular do Lugar 0', () => {
     // Como chega do endereço: ?role=seat&seat= ou ?role=seat&seat=%20
     for (const lugar of ['', ' ']) {
-      const sala = new Room();
+      const sala = new Room({ escolha: elencoFixo });
       const mesa = conectarMesa(sala);
       const tela = conectarTela(sala, 'seat', lugar);
       const quem = `Lugar ${JSON.stringify(lugar)}`;
@@ -196,7 +196,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
 
   test('toda mudança na Sala chega a todas as telas conectadas', (t) => {
     pararRelogio(t);
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const telas = [conectarMesa(sala), conectarCelular(sala, 0)];
     // Confere que cada tela recebeu uma mensagem a mais (a tela que acabou de chegar, a primeira).
     const chegouEmTodas = (mudanca, confere) => {
@@ -215,7 +215,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
   });
 
   test('uma tela que falha ao receber não atrapalha as outras e sai da Sala', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.connect('seat', '0', () => { throw new Error('o Celular perdeu o sinal'); });
     const celular = conectarCelular(sala, 1);
@@ -226,7 +226,7 @@ describe('Sala: conexão e o que cada tela vê', () => {
   });
 
   test('uma tela que falha depois, ao escrever (como na Cloudflare), também sai da Sala', async () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.connect('seat', '0', () => Promise.reject(new Error('o Celular perdeu o sinal')));
     assert.strictEqual(mesa.estado.seats[0].connected, true);
@@ -253,7 +253,7 @@ function semPersonagemRepetido(mesa) {
 
 describe('Sala: lobby', () => {
   test('o nome que o Jogador manda ao entrar aparece na Mesa, sem os símbolos < > & "', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     assert.deepStrictEqual(sala.action({ type: 'join', seat: 0, name: '<Zé>' }), { ok: true });
     assert.strictEqual(mesa.estado.seats[0].name, 'Zé');
@@ -264,14 +264,14 @@ describe('Sala: lobby', () => {
   });
 
   test('o nome é cortado em 16 letras', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'join', seat: 0, name: 'Joaquim Albuquerque' });
     assert.strictEqual(mesa.estado.seats[0].name, 'Joaquim Albuquer');
   });
 
   test('o corte em 16 letras não deixa espaço no fim nem meia letra', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'join', seat: 0, name: 'Maria Aparecida Souza' });
     assert.strictEqual(mesa.estado.seats[0].name, 'Maria Aparecida');
@@ -288,7 +288,7 @@ describe('Sala: lobby', () => {
   });
 
   test('uma ação de um Lugar que não é de Jogador devolve "Lugar inválido."', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     for (const seat of [2, 3, -1, 7, 'abc', undefined]) {
       assert.deepStrictEqual(sala.action({ type: 'join', seat, name: 'Intruso' }), { error: 'Lugar inválido.' }, `join no Lugar ${seat}`);
@@ -299,7 +299,7 @@ describe('Sala: lobby', () => {
   });
 
   test('um Lugar vazio, falso ou verdadeiro também é inválido, e não vira o Lugar 0 ou 1', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     for (const seat of [null, '', ' ', false, true]) {
       assert.deepStrictEqual(sala.action({ type: 'join', seat, name: 'Intruso' }), { error: 'Lugar inválido.' }, `join no Lugar ${JSON.stringify(seat)}`);
@@ -308,8 +308,8 @@ describe('Sala: lobby', () => {
     assert.deepStrictEqual(mesa.estado.seats.slice(0, 2).map((s) => s.name), ['Jogador 1', 'Jogador 2']);
   });
 
-  test('marcar que falta uma pessoa põe um Robô no Lugar dela, como Dona Neide ou Juninho', () => {
-    const sala = new Room();
+  test('marcar que falta uma pessoa põe um Robô no Lugar dela, com um Personagem livre e o nome dele', () => {
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     assert.deepStrictEqual(sala.action({ type: 'config', seat: 0, bot: true }), { ok: true });
     assert.deepStrictEqual(sala.action({ type: 'config', seat: 1, bot: true }), { ok: true });
@@ -319,7 +319,7 @@ describe('Sala: lobby', () => {
   });
 
   test('se Dona Neide já está na Mesa, o Robô que entra ganha outro Personagem livre e o nome dele', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     assert.deepStrictEqual(sala.action({ type: 'pick', seat: 1, avatar: 'neide', partner: 'beto' }), { ok: true });
     sala.action({ type: 'config', seat: 0, bot: true });
@@ -332,7 +332,7 @@ describe('Sala: lobby', () => {
   });
 
   test('desmarcar devolve o Lugar ao Jogador, com o nome dele', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'join', seat: 0, name: 'Zé' });
     sala.action({ type: 'config', seat: 0, bot: true });
@@ -346,7 +346,7 @@ describe('Sala: lobby', () => {
 
   test('depois que a Partida começa, ninguém troca Jogador por Robô nem Robô por Jogador', (t) => {
     pararRelogio(t);
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'config', seat: 1, bot: true });
     comecarPartida(sala);
@@ -358,7 +358,7 @@ describe('Sala: lobby', () => {
 
   test('com os dois Celulares conectados, a Partida começa', (t) => {
     pararRelogio(t);
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     conectarCelular(sala, 0);
     conectarCelular(sala, 1);
@@ -369,7 +369,7 @@ describe('Sala: lobby', () => {
 
   test('um Lugar de Robô não precisa de Celular para a Partida começar', (t) => {
     pararRelogio(t);
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     conectarCelular(sala, 0);
     sala.action({ type: 'config', seat: 1, bot: true });
@@ -378,7 +378,7 @@ describe('Sala: lobby', () => {
   });
 
   test('faltando Celular, começar dá erro dizendo quem falta, e a Partida não começa', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'join', seat: 0, name: 'Zé' });
     sala.action({ type: 'join', seat: 1, name: 'Rita' });
@@ -391,7 +391,7 @@ describe('Sala: lobby', () => {
 
   test('forçar o começo funciona mesmo sem nenhum Celular conectado', (t) => {
     pararRelogio(t);
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     assert.deepStrictEqual(sala.action({ type: 'start', force: true }), { ok: true });
     assert.strictEqual(mesa.estado.phase, 'deal');
@@ -399,7 +399,7 @@ describe('Sala: lobby', () => {
 
   test('ao começar sem ninguém escolher, os quatro Lugares têm Personagens diferentes', (t) => {
     pararRelogio(t);
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     comecarPartida(sala);
     const naMesa = personagensNaMesa(mesa);
@@ -410,7 +410,7 @@ describe('Sala: lobby', () => {
 
   test('ao começar, quem não escolheu Personagem ganha um livre, e quem escolheu fica com o seu', (t) => {
     pararRelogio(t);
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     // O Jogador 1 escolhe Nina e Roque. O Tonhão, que estava no Lugar 2, fica livre.
     assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque' }), { ok: true });
@@ -423,7 +423,7 @@ describe('Sala: lobby', () => {
 
   test('voltar ao lobby no meio da Partida zera o placar', (t) => {
     pararRelogio(t);
-    const sala = new Room({ rng: sorteioFixo(11) });
+    const sala = new Room({ rng: sorteioFixo(11), escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'config', seat: 0, bot: true });
     sala.action({ type: 'config', seat: 1, bot: true });
@@ -439,7 +439,7 @@ describe('Sala: lobby', () => {
   });
 
   test('uma ação que não existe devolve "Ação desconhecida." e não muda nada', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     const antes = mesa.estado;
     for (const acao of [{ type: 'dançar', seat: 0 }, { seat: 0 }, {}, null, undefined]) {
@@ -450,9 +450,47 @@ describe('Sala: lobby', () => {
   });
 });
 
+describe('Sala: Personagens sorteados', () => {
+  // Um sorteio que devolve, em ordem, as posições pedidas na lista de Personagens livres.
+  const escolhaEm = (...posicoes) => {
+    let i = 0;
+    return () => (posicoes[i++ % posicoes.length] + 0.5) / 100;
+  };
+
+  test('a Sala nova sorteia o Personagem de cada parceiro Robô, com o nome e as Barras dele', () => {
+    const sala = new Room({ escolha: () => 0.99 });
+    const mesa = conectarMesa(sala);
+    const [, , p2, p3] = mesa.estado.seats;
+    const ultimo = AVATARS[AVATARS.length - 1];
+    const penultimo = AVATARS[AVATARS.length - 2];
+    assert.deepStrictEqual([p2.bot, p2.avatar, p2.name], [true, ultimo.id, ultimo.name]);
+    assert.deepStrictEqual([p3.bot, p3.avatar, p3.name], [true, penultimo.id, penultimo.name]);
+    const celular0 = conectarCelular(sala, 0);
+    assert.deepStrictEqual(celular0.estado.partner, { bluff: ultimo.bluff, nerve: ultimo.nerve });
+  });
+
+  test('nenhum Personagem é fixo: Salas com sorteios diferentes têm parceiros diferentes', () => {
+    const parceiros = (escolha) => conectarMesa(new Room({ escolha })).estado.seats.slice(2).map((s) => s.avatar);
+    const vistos = new Set();
+    for (let n = 0; n < AVATARS.length; n++) parceiros(escolhaEm(n * (100 / AVATARS.length), 0)).forEach((a) => vistos.add(a));
+    assert.strictEqual(vistos.size, AVATARS.length, `só apareceram ${[...vistos].join(', ')}`);
+  });
+
+  test('o Robô que entra no lugar de quem falta também é sorteado entre os livres', () => {
+    const sala = new Room({ escolha: () => 0.99 });
+    const mesa = conectarMesa(sala);
+    sala.action({ type: 'config', seat: 0, bot: true });
+    const robo = mesa.estado.seats[0];
+    const livres = AVATARS.filter((a) => !mesa.estado.seats.slice(1).some((s) => s.avatar === a.id));
+    assert.strictEqual(robo.avatar, livres[livres.length - 1].id);
+    assert.strictEqual(robo.name, nomeDe(robo.avatar));
+    semPersonagemRepetido(mesa);
+  });
+});
+
 describe('Sala: escolha de Personagem', () => {
   test('o Jogador escolhe o próprio Personagem e o do parceiro, e a Mesa mostra os dois', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque' }), { ok: true });
     assert.deepStrictEqual(sala.action({ type: 'pick', seat: 1, avatar: 'beto', partner: 'blurp' }), { ok: true });
@@ -460,7 +498,7 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('o parceiro usa o nome dado pelo Jogador, sem os símbolos < > & "', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', partnerName: '<Bi&go"de>' });
     assert.strictEqual(mesa.estado.seats[2].name, 'Bigode');
@@ -468,7 +506,7 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('sem nome dado, o parceiro usa o nome do Personagem', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'neide', partnerName: 'Bigode' });
     // Nome vazio, só espaços ou só símbolos limpos: vale o nome do Personagem.
@@ -479,7 +517,7 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('um Personagem que não existe dá erro, e a Mesa não muda', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     const antes = personagensNaMesa(mesa);
     const escolhas = [
@@ -496,7 +534,7 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('o mesmo Personagem para o Jogador e o parceiro dá erro, e a Mesa não muda', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     const antes = personagensNaMesa(mesa);
     assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'nina' }), { error: 'Escolha um parceiro diferente de você.' });
@@ -504,7 +542,7 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('um Personagem que o outro Jogador já escolheu dá erro, para ele ou para o parceiro', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'pick', seat: 1, avatar: 'beto', partner: 'blurp', partnerName: 'Bigode' });
     const antes = personagensENomes(mesa);
@@ -515,7 +553,7 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('o Jogador pode trocar a própria escolha', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque' });
     // Trocar de lugar com o parceiro não esbarra na escolha que ele mesmo fez.
@@ -524,7 +562,7 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('quem escolhe tira o Personagem do Robô parceiro do outro Jogador, que ainda não escolheu', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     assert.strictEqual(mesa.estado.seats[3].avatar, 'cida');
     assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'cida', partner: 'nina' }), { ok: true });
@@ -537,19 +575,19 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('o Robô que entrou no lugar de quem falta também cede o Personagem e troca de nome', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'config', seat: 1, bot: true });
-    assert.strictEqual(mesa.estado.seats[1].avatar, 'juninho');
-    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: 'juninho', partner: 'nina' }), { ok: true });
+    const antes = mesa.estado.seats[1].avatar;
+    assert.deepStrictEqual(sala.action({ type: 'pick', seat: 0, avatar: antes, partner: 'nina' }), { ok: true });
     const robo = mesa.estado.seats[1];
-    assert.ok(robo.avatar && robo.avatar !== 'juninho', `o Robô ficou com ${robo.avatar}`);
+    assert.ok(robo.avatar && robo.avatar !== antes, `o Robô ficou com ${robo.avatar}`);
     assert.strictEqual(robo.name, nomeDe(robo.avatar));
     semPersonagemRepetido(mesa);
   });
 
   test('o Robô que cede o Personagem fica com o nome que o Jogador deu a ele', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'pick', seat: 1, avatar: 'beto', partner: 'blurp', partnerName: 'Bigode' });
     // Marcar e desmarcar "falta uma pessoa" desfaz a escolha do Jogador 2; o parceiro fica como estava.
@@ -565,7 +603,7 @@ describe('Sala: escolha de Personagem', () => {
 
   test('o Jogador que só ganhou um Personagem ao começar cede esse Personagem e fica com o próprio nome', (t) => {
     pararRelogio(t);
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     sala.action({ type: 'join', seat: 1, name: 'Rita' });
     comecarPartida(sala);
@@ -583,7 +621,7 @@ describe('Sala: escolha de Personagem', () => {
 
   test('no meio da Partida, escolher Personagem dá erro, e a Mesa não muda', (t) => {
     pararRelogio(t);
-    const sala = new Room({ rng: sorteioFixo(9) });
+    const sala = new Room({ rng: sorteioFixo(9), escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     comecarPartida(sala);
     const erro = { error: 'Só dá pra escolher antes de começar.' };
@@ -598,7 +636,7 @@ describe('Sala: escolha de Personagem', () => {
 
   test('no fim da Partida, o Jogador pode escolher de novo', (t) => {
     pararRelogio(t);
-    const sala = new Room({ rng: sorteioFixo(13) });
+    const sala = new Room({ rng: sorteioFixo(13), escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     const celulares = [conectarCelular(sala, 0), conectarCelular(sala, 1)];
     comecarPartida(sala);
@@ -619,7 +657,7 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('num Lugar ocupado por Robô, escolher Personagem dá erro, e o Robô fica como estava', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     // O Celular do Lugar 0 fica aberto depois que um Robô entra no lugar do Jogador.
     conectarCelular(sala, 0);
@@ -631,7 +669,7 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('o jeito de jogar do Robô vem do Personagem, não do Lugar', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     const [celular0, celular1] = [conectarCelular(sala, 0), conectarCelular(sala, 1)];
     // Na Sala nova, Tonhão (parceiro do Lugar 0) e Cida (parceira do Lugar 1) têm jeitos de jogar diferentes.
@@ -648,7 +686,7 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('o Jogador monta o parceiro com as barras de blefe e de coragem, de 0 a 10', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const celular0 = conectarCelular(sala, 0);
     const pedido = { type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', partnerName: 'Cleitinho', bluff: 10, nerve: 0 };
     assert.deepStrictEqual(sala.action(pedido), { ok: true });
@@ -656,7 +694,7 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('o parceiro montado guarda as barras quando cede o Personagem para o outro Jogador', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     const celular0 = conectarCelular(sala, 0);
     conectarCelular(sala, 1);
@@ -672,7 +710,7 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('uma barra fora de 0 a 10 dá erro, e nada muda', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const celular0 = conectarCelular(sala, 0);
     const antes = celular0.estado.partner;
     for (const barras of [{ bluff: 11 }, { nerve: -1 }, { bluff: 2.5 }, { nerve: 'muito' }]) {
@@ -683,7 +721,7 @@ describe('Sala: escolha de Personagem', () => {
   });
 
   test('só o dono vê as barras do parceiro: nem a Mesa nem o outro Celular', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     const celular1 = conectarCelular(sala, 1);
     sala.action({ type: 'pick', seat: 0, avatar: 'nina', partner: 'roque', bluff: 9, nerve: 1 });
@@ -707,7 +745,7 @@ const PENSAR = { carta: [2500, 4500], responder: [3500, 5500] };
 // e 52 (Mão de onze da Vermelha, 8 a 11). As sementes mudaram quando o Sinal do Robô passou a acontecer na hora marcada, quando o Robô passou a pensar um tempo sorteado e quando a mão de lixo passou a sempre fazer Sinal. `robos` = Lugares de Jogador marcados como "falta uma pessoa".
 // Regra nova mudou as Partidas? Ache sementes novas com `node scripts/achar-semente.js <alvo>`.
 function partidaComDoisCelulares(semente, { robos = [] } = {}) {
-  const sala = new Room({ rng: sorteioFixo(semente) });
+  const sala = new Room({ rng: sorteioFixo(semente), escolha: elencoFixo });
   const mesa = conectarMesa(sala);
   const celulares = [conectarCelular(sala, 0), conectarCelular(sala, 1)];
   robos.forEach((seat) => sala.action({ type: 'config', seat, bot: true }));
@@ -717,7 +755,7 @@ function partidaComDoisCelulares(semente, { robos = [] } = {}) {
 
 // Uma Partida só de Robôs, vista pela Mesa. Com o sorteio 11, ela tem Truco, aceito e corro.
 function partidaDeRobos(semente) {
-  const sala = new Room({ rng: sorteioFixo(semente) });
+  const sala = new Room({ rng: sorteioFixo(semente), escolha: elencoFixo });
   const mesa = conectarMesa(sala);
   sala.action({ type: 'config', seat: 0, bot: true });
   sala.action({ type: 'config', seat: 1, bot: true });
@@ -1164,7 +1202,7 @@ describe('Sala: jogo, relógio e eventos', () => {
   });
 
   test('o sinal de vida chega a todas as telas conectadas, e só a elas', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const telas = [conectarMesa(sala), conectarCelular(sala, 0), conectarCelular(sala, 1)];
     const saiu = conectarMesa(sala);
     saiu.sair();
@@ -1252,7 +1290,7 @@ const OUTRO_CELULAR = 'Esse Lugar é de outro Celular.';
 
 describe('Sala: Lugar com dono', () => {
   test('o primeiro Celular que entra fica com o Lugar, e outro Celular não age por ele', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     conectarCelular(sala, 0, MARCA_A);
     assert.deepStrictEqual(sala.action({ type: 'join', seat: 0, name: 'Ana', marca: MARCA_A }), { ok: true });
@@ -1265,7 +1303,7 @@ describe('Sala: Lugar com dono', () => {
   });
 
   test('outro Celular que conecta no Lugar tomado ouve que o Lugar está tomado e não conta como conectado', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     const dono = conectarCelular(sala, 0, MARCA_A);
     const intruso = conectarCelular(sala, 0, MARCA_B);
@@ -1276,7 +1314,7 @@ describe('Sala: Lugar com dono', () => {
   });
 
   test('a marca não aparece para nenhuma tela', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     const celular = conectarCelular(sala, 0, MARCA_A);
     sala.action({ type: 'join', seat: 0, name: 'Ana', marca: MARCA_A });
@@ -1285,7 +1323,7 @@ describe('Sala: Lugar com dono', () => {
 
   test('o mesmo Celular volta para o Lugar depois de cair e continua jogando', (t) => {
     pararRelogio(t);
-    const sala = new Room({ rng: sorteioFixo(8) });
+    const sala = new Room({ rng: sorteioFixo(8), escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     const primeiro = conectarCelular(sala, 0, MARCA_A);
     conectarCelular(sala, 1, MARCA_B);
@@ -1301,7 +1339,7 @@ describe('Sala: Lugar com dono', () => {
 
   test('com o Jogador caído na vez dele, a Partida espera e o Robô não joga por ele', (t) => {
     pararRelogio(t);
-    const sala = new Room({ rng: sorteioFixo(8) });
+    const sala = new Room({ rng: sorteioFixo(8), escolha: elencoFixo });
     const mesa = conectarMesa(sala);
     const celular = conectarCelular(sala, 0, MARCA_A);
     conectarCelular(sala, 1, MARCA_B);
@@ -1317,7 +1355,7 @@ describe('Sala: Lugar com dono', () => {
   });
 
   test('trocar de Lugar solta o Lugar, e outro Celular pode pegar', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     conectarCelular(sala, 0, MARCA_A);
     sala.action({ type: 'join', seat: 0, name: 'Ana', marca: MARCA_A });
     assert.deepStrictEqual(sala.action({ type: 'leave', seat: 0, marca: MARCA_B }), { error: OUTRO_CELULAR });
@@ -1326,7 +1364,7 @@ describe('Sala: Lugar com dono', () => {
   });
 
   test('pôr um Robô no Lugar solta o Lugar', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     sala.action({ type: 'join', seat: 1, name: 'Ana', marca: MARCA_A });
     sala.action({ type: 'config', seat: 1, bot: true });
     sala.action({ type: 'config', seat: 1, bot: false });
@@ -1334,7 +1372,7 @@ describe('Sala: Lugar com dono', () => {
   });
 
   test('Nova partida solta os Lugares', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     sala.action({ type: 'join', seat: 0, name: 'Ana', marca: MARCA_A });
     sala.action({ type: 'lobby' });
     assert.deepStrictEqual(sala.action({ type: 'join', seat: 0, name: 'Bia', marca: MARCA_B }), { ok: true });
@@ -1368,7 +1406,7 @@ describe('Sala: guardar e ler', () => {
   });
 
   test('a Sala lida lembra o dono de cada Lugar', () => {
-    const sala = new Room();
+    const sala = new Room({ escolha: elencoFixo });
     sala.action({ type: 'join', seat: 0, name: 'Ana', marca: MARCA_A });
     const lida = guardarELer(sala);
     const mesa = conectarMesa(lida);

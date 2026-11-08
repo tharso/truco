@@ -54,4 +54,8 @@ function cartasEm(valor) {
   return achadas;
 }
 
-module.exports = { conectarTela, conectarMesa, conectarCelular, sorteioFixo, cartasEm };
+// Sorteio dos Personagens que sempre pega o primeiro livre da lista (Tonhão, Cida, Dona Neide…).
+// Assim os Robôs têm sempre os mesmos Personagens e as mesmas Barras, e a Partida se repete.
+const elencoFixo = () => 0;
+
+module.exports = { conectarTela, conectarMesa, conectarCelular, sorteioFixo, elencoFixo, cartasEm };

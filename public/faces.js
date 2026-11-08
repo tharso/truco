@@ -65,7 +65,7 @@ window.FACES = (function () {
 
   // ---------- rostos com foto (gerados por IA, em public/avatars/<nome>/) ----------
   // Cada personagem tem 12 caras, em WebP com fundo transparente (o fundo é do porta-retrato, no CSS). Sem foto, cai no desenho em SVG do robô.
-  const PHOTOS = ['tonhao', 'cida', 'neide', 'juninho', 'blurp', 'beto', 'roque', 'nina'];
+  const PHOTOS = ['tonhao', 'cida', 'neide', 'juninho', 'blurp', 'beto', 'roque', 'nina', 'mila', 'theo', 'clara'];
   const EXPRESSIONS = ['neutro', 'zap', 'copas', 'espadas', 'ouros', 'tres', 'lixo', 'feliz', 'triste', 'truco', 'piscando', 'falando'];
 
   function avatar(name) {

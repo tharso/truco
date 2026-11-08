@@ -242,3 +242,26 @@ Tharso gravou 7 Personagens. Não seguiu o texto à risca: vale como ficou ("Tô
 - "Mostra!" e "Tô fora!" passam a ter som.
 - Cortes em `public/audio/<personagem>/<fala>.m4a`, feitos por `scripts/cortar-vozes.sh` (tempos do silêncio; o nome falado no começo fica de fora).
 - Falta: Juninho (usa a voz antiga no truco; Mostra e Tô fora mudos) e as 17 falas do Blurp como Voz da Mesa (segue a voz Luciana).
+
+---
+
+## Rodada 9 — Mila, Theo e Clara (08/11/2026) · ✅ feita
+
+Grilling com Tharso. Três Personagens novos, feitos a partir de fotos de pessoas reais (as fotos ficam fora do git).
+
+**Personagens**
+- Nomes puros: Mila, Theo, Clara. Ids `mila`, `theo`, `clara`.
+- Arte: a mesma receita (KIE `nano-banana-2-1`, estilo 3D, 12 caras a partir da `neutro`, WebP sem fundo, piscada com boca neutra). Antes, 2 provas de cada em `arte/provas-novos/`; Tharso escolhe.
+- Escolhidas: Mila prova 1, Theo prova 2, Clara hip-hop prova 2.
+- Mila: cabelo comprido ondulado, raiz castanho-escura com mechas douradas, olhos castanhos, sardas leves, colar fino dourado. Blusa rosa-claro com listras pretas de zebra.
+- Theo: cabelo castanho-escuro liso e cheio, franja em cuia, óculos azul-claro em todas as caras, pintinhas na bochecha, todos os dentes. Moletom amarelo-mostarda.
+- Clara: cabelo castanho-claro liso e comprido com mechas loiras, olhos castanhos, sem óculos. Depois de uma prova comum e uma K-Pop, Tharso escolheu o visual hip-hop: chapéu bucket creme, jaqueta corta-vento anos 90 (verde-água, roxo e branco), correntinha e argolinhas.
+- Barras (a ajustar depois): Mila blefe 9 e coragem 3; Theo blefe 2 e coragem 9; Clara blefe 4 e coragem 2.
+- Vozes: entram depois. Até gravarem, ficam como o Juninho (voz antiga no truco; Mostra e Tô fora mudos).
+- Tela de escolha no Celular: segue em 4 colunas (11 Personagens, 3 linhas).
+
+**Sem Personagem fixo**
+- A Sala nova sorteia o Personagem de cada parceiro. Saem Tonhão e Cida como padrão.
+- O Robô que entra no lugar de um Jogador também é sorteado. Saem Neide e Juninho como padrão.
+- O Jogador troca o parceiro na escolha, como hoje.
+- No código: `Room` sorteia com `opts.escolha` (separado do sorteio das cartas). Os testes passam `elencoFixo`, que pega sempre o primeiro livre.
