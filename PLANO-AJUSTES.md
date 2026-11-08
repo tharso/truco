@@ -268,7 +268,7 @@ Grilling com Tharso. Três Personagens novos, feitos a partir de fotos de pessoa
 
 ---
 
-## Rodada 10 — Vozes da Mila, do Theo e da Clara (08/11/2026) · ✅ feita
+## Rodada 10 — Vozes da Mila, do Theo e da Clara (08/11/2026) · ✅ feita (PR #30)
 
 Tharso gravou os três (Clara em `.opus`). Cada um tem Truco, Seis, Nove, Doze, "Tô dentro" (Mostra) e "Tô fora".
 
