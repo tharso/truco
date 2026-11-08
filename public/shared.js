@@ -56,6 +56,8 @@
     { id: 'neide', name: 'Dona Neide', bluff: 4, nerve: 6 }, { id: 'juninho', name: 'Juninho', bluff: 6, nerve: 4 },
     { id: 'blurp', name: 'Blurp', bluff: 5, nerve: 5 }, { id: 'beto', name: 'Beto', bluff: 3, nerve: 7 },
     { id: 'roque', name: 'Roque', bluff: 8, nerve: 5 }, { id: 'nina', name: 'Nina', bluff: 5, nerve: 8 },
+    { id: 'mila', name: 'Mila', bluff: 9, nerve: 3 }, { id: 'theo', name: 'Theo', bluff: 2, nerve: 9 },
+    { id: 'clara', name: 'Clara', bluff: 4, nerve: 2 },
   ];
   // Barras padrão do Personagem.
   function barsOf(id) {

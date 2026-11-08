@@ -51,7 +51,7 @@ Um Jogador ficar sem Celular conectado à Sala. A Partida espera ele voltar, e o
 _Evitar_: desconectar (em texto para pessoas), sair
 
 **Personagem**:
-A figura que aparece na Mesa no Lugar de alguém, com nome e caras próprias (Tonhão, Cida, Nina…).
+A figura que aparece na Mesa no Lugar de alguém, com nome e caras próprias (Tonhão, Cida, Nina, Mila…). Nenhum Personagem é fixo: na Sala nova, cada Robô ganha um Personagem sorteado, e o Jogador troca o do parceiro se quiser.
 _Evitar_: rosto, avatar, persona
 
 ## Jogo

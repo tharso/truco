@@ -3,7 +3,7 @@
 Decidido em 06/11/2026 (rodada 4). Cada Personagem fala com a própria voz, seja Robô ou Jogador.
 O Blurp, dono do bar, também é a Voz da Mesa.
 
-**Situação (07/11/2026):** 7 Personagens gravaram a Parte 1 e já falam no jogo (`scripts/cortar-vozes.sh`). Falta o Juninho (Parte 1) e o Blurp como Voz da Mesa (Parte 2).
+**Situação (07/11/2026):** 7 Personagens gravaram a Parte 1 e já falam no jogo (`scripts/cortar-vozes.sh`). Faltam Juninho, Mila, Theo e Clara (Parte 1) e o Blurp como Voz da Mesa (Parte 2).
 
 ## Como gravar
 
@@ -16,7 +16,7 @@ O Blurp, dono do bar, também é a Voz da Mesa.
 Pode falar do seu jeito. Pode esticar ("TRUUUCO!"), gritar, rir.
 O balão na Mesa mostra só a palavra da coluna "Balão".
 
-## Parte 1 — Falas de cada Personagem (8 Personagens × 6 falas = 48)
+## Parte 1 — Falas de cada Personagem (11 Personagens × 6 falas = 66)
 
 Cada Personagem grava estas 6. Vale quando ele é Robô e quando é o Personagem de um Jogador.
 
@@ -29,7 +29,7 @@ Cada Personagem grava estas 6. Vale quando ele é Robô e quando é o Personagem
 | 5 | Aceita o truco | Mostra! | "Mostra!" |
 | 6 | Corre do truco | Tô fora! | "Tô fora!" |
 
-Personagens: Tonhão, Cida, Dona Neide, Juninho, Blurp, Beto, Roque, Nina.
+Personagens: Tonhão, Cida, Dona Neide, Juninho, Blurp, Beto, Roque, Nina, Mila, Theo, Clara.
 
 ## Parte 2 — Voz da Mesa: o Blurp (17 falas)
 

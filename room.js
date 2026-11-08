@@ -18,8 +18,6 @@ const clean = (t) => {
 // O Lugar que vem numa ação ou num pedido de conexão: um número, ou um texto só com dígitos. Vazio, null, true e false
 // não viram o Lugar 0 ou 1 (Number faria isso); viram NaN, que nenhum Lugar aceita.
 const seatOf = (v) => (typeof v === 'number' || (typeof v === 'string' && /^\d+$/.test(v)) ? Number(v) : NaN);
-// Quem joga no lugar de uma pessoa que não veio (se o rosto estiver livre).
-const FILL_AVATARS = ['neide', 'juninho'];
 // As ações que são jogadas na Mão.
 const PLAYS = new Set(['play', 'truco', 'respond', 'opiniao', 'onze', 'sinal']);
 // As ações que só o Celular dono do Lugar faz (ADR 0002). As da Mesa (config, start, lobby) ficam de fora.
@@ -31,9 +29,11 @@ const OWNED = [[0, 2], [1, 3]];
 
 class Room {
   // opts.rng: sorteio das cartas (os testes passam um fixo). Sem ele, o Game usa Math.random.
+  // opts.escolha: sorteio dos Personagens dos Robôs, separado do das cartas. Sem ele, Math.random.
   // opts.onChange(salva): chamado a cada mudança com o que guardar (o Durable Object guarda).
   constructor(opts = {}) {
     this.game = new Game({ brain, rng: opts.rng });
+    this.escolha = opts.escolha || Math.random;
     this.onChange = opts.onChange || null;
     this.clients = new Set();
     this.humanNames = ['Jogador 1', 'Jogador 2'];
@@ -41,6 +41,7 @@ class Room {
     this.owners = [null, null];
     this.timer = null;
     this.timerKey = '';
+    this.sortearParceiros();
   }
 
   // ---------- guardar e ler (ADR 0002) ----------
@@ -52,6 +53,7 @@ class Room {
   // Uma Sala nova a partir do que `save` devolveu. Ninguém está conectado nela ainda.
   static load(saved, opts = {}) {
     const room = new Room(opts);
+    // restore troca os Lugares sorteados pelos guardados.
     room.game.restore(saved.game);
     room.humanNames = [...saved.humanNames];
     room.owners = [...saved.owners];
@@ -70,9 +72,22 @@ class Room {
     return new Set(OWNED[other].map((i) => this.game.seats[i].avatar).filter(Boolean));
   }
 
-  freeAvatar(exclude, prefer) {
-    if (prefer && !exclude.has(prefer)) return prefer;
-    return AVATAR_IDS.find((id) => !exclude.has(id)) || null;
+  // Um Personagem sorteado entre os que não estão em `exclude`. Nenhum é fixo.
+  freeAvatar(exclude) {
+    const livres = AVATAR_IDS.filter((id) => !exclude.has(id));
+    return livres.length ? livres[Math.floor(this.escolha() * livres.length)] : null;
+  }
+
+  // Sala nova: cada parceiro Robô ganha um Personagem sorteado, com o nome e as Barras dele.
+  sortearParceiros() {
+    const used = new Set();
+    for (const i of [2, 3]) {
+      const s = this.game.seats[i];
+      s.avatar = this.freeAvatar(used);
+      s.name = avatarName(s.avatar);
+      s.bars = barsOf(s.avatar);
+      used.add(s.avatar);
+    }
   }
 
   // Quem não travou a escolha cede o rosto se houver repetição.
@@ -86,7 +101,7 @@ class Room {
         const s = seats[i];
         if (!s.avatar || !used.has(s.avatar)) { if (s.avatar) used.add(s.avatar); continue; }
         const old = s.avatar;
-        s.avatar = this.freeAvatar(used, i >= 2 ? null : FILL_AVATARS[i]);
+        s.avatar = this.freeAvatar(used);
         // O Robô só leva o nome e as Barras do rosto novo se tinha os do rosto antigo. O que o Jogador montou fica.
         if (s.bot && s.name === avatarName(old)) s.name = avatarName(s.avatar);
         if (s.bot && sameBars(s.bars, barsOf(old))) s.bars = barsOf(s.avatar);
@@ -226,7 +241,7 @@ class Room {
         s.picked = false;
         if (s.bot) {
           const used = new Set(game.seats.filter((x, i) => i !== seat).map((x) => x.avatar).filter(Boolean));
-          s.avatar = this.freeAvatar(used, FILL_AVATARS[seat]);
+          s.avatar = this.freeAvatar(used);
           s.name = avatarName(s.avatar);
           s.bars = barsOf(s.avatar);
         } else {
