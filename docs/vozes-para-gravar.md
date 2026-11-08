@@ -3,7 +3,7 @@
 Decidido em 06/11/2026 (rodada 4). Cada Personagem fala com a própria voz, seja Robô ou Jogador.
 O Blurp, dono do bar, também é a Voz da Mesa.
 
-**Situação (07/11/2026):** 7 Personagens gravaram a Parte 1 e já falam no jogo (`scripts/cortar-vozes.sh`). Faltam Juninho, Mila, Theo e Clara (Parte 1) e o Blurp como Voz da Mesa (Parte 2).
+**Situação (07/11/2026):** 10 Personagens gravaram a Parte 1 e já falam no jogo (`scripts/cortar-vozes.sh`). Falta o Juninho (Parte 1) e o Blurp como Voz da Mesa (Parte 2).
 
 ## Como gravar
 

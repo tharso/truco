@@ -1,7 +1,7 @@
 #!/bin/bash
 # Corta as gravações dos Personagens (uma por Personagem, falas separadas por silêncio)
 # e salva cada fala em public/audio/<personagem>/<fala>.m4a.
-# Uso: scripts/cortar-vozes.sh <pasta com Tonhão.m4a, Cida.m4a…>
+# Uso: scripts/cortar-vozes.sh <pasta com Tonhão.m4a, Cida.m4a…> (quem não tem arquivo na pasta fica como está)
 # Os tempos (início-fim, em segundos) vieram do silencedetect do ffmpeg:
 #   ffmpeg -i X.m4a -af silencedetect=noise=-45dB:d=0.6 -f null -
 # O nome do Personagem no começo de cada gravação fica de fora.
@@ -20,10 +20,15 @@ CORTES=(
   "beto|Beto.m4a|4.05-4.56 6.08-7.05 8.41-9.00 10.90-12.08 14.13-16.14 18.53-20.25"
   "roque|Roque.m4a|3.44-4.04 5.26-6.25 7.56-8.61 9.64-10.46 11.96-12.92 14.03-15.43"
   "nina|Nina.m4a|2.18-3.03 4.63-5.27 6.30-7.05 8.14-9.06 11.09-11.72 13.61-14.55"
+  "mila|Mila.m4a|4.38-5.37 7.17-8.19 9.92-10.91 14.31-15.58 17.42-18.94 20.29-21.56"
+  "theo|Theo.m4a|3.74-4.83 6.12-7.29 8.25-9.42 10.20-11.43 12.07-13.14 14.49-16.00"
+  "clara|Clara.opus|2.40-4.24 5.40-6.48 7.69-8.67 10.07-10.73 11.27-11.89 12.75-13.40"
 )
 
 for linha in "${CORTES[@]}"; do
   IFS='|' read -r id arq tempos <<<"$linha"
+  # Só corta quem tem gravação na pasta. Assim dá para rodar com as gravações novas só.
+  [ -f "$SRC/$arq" ] || { echo "pulei $id (sem $arq)"; continue; }
   mkdir -p "$DIR/$id"
   i=0
   for t in $tempos; do
@@ -35,4 +40,4 @@ for linha in "${CORTES[@]}"; do
     i=$((i + 1))
   done
 done
-echo "OK: ${#CORTES[@]} Personagens × ${#FALAS[@]} falas em $DIR"
+echo "OK: falas em $DIR"
