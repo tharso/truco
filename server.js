@@ -66,6 +66,7 @@ const server = http.createServer((req, res) => {
   if (p === '/' || p === '/mesa') return serveFile(res, 'table.html');
   if (p === '/mao' || p === '/m') return serveFile(res, 'hand.html');
   if (p === '/junto') return serveFile(res, 'junto.html'); // protótipo (#12)
+  if (p === '/elenco') return serveFile(res, 'elenco.html'); // todas as caras e Falas
   return serveFile(res, decodeURIComponent(p).replace(/^\/+/, ''));
 });
 

@@ -21,3 +21,10 @@ test('a página do Celular não repete nenhum id', () => {
 test('a página da Mesa não repete nenhum id', () => {
   assert.deepStrictEqual(idsRepetidos('table.html'), []);
 });
+
+test('a página do Elenco não repete nenhum id e abre em /elenco no servidor local e na Cloudflare', () => {
+  assert.deepStrictEqual(idsRepetidos('elenco.html'), []);
+  const raiz = path.join(__dirname, '..');
+  assert.match(fs.readFileSync(path.join(raiz, 'server.js'), 'utf8'), /p === '\/elenco'\) return serveFile\(res, 'elenco\.html'\)/);
+  assert.match(fs.readFileSync(path.join(raiz, 'worker', 'index.js'), 'utf8'), /p === '\/elenco'\) return page\(env, url, request, '\/elenco\.html'\)/);
+});
