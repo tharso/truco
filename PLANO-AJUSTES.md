@@ -278,7 +278,7 @@ Tharso gravou os três (Clara em `.opus`). Cada um tem Truco, Seis, Nove, Doze, 
 
 ---
 
-## Rodada 11 — Página do Elenco (08/11/2026) · ✅ feita
+## Rodada 11 — Página do Elenco (08/11/2026) · ✅ feita (PR #31)
 
 Pedido de Tharso: uma página para ver e testar todas as caras e Falas de todos os Personagens.
 
