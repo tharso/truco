@@ -63,9 +63,12 @@ window.FX = (function () {
   };
 
   // ---------- falas gravadas ----------
-  // Cada fala é um arquivo em /audio/<chave>.m4a (gravado por scripts/gravar-vozes.sh).
+  // Cada fala é um arquivo em /audio/<chave>.m4a. Voz da Mesa: scripts/gravar-vozes.sh.
+  // Voz de cada Personagem: /audio/<personagem>/<fala>.m4a (scripts/cortar-vozes.sh).
+  const T = window.TABLE_TEXT;
   const CLIPS = ['truco', 'seis', 'nove', 'doze', 'onze', 'ferro', 'vez', 'responde', 'onze-decide', 'comeca', 'fim']
-    .concat(['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3'].map((r) => 'man-' + r));
+    .concat(['4', '5', '6', '7', 'Q', 'J', 'K', 'A', '2', '3'].map((r) => 'man-' + r))
+    .concat(T ? T.VOZES.flatMap((id) => T.FALAS.map((f) => `${id}/${f}`)) : []);
   const buffers = {};
   let loading = null;
   function loadClips() {
