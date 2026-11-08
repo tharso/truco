@@ -52,8 +52,8 @@
   }
 
   // Vozes gravadas (issue #25): cada Personagem fala com a própria voz, em public/audio/<id>/<fala>.m4a.
-  // Juninho, Mila, Theo e Clara ainda não gravaram. Gravações novas: scripts/cortar-vozes.sh.
-  const VOZES = ['tonhao', 'cida', 'neide', 'blurp', 'beto', 'roque', 'nina'];
+  // O Juninho ainda não gravou. Gravações novas: scripts/cortar-vozes.sh.
+  const VOZES = ['tonhao', 'cida', 'neide', 'blurp', 'beto', 'roque', 'nina', 'mila', 'theo', 'clara'];
   const FALAS = ['truco', 'seis', 'nove', 'doze', 'mostra', 'fora'];
   // Qual áudio toca quando o Personagem fala. Sem voz própria: o pedido de truco
   // usa a voz antiga (public/audio/<fala>.m4a); Mostra e Tô fora ficam mudos (null).

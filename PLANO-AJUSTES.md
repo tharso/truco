@@ -265,3 +265,14 @@ Grilling com Tharso. Três Personagens novos, feitos a partir de fotos de pessoa
 - O Robô que entra no lugar de um Jogador também é sorteado. Saem Neide e Juninho como padrão.
 - O Jogador troca o parceiro na escolha, como hoje.
 - No código: `Room` sorteia com `opts.escolha` (separado do sorteio das cartas). Os testes passam `elencoFixo`, que pega sempre o primeiro livre.
+
+---
+
+## Rodada 10 — Vozes da Mila, do Theo e da Clara (08/11/2026) · ✅ feita (PR #30)
+
+Tharso gravou os três (Clara em `.opus`). Cada um tem Truco, Seis, Nove, Doze, "Tô dentro" (Mostra) e "Tô fora".
+
+- Cortes em `public/audio/<personagem>/<fala>.m4a`, com os tempos no `scripts/cortar-vozes.sh`.
+- O script agora pula quem não tem gravação na pasta: dá para cortar só as gravações novas.
+- Falta: Juninho e as falas do Blurp como Voz da Mesa.
+
